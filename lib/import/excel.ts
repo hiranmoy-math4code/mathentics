@@ -1,7 +1,7 @@
-import * as XLSX from "xlsx";
 import { ImportedQuestion } from "./types";
 
 export async function parseExcelQuestions(file: File): Promise<ImportedQuestion[]> {
+  const XLSX = await import("xlsx");
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array" });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];

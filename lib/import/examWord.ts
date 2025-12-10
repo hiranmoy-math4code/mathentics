@@ -1,4 +1,4 @@
-import mammoth from "mammoth";
+
 import { createClient } from "@/lib/supabase/client";
 
 type ExamBlock = {
@@ -42,6 +42,7 @@ function getField(block: string, label: string): string {
 // 🔎 Parse the Word .docx into structured Exam
 export async function parseExamWord(file: File): Promise<ExamBlock> {
   const buf = await file.arrayBuffer();
+  const { default: mammoth } = await import("mammoth");
   const { value } = await mammoth.extractRawText({ arrayBuffer: buf });
 
   // exam block

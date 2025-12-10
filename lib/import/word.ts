@@ -1,8 +1,8 @@
-import mammoth from "mammoth";
 import { ImportedQuestion } from "./types";
 
 export async function parseWordQuestions(file: File): Promise<ImportedQuestion[]> {
   const buffer = await file.arrayBuffer();
+  const { default: mammoth } = await import("mammoth");
   const { value } = await mammoth.extractRawText({ arrayBuffer: buffer });
 
   const blocks = value.split("{QUESTION BEGINS}").slice(1);
