@@ -1,5 +1,3 @@
-import crypto from 'crypto';
-
 /**
  * Bunny.net Video Hosting Utility Library
  * Supports VOD (Video on Demand) and Live Streaming
@@ -32,17 +30,21 @@ export interface BunnyLiveStreamInfo {
 /**
  * Generate SHA256 signature for Bunny.net direct upload
  * Required for TUS protocol uploads
+ * Adjusted for Cloudflare compatibility (removing 'crypto')
  */
-export function generateUploadSignature(
+export async function generateUploadSignature(
     libraryId: string,
     apiKey: string,
     expirationTime: number = Date.now() + 3600000 // 1 hour from now
-): { signature: string; expirationTime: number; libraryId: string } {
+): Promise<{ signature: string; expirationTime: number; libraryId: string }> {
     const message = `${libraryId}${apiKey}${expirationTime}`;
-    const signature = crypto
-        .createHash('sha256')
-        .update(message)
-        .digest('hex');
+
+    // Use Web Crypto API instead of Node.js crypto
+    const encoder = new TextEncoder();
+    const data = encoder.encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
     return {
         signature,

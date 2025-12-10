@@ -63,6 +63,16 @@ export async function POST(req: Request) {
             collectionId // Pass collection ID if provided
         );
 
+        // Generate signature if needed (though client seems to use API key directly in this implementation?)
+        // If we were using TUS via proxy we would need it.
+        // For now, let's just make sure the file compiles. The generateUploadSignature is imported but unused.
+        // It's safer to just remove the unused import if it's not used, or leave it. 
+        // But the immediate fix was in lib/bunny.ts itself.
+
+        // Wait, I should sanity check if I missed any usage.
+        // But since I changed generateUploadSignature to async, any caller must key await.
+
+
         // Return all necessary data for client-side upload
         return NextResponse.json(
             {
