@@ -1,9 +1,7 @@
+export const runtime = 'edge';
+
 import Link from 'next/link'
 
-// 👇 এই দুটি লাইন হুবহু থাকতে হবে
-export const runtime = 'edge';
-export const dynamic = 'force-dynamic';
-export const preferredRegion = 'auto';
 export default function NotFound() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-50 text-gray-900">
