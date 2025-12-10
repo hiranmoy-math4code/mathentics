@@ -3,6 +3,8 @@ import AIMentor from "@/components/landing/AIMentor";
 import { Footer } from "@/components/landing/Footer";
 
 
+export const runtime = 'edge';
+
 export default function PublicLayout({
     children,
 }: {

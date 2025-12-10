@@ -7,6 +7,8 @@ import { CommunityModalProvider } from "@/context/CommunityModalContext";
 import { CommunityModal } from "@/components/community/CommunityModal";
 import { useCurrentUser } from "@/hooks/student/useCurrentUser";
 
+export const runtime = 'edge';
+
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { data: profile, isLoading } = useCurrentUser();
