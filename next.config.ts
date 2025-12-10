@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
     // 🚀 Cloudflare Optimizations
+
+    turbopack: {},
     reactStrictMode: true,
 
     // ✅ Webpack Config for Cloudflare (সবচেয়ে গুরুত্বপূর্ণ অংশ)
