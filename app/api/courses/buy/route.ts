@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createPayment } from "@/lib/phonepe";
 
+export const runtime = 'edge';
+
+
 // CORS headers for mobile app
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
