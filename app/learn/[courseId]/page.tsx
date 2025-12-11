@@ -18,7 +18,7 @@ import { CommunityModal } from "@/components/community/CommunityModal";
 import { CommunityButton } from "@/components/CommunityButton";
 
 // React Query / Hydration
-export const runtime = 'edge';
+// export const runtime = 'edge';
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/react-query";
 
@@ -224,7 +224,7 @@ export default async function CoursePlayerPage({
                         {isVideo ? (
                             // PREMIUM VIDEO LAYOUT
                             <div className="flex-1 flex flex-col h-full bg-background overflow-y-auto">
-                                {/* 1. Video Section (Full Width, Sticky-ish/Prominent) */}
+                                {/* ... (Video Layout Code remains same) ... */}
                                 <div className="w-full bg-black relative shadow-xl z-20">
                                     <div className="w-full h-auto aspect-video max-h-[85vh] mx-auto bg-black flex items-center justify-center">
                                         {currentLesson.content_url || currentLesson.bunny_video_id || currentLesson.bunny_stream_id ? (
@@ -372,115 +372,131 @@ export default async function CoursePlayerPage({
                                     </div>
                                 </div>
                             </div>
+                        ) : isQuiz ? (
+                            // PREMIUM QUIZ LAYOUT
+                            <div className="flex-1 flex flex-col h-full bg-muted/30 relative">
+                                {/* Header / Nav */}
+                                <div className="border-b border-border bg-background shadow-sm z-10 sticky top-0">
+                                    <div className="max-w-5xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-primary/10 p-2 rounded-lg text-primary">
+                                                <HelpCircle className="h-5 w-5" />
+                                            </div>
+                                            <div>
+                                                <h1 className="text-lg font-bold text-foreground line-clamp-1">{currentLesson.title}</h1>
+                                                <p className="text-xs text-muted-foreground">Exam Mode</p>
+                                            </div>
+                                        </div>
+                                        <div className="w-auto">
+                                            <LessonNavigation
+                                                courseId={courseId}
+                                                currentLessonId={currentLesson.id}
+                                                prevLessonId={prevLessonId}
+                                                nextLessonId={nextLessonId}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Main Quiz Area */}
+                                <div className="flex-1 overflow-y-auto">
+                                    <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 md:py-12">
+                                        {(currentLesson as any).exam_id && examData ? (
+                                            <div className="animate-in zoom-in-95 duration-300">
+                                                <QuizPlayer
+                                                    exam={examData}
+                                                    attempts={examAttempts}
+                                                    userId={user.id}
+                                                    questionsCount={questionsCount}
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center p-12 text-center bg-card rounded-2xl border border-border shadow-sm">
+                                                <div className="bg-muted p-4 rounded-full mb-4">
+                                                    <HelpCircle className="h-8 w-8 text-muted-foreground" />
+                                                </div>
+                                                <h3 className="text-lg font-semibold mb-2">Quiz Not Available</h3>
+                                                <p className="text-muted-foreground max-w-md mx-auto">
+                                                    This quiz is currently being prepared. Check back later!
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         ) : (
-                            // ORIGINAL / OTHER LAYOUT
+                            // STANDARD LAYOUT (Text, PDF)
                             <div className="flex-1 overflow-y-auto p-6 md:p-10 flex flex-col items-center bg-background">
-                                {currentLesson ? (
-                                    <div className="w-full max-w-4xl space-y-8">
-                                        {!isQuiz && (
-                                            <div className="border-b border-border pb-8">
-                                                <div className="flex items-center gap-3 mb-4">
-                                                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 rounded-full px-3 border-none font-medium">
-                                                        {course.level || "Beginner"}
-                                                    </Badge>
-                                                    <span className="text-sm text-muted-foreground">
-                                                        {currentLesson.duration ? `${Math.round(currentLesson.duration / 60)} min read` : "5 min read"}
-                                                    </span>
-                                                    <span className="text-sm text-muted-foreground">•</span>
-                                                    <span className="text-sm text-muted-foreground">
-                                                        Last updated {new Date(currentLesson.updated_at || currentLesson.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                    </span>
-                                                </div>
-                                                <h1 className="text-4xl font-bold tracking-tight mb-6 text-foreground">{currentLesson.title}</h1>
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar className="h-8 w-8 border border-border">
-                                                        <AvatarImage src={authorProfile?.avatar_url || "https://github.com/shadcn.png"} />
-                                                        <AvatarFallback>{authorProfile?.full_name?.substring(0, 2).toUpperCase() || "AU"}</AvatarFallback>
-                                                    </Avatar>
-                                                    <span className="text-sm font-medium text-foreground">
-                                                        By {authorProfile?.full_name || "Unknown Instructor"}
-                                                    </span>
-                                                </div>
+                                <div className="w-full max-w-4xl space-y-8">
+                                    <div className="border-b border-border pb-8">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 rounded-full px-3 border-none font-medium">
+                                                {course.level || "Beginner"}
+                                            </Badge>
+                                            <span className="text-sm text-muted-foreground">
+                                                {currentLesson.duration ? `${Math.round(currentLesson.duration / 60)} min read` : "5 min read"}
+                                            </span>
+                                        </div>
+                                        <h1 className="text-4xl font-bold tracking-tight mb-6 text-foreground">{currentLesson.title}</h1>
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="h-8 w-8 border border-border">
+                                                <AvatarImage src={authorProfile?.avatar_url || "https://github.com/shadcn.png"} />
+                                                <AvatarFallback>{authorProfile?.full_name?.substring(0, 2).toUpperCase() || "AU"}</AvatarFallback>
+                                            </Avatar>
+                                            <span className="text-sm font-medium text-foreground">
+                                                By {authorProfile?.full_name || "Unknown Instructor"}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-8">
+                                        {currentLesson.content_type === "pdf" && (
+                                            <div className="space-y-4">
+                                                {currentLesson?.content_url ? (
+                                                    <CustomPDFViewer
+                                                        url={currentLesson.content_url}
+                                                        title={currentLesson.title}
+                                                        allowDownload={currentLesson.is_downloadable ?? true}
+                                                    />
+                                                ) : (
+                                                    <div className="aspect-video flex flex-col items-center justify-center bg-card rounded-xl border border-border text-muted-foreground">
+                                                        <FileText className="h-20 w-20 opacity-20 mb-4" />
+                                                        <span className="text-lg font-medium">PDF Content Not Available</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
 
-                                        <div className="space-y-8">
-                                            {/* (Render other content types: PDF, Text, Quiz, etc. - largely same as before but duplicated slightly for clarity inside conditional) */}
-                                            {currentLesson.content_type === "pdf" && (
-                                                <div className="space-y-4">
-                                                    {currentLesson?.content_url ? (
-                                                        <CustomPDFViewer
-                                                            url={currentLesson.content_url}
-                                                            title={currentLesson.title}
-                                                            allowDownload={currentLesson.is_downloadable ?? true}
-                                                        />
-                                                    ) : (
-                                                        <div className="aspect-video flex flex-col items-center justify-center bg-card rounded-xl border border-border text-muted-foreground">
-                                                            <FileText className="h-20 w-20 opacity-20 mb-4" />
-                                                            <span className="text-lg font-medium">PDF Content Not Available</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {currentLesson.content_type === "text" && (
-                                                <div className="prose dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-base prose-p:leading-relaxed">
-                                                    {currentLesson.content_text ? (
-                                                        <>
-                                                            <style>{`
-                                                                .rich-text-content ul { list-style-type: disc !important; padding-left: 1.5em !important; margin-top: 0.5em !important; margin-bottom: 0.5em !important; }
-                                                                .rich-text-content ol { list-style-type: decimal !important; padding-left: 1.5em !important; margin-top: 0.5em !important; margin-bottom: 0.5em !important; }
-                                                            `}</style>
-                                                            <div dangerouslySetInnerHTML={{ __html: currentLesson.content_text }} className="rich-text-content" />
-                                                        </>
-                                                    ) : (
-                                                        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground border border-dashed border-border rounded-xl">
-                                                            <FileText className="h-20 w-20 opacity-20 mb-4" />
-                                                            <span className="text-lg font-medium">Text Content Not Available</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {currentLesson.content_type === "quiz" && (
-                                                <div className="space-y-6">
-                                                    {(currentLesson as any).exam_id && examData ? (
-                                                        <QuizPlayer
-                                                            exam={examData}
-                                                            attempts={examAttempts}
-                                                            userId={user.id}
-                                                            questionsCount={questionsCount}
-                                                        />
-                                                    ) : (
-                                                        <div className="p-8 rounded-xl bg-card border border-border text-center">
-                                                            <HelpCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                                                            <p className="text-muted-foreground">Quiz not configured yet</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {!isQuiz && (
-                                            <>
-                                                <ConceptCard title={currentLesson?.title} contentType={currentLesson?.content_type} icon={icon}>
-                                                    {currentLesson?.description}
-                                                </ConceptCard>
-                                                <LessonNavigation
-                                                    courseId={courseId}
-                                                    currentLessonId={currentLesson.id}
-                                                    prevLessonId={prevLessonId}
-                                                    nextLessonId={nextLessonId}
-                                                />
-                                            </>
+                                        {currentLesson.content_type === "text" && (
+                                            <div className="prose dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-base prose-p:leading-relaxed">
+                                                {currentLesson.content_text ? (
+                                                    <>
+                                                        <style>{`
+                                                            .rich-text-content ul { list-style-type: disc !important; padding-left: 1.5em !important; margin-top: 0.5em !important; margin-bottom: 0.5em !important; }
+                                                            .rich-text-content ol { list-style-type: decimal !important; padding-left: 1.5em !important; margin-top: 0.5em !important; margin-bottom: 0.5em !important; }
+                                                        `}</style>
+                                                        <div dangerouslySetInnerHTML={{ __html: currentLesson.content_text }} className="rich-text-content" />
+                                                    </>
+                                                ) : (
+                                                    <div className="flex flex-col items-center justify-center py-20 text-muted-foreground border border-dashed border-border rounded-xl">
+                                                        <FileText className="h-20 w-20 opacity-20 mb-4" />
+                                                        <span className="text-lg font-medium">Text Content Not Available</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                                        <FileText className="h-20 w-20 opacity-20 mb-4" />
-                                        <span className="text-lg font-medium">No Lesson Selected</span>
-                                    </div>
-                                )}
+
+                                    <ConceptCard title={currentLesson?.title} contentType={currentLesson?.content_type} icon={icon}>
+                                        {currentLesson?.description}
+                                    </ConceptCard>
+                                    <LessonNavigation
+                                        courseId={courseId}
+                                        currentLessonId={currentLesson.id}
+                                        prevLessonId={prevLessonId}
+                                        nextLessonId={nextLessonId}
+                                    />
+                                </div>
                             </div>
                         )}
                     </LessonTracker>

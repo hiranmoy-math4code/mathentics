@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react"
 import { useMarkLessonComplete } from "@/hooks/student/useLessonProgress"
 import { createClient } from "@/lib/supabase/client"
 import { checkModuleCompletion, checkFirstLessonReward } from "@/app/actions/rewardActions"
+// Force HMR Update
 import { toast } from "sonner"
 import LessonContext from "@/context/LessonContext"
 
