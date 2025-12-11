@@ -833,130 +833,135 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="p-4 md:p-6 bg-card rounded-2xl shadow-sm border border-border"
+                        className="flex-1 flex flex-col min-h-0 bg-card rounded-2xl shadow-sm border border-border overflow-hidden"
                     >
-                        <div className="flex justify-between items-start mb-4 flex-wrap gap-2">
-                            <div className="text-xs md:text-sm font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
-                                Question {activeQuestionIdx + 1}
-                            </div>
-                            <div className="text-xs md:text-sm text-muted-foreground">
-                                Marks: <span className="font-semibold text-emerald-500">+{currentQuestion?.marks}</span> |
-                                Negative: <span className="font-semibold text-rose-500">-{currentQuestion?.negative_marks}</span>
-                            </div>
-                        </div>
-
-                        <div className="text-base md:text-lg font-medium mb-6 leading-relaxed text-foreground">
-                            {renderWithLatex(currentQuestion?.question_text)}
-                        </div>
-
-                        {/* OPTIONS */}
-                        <div className="space-y-3">
-                            {currentQuestion?.question_type === "MCQ" &&
-                                currentQuestion?.options?.map((opt, idx) => {
-                                    const chosen = responses[currentQuestion.id] === opt.id
-                                    const optionLabel = String.fromCharCode(65 + idx)
-                                    return (
-                                        <button
-                                            key={opt.id}
-                                            onClick={() => handleSaveResponse(currentQuestion.id, opt.id)}
-                                            className={`w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-200 flex items-center gap-3 md:gap-4 group ${chosen
-                                                ? "bg-primary/10 border-primary shadow-sm ring-1 ring-primary"
-                                                : "bg-muted/30 border-border hover:border-primary hover:bg-muted/50"
-                                                }`}
-                                        >
-                                            <div
-                                                className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs md:text-sm font-bold transition-colors ${chosen
-                                                    ? "bg-primary text-primary-foreground"
-                                                    : "border border-muted-foreground/30 text-muted-foreground group-hover:border-primary group-hover:text-primary"
-                                                    }`}
-                                            >
-                                                {optionLabel}
-                                            </div>
-                                            <span className="text-sm md:text-base text-foreground group-hover:text-foreground">{renderWithLatex(opt.option_text)}</span>
-                                        </button>
-                                    )
-                                })}
-
-                            {currentQuestion?.question_type === "MSQ" &&
-                                currentQuestion?.options?.map((opt, idx) => {
-                                    const current = (responses[currentQuestion.id] || []) as string[]
-                                    const checked = current.includes(opt.id)
-                                    const optionLabel = String.fromCharCode(65 + idx)
-                                    return (
-                                        <button
-                                            key={opt.id}
-                                            onClick={() => {
-                                                const next = checked
-                                                    ? current.filter((x) => x !== opt.id)
-                                                    : [...current, opt.id]
-                                                handleSaveResponse(currentQuestion.id, next)
-                                            }}
-                                            className={`w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-200 flex items-center gap-3 md:gap-4 group ${checked
-                                                ? "bg-amber-500/10 border-amber-500 shadow-sm ring-1 ring-amber-500"
-                                                : "bg-muted/30 border-border hover:border-amber-500 hover:bg-muted/50"
-                                                }`}
-                                        >
-                                            <div
-                                                className={`w-6 h-6 rounded flex-shrink-0 flex items-center justify-center text-xs md:text-sm font-bold transition-colors ${checked ? "bg-amber-500 text-white" : "border border-muted-foreground/30 text-muted-foreground group-hover:border-amber-500"
-                                                    }`}
-                                            >
-                                                {optionLabel}
-                                            </div>
-                                            <span className="text-sm md:text-base text-foreground group-hover:text-foreground">{renderWithLatex(opt.option_text)}</span>
-                                        </button>
-                                    )
-                                })}
-
-                            {currentQuestion?.question_type === "NAT" && (
-                                <div className="mt-2">
-                                    <label className="block text-sm font-medium text-foreground mb-2">Your Answer:</label>
-                                    <input
-                                        type="number"
-                                        className="w-full max-w-md p-3 rounded-lg border border-border bg-background text-foreground focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all text-sm md:text-base"
-                                        placeholder="Enter numeric value..."
-                                        value={responses[currentQuestion.id] || ""}
-                                        onChange={(e) => handleSaveResponse(currentQuestion.id, e.target.value)}
-                                    />
+                        {/* Scrollable Content Area */}
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+                            <div className="flex justify-between items-start mb-4 flex-wrap gap-2">
+                                <div className="text-xs md:text-sm font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
+                                    Question {activeQuestionIdx + 1}
                                 </div>
-                            )}
+                                <div className="text-xs md:text-sm text-muted-foreground">
+                                    Marks: <span className="font-semibold text-emerald-500">+{currentQuestion?.marks}</span> |
+                                    Negative: <span className="font-semibold text-rose-500">-{currentQuestion?.negative_marks}</span>
+                                </div>
+                            </div>
+
+                            <div className="text-base md:text-lg font-medium mb-6 leading-relaxed text-foreground">
+                                {renderWithLatex(currentQuestion?.question_text)}
+                            </div>
+
+                            {/* OPTIONS */}
+                            <div className="space-y-3 pb-4">
+                                {currentQuestion?.question_type === "MCQ" &&
+                                    currentQuestion?.options?.map((opt, idx) => {
+                                        const chosen = responses[currentQuestion.id] === opt.id
+                                        const optionLabel = String.fromCharCode(65 + idx)
+                                        return (
+                                            <button
+                                                key={opt.id}
+                                                onClick={() => handleSaveResponse(currentQuestion.id, opt.id)}
+                                                className={`w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-200 flex items-center gap-3 md:gap-4 group ${chosen
+                                                    ? "bg-primary/10 border-primary shadow-sm ring-1 ring-primary"
+                                                    : "bg-muted/30 border-border hover:border-primary hover:bg-muted/50"
+                                                    }`}
+                                            >
+                                                <div
+                                                    className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs md:text-sm font-bold transition-colors ${chosen
+                                                        ? "bg-primary text-primary-foreground"
+                                                        : "border border-muted-foreground/30 text-muted-foreground group-hover:border-primary group-hover:text-primary"
+                                                        }`}
+                                                >
+                                                    {optionLabel}
+                                                </div>
+                                                <span className="text-sm md:text-base text-foreground group-hover:text-foreground">{renderWithLatex(opt.option_text)}</span>
+                                            </button>
+                                        )
+                                    })}
+
+                                {currentQuestion?.question_type === "MSQ" &&
+                                    currentQuestion?.options?.map((opt, idx) => {
+                                        const current = (responses[currentQuestion.id] || []) as string[]
+                                        const checked = current.includes(opt.id)
+                                        const optionLabel = String.fromCharCode(65 + idx)
+                                        return (
+                                            <button
+                                                key={opt.id}
+                                                onClick={() => {
+                                                    const next = checked
+                                                        ? current.filter((x) => x !== opt.id)
+                                                        : [...current, opt.id]
+                                                    handleSaveResponse(currentQuestion.id, next)
+                                                }}
+                                                className={`w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-200 flex items-center gap-3 md:gap-4 group ${checked
+                                                    ? "bg-amber-500/10 border-amber-500 shadow-sm ring-1 ring-amber-500"
+                                                    : "bg-muted/30 border-border hover:border-amber-500 hover:bg-muted/50"
+                                                    }`}
+                                            >
+                                                <div
+                                                    className={`w-6 h-6 rounded flex-shrink-0 flex items-center justify-center text-xs md:text-sm font-bold transition-colors ${checked ? "bg-amber-500 text-white" : "border border-muted-foreground/30 text-muted-foreground group-hover:border-amber-500"
+                                                        }`}
+                                                >
+                                                    {optionLabel}
+                                                </div>
+                                                <span className="text-sm md:text-base text-foreground group-hover:text-foreground">{renderWithLatex(opt.option_text)}</span>
+                                            </button>
+                                        )
+                                    })}
+
+                                {currentQuestion?.question_type === "NAT" && (
+                                    <div className="mt-2">
+                                        <label className="block text-sm font-medium text-foreground mb-2">Your Answer:</label>
+                                        <input
+                                            type="number"
+                                            className="w-full max-w-md p-3 rounded-lg border border-border bg-background text-foreground focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all text-sm md:text-base"
+                                            placeholder="Enter numeric value..."
+                                            value={responses[currentQuestion.id] || ""}
+                                            onChange={(e) => handleSaveResponse(currentQuestion.id, e.target.value)}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        {/* ACTION BUTTONS */}
-                        <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-border flex flex-wrap justify-between items-center gap-2 md:gap-3">
-                            <div className="flex gap-2 flex-wrap">
-                                <button
-                                    onClick={prevQuestion}
-                                    disabled={activeQuestionIdx === 0}
-                                    className="px-3 md:px-4 py-1.5 md:py-2 border border-border text-foreground rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors text-xs md:text-sm"
-                                >
-                                    <ArrowLeft className="w-3 h-3 md:w-4 md:h-4" /> Previous
-                                </button>
-                                <button
-                                    onClick={() => handleSaveResponse(currentQuestion.id, null)}
-                                    className="px-3 md:px-4 py-1.5 md:py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors text-xs md:text-sm"
-                                >
-                                    Clear
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setMarked((m) => ({ ...m, [currentQuestion.id]: !m[currentQuestion.id] }))
-                                        nextQuestion()
-                                    }}
-                                    className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg flex items-center gap-2 transition-colors text-xs md:text-sm ${marked[currentQuestion.id]
-                                        ? "bg-amber-500 text-white hover:bg-amber-600"
-                                        : "border border-amber-500 text-amber-500 hover:bg-amber-500/10"
-                                        }`}
-                                >
-                                    <Flag className="w-3 h-3 md:w-4 md:h-4" /> {marked[currentQuestion.id] ? "Marked" : "Mark"}
-                                </button>
-                            </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={nextQuestion}
-                                    className="px-4 md:px-6 py-1.5 md:py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm transition-colors text-xs md:text-sm"
-                                >
-                                    Save & Next
-                                </button>
+                        {/* Fixed ACTION BUTTONS Footer */}
+                        <div className="flex-shrink-0 p-4 md:p-6 pt-4 border-t border-border bg-card/95 backdrop-blur-sm">
+                            <div className="flex flex-wrap justify-between items-center gap-2 md:gap-3">
+                                <div className="flex gap-2 flex-wrap">
+                                    <button
+                                        onClick={prevQuestion}
+                                        disabled={activeQuestionIdx === 0}
+                                        className="px-3 md:px-4 py-1.5 md:py-2 border border-border text-foreground rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors text-xs md:text-sm"
+                                    >
+                                        <ArrowLeft className="w-3 h-3 md:w-4 md:h-4" /> Previous
+                                    </button>
+                                    <button
+                                        onClick={() => handleSaveResponse(currentQuestion.id, null)}
+                                        className="px-3 md:px-4 py-1.5 md:py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors text-xs md:text-sm"
+                                    >
+                                        Clear
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setMarked((m) => ({ ...m, [currentQuestion.id]: !m[currentQuestion.id] }))
+                                            nextQuestion()
+                                        }}
+                                        className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg flex items-center gap-2 transition-colors text-xs md:text-sm ${marked[currentQuestion.id]
+                                            ? "bg-amber-500 text-white hover:bg-amber-600"
+                                            : "border border-amber-500 text-amber-500 hover:bg-amber-500/10"
+                                            }`}
+                                    >
+                                        <Flag className="w-3 h-3 md:w-4 md:h-4" /> {marked[currentQuestion.id] ? "Marked" : "Mark"}
+                                    </button>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={nextQuestion}
+                                        className="px-4 md:px-6 py-1.5 md:py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm transition-colors text-xs md:text-sm"
+                                    >
+                                        Save & Next
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </motion.div>
