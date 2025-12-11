@@ -18,6 +18,7 @@ import { CommunityModal } from "@/components/community/CommunityModal";
 import { CommunityButton } from "@/components/CommunityButton";
 
 // React Query / Hydration
+export const runtime = 'edge';
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/react-query";
 

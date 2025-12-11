@@ -12,7 +12,7 @@ import AIMentor from "@/components/landing/AIMentor"
 import { RewardInitializerWrapper } from "@/components/RewardInitializerWrapper"
 
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 const geist = Geist({
   subsets: ["latin"],
