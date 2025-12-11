@@ -13,13 +13,15 @@ interface LessonNavigationProps {
     currentLessonId: string
     prevLessonId: string | null
     nextLessonId: string | null
+    variant?: "default" | "header"
 }
 
 export function LessonNavigation({
     courseId,
     currentLessonId,
     prevLessonId,
-    nextLessonId
+    nextLessonId,
+    variant = "default"
 }: LessonNavigationProps) {
     const [userId, setUserId] = useState<string | null>(null)
     const { data: lessonProgress } = useLessonProgress(userId || undefined, courseId)
@@ -53,6 +55,49 @@ export function LessonNavigation({
         }
     }
 
+    if (variant === "header") {
+        return (
+            <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="h-9 w-9 p-0 md:w-auto md:px-3 gap-2" disabled={!prevLessonId} asChild={!!prevLessonId}>
+                    {prevLessonId ? (
+                        <Link href={`/learn/${courseId}?lessonId=${prevLessonId}`} title="Previous Lesson">
+                            <ChevronLeft className="h-4 w-4" /> <span className="hidden md:inline">Prev</span>
+                        </Link>
+                    ) : (
+                        <span className="opacity-50 cursor-not-allowed"><ChevronLeft className="h-4 w-4" /> <span className="hidden md:inline">Prev</span></span>
+                    )}
+                </Button>
+
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 px-3 gap-2 text-muted-foreground hover:text-foreground hidden sm:flex"
+                    onClick={handleToggleComplete}
+                    disabled={isMarkingComplete || isMarkingIncomplete}
+                    title={isCompleted ? "Mark as Incomplete" : "Mark as Complete"}
+                >
+                    {isCompleted ? (
+                        <CheckCircle className="h-4 w-4 text-emerald-500" />
+                    ) : (
+                        <Circle className="h-4 w-4" />
+                    )}
+                    <span className="sr-only md:not-sr-only md:inline">{isCompleted ? "Done" : "Mark Complete"}</span>
+                </Button>
+
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white h-9 px-3 md:px-4 gap-2 shadow-sm" disabled={!nextLessonId} asChild={!!nextLessonId} size="sm">
+                    {nextLessonId ? (
+                        <Link href={`/learn/${courseId}?lessonId=${nextLessonId}`} title="Next Lesson">
+                            <span className="hidden md:inline">Next</span> <ChevronRight className="h-4 w-4" />
+                        </Link>
+                    ) : (
+                        <span className="opacity-50 cursor-not-allowed"><span className="hidden md:inline">Next</span> <ChevronRight className="h-4 w-4" /></span>
+                    )}
+                </Button>
+            </div>
+        )
+    }
+
+    // Default variant
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between mt-12 pt-8 border-t border-border gap-4">
             <Button variant="outline" className="gap-2 h-11 px-6 w-full sm:w-auto order-2 sm:order-1" disabled={!prevLessonId} asChild={!!prevLessonId}>

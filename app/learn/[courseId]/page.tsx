@@ -18,7 +18,7 @@ import { CommunityModal } from "@/components/community/CommunityModal";
 import { CommunityButton } from "@/components/CommunityButton";
 
 // React Query / Hydration
-// export const runtime = 'edge';
+export const runtime = 'edge';
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/react-query";
 
@@ -221,12 +221,73 @@ export default async function CoursePlayerPage({
                         moduleId={currentLesson?.module_id}
                         contentType={currentLesson?.content_type as any}
                     >
+                        {/* UNIFIED HEADER FOR ALL LESSON TYPES */}
+                        <div className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 px-4 md:px-6 flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <Link href="/student" className="text-muted-foreground hover:text-foreground transition-colors">
+                                    <ChevronLeft className="h-5 w-5" />
+                                </Link>
+                                <div className="flex flex-col">
+                                    <h1 className="font-semibold text-sm md:text-base line-clamp-1 mr-2" title={currentLesson.title}>
+                                        {currentLesson.title}
+                                    </h1>
+                                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
+                                        {currentLesson.content_type || 'Lesson'} • {course.level || 'Course'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Center: Navigation (Hidden on small mobile, visible on larger) */}
+                            <div className="hidden md:flex flex-1 justify-center">
+                                <LessonNavigation
+                                    courseId={courseId}
+                                    currentLessonId={currentLesson.id}
+                                    prevLessonId={prevLessonId}
+                                    nextLessonId={nextLessonId}
+                                    variant="header"
+                                />
+                            </div>
+
+                            {/* Right: Actions */}
+                            <div className="flex items-center gap-2">
+                                {/* Mobile Nav Trigger (if needed, but avoiding for cleaner UI) */}
+                                <div className="md:hidden">
+                                    {/* Mobile-only compact nav or just rely on bottom/floating controls? 
+                                        For now, keeping the main nav hidden on tiny screens to avoid crowding.
+                                        User asked for it in header, but fitting 3 buttons + title + actions in one row on mobile is hard.
+                                        I'll show a simplified version or rely on the sticky header behavior.
+                                     */}
+                                </div>
+
+                                <CommunityButton />
+                                <ThemeToggleBtn />
+                            </div>
+                        </div>
+
+                        {/* Mobile Navigation Bar (Visible only on small screens, below header or sticky bottom? 
+                           Let's put it below header if screen is small, or keep it sticky bottom.
+                           Actually, user said "in header". For mobile, maybe just icon buttons?
+                           Let's stick to the MD hidden logic above and add a secondary mobile row if needed, 
+                           OR just accept that on mobile it might need to wrap or use the bottom navigation from legacy layout.
+                           
+                           Wait, for consistent "Header" experience, let's try to fit it or show it right below header on mobile.
+                        */}
+                        <div className="md:hidden border-b border-border bg-muted/20 px-4 py-2 flex justify-center">
+                            <LessonNavigation
+                                courseId={courseId}
+                                currentLessonId={currentLesson.id}
+                                prevLessonId={prevLessonId}
+                                nextLessonId={nextLessonId}
+                                variant="header"
+                            />
+                        </div>
+
                         {isVideo ? (
                             // PREMIUM VIDEO LAYOUT
-                            <div className="flex-1 flex flex-col h-full bg-background overflow-y-auto">
-                                {/* ... (Video Layout Code remains same) ... */}
-                                <div className="w-full bg-black relative shadow-xl z-20">
-                                    <div className="w-full h-auto aspect-video max-h-[85vh] mx-auto bg-black flex items-center justify-center">
+                            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-background">
+                                {/* Video Section */}
+                                <div className="w-full bg-black relative shadow-lg z-20 shrink-0">
+                                    <div className="w-full h-auto aspect-video max-h-[70vh] mx-auto bg-black flex items-center justify-center">
                                         {currentLesson.content_url || currentLesson.bunny_video_id || currentLesson.bunny_stream_id ? (
                                             <>
                                                 {currentLesson.video_provider === 'bunny' && (currentLesson.bunny_video_id || currentLesson.bunny_stream_id) ? (
@@ -250,45 +311,17 @@ export default async function CoursePlayerPage({
                                     </div>
                                 </div>
 
-                                {/* 2. Action Bar & Navigation */}
-                                <div className="border-b border-border bg-card shadow-sm z-10 sticky top-0">
-                                    <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                                        <div className="flex-1 min-w-0">
-                                            <h1 className="text-lg md:text-xl font-bold text-foreground line-clamp-1" title={currentLesson.title}>
-                                                {currentLesson.title}
-                                            </h1>
-                                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
-                                                <span>Lesson {currentLesson.lesson_order}</span>
-                                                <span>•</span>
-                                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal border-border">
-                                                    {course.level || "Course Lvl"}
-                                                </Badge>
-                                            </p>
-                                        </div>
-                                        <div className="w-full md:w-auto">
-                                            <LessonNavigation
-                                                courseId={courseId}
-                                                currentLessonId={currentLesson.id}
-                                                prevLessonId={prevLessonId}
-                                                nextLessonId={nextLessonId}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* 3. Tabs & Details */}
+                                {/* Tabs & Details */}
                                 <div className="flex-1 bg-background">
-                                    <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
+                                    <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
                                         <Tabs defaultValue="overview" className="w-full">
-                                            <TabsList className="bg-muted/50 p-1 h-auto rounded-lg mb-8 inline-flex flex-wrap gap-1">
-                                                <TabsTrigger value="overview" className="px-6 py-2 rounded-md font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Overview</TabsTrigger>
-                                                <TabsTrigger value="resources" className="px-6 py-2 rounded-md font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Resources</TabsTrigger>
-                                                <TabsTrigger value="discussion" className="px-6 py-2 rounded-md font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Discussion</TabsTrigger>
-                                                <TabsTrigger value="notes" className="px-6 py-2 rounded-md font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Notes</TabsTrigger>
+                                            <TabsList className="bg-muted/50 p-1 h-auto rounded-lg mb-6 inline-flex flex-wrap gap-1">
+                                                <TabsTrigger value="overview" className="px-4 py-1.5 text-sm rounded-md font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Overview</TabsTrigger>
+                                                <TabsTrigger value="resources" className="px-4 py-1.5 text-sm rounded-md font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Resources</TabsTrigger>
+                                                <TabsTrigger value="discussion" className="px-4 py-1.5 text-sm rounded-md font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Discussion</TabsTrigger>
                                             </TabsList>
 
                                             <TabsContent value="overview" className="space-y-8 animate-in fade-in-50 duration-300">
-                                                {/* Description / Key Concepts */}
                                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                                     <div className="lg:col-span-2 space-y-6">
                                                         <div className="prose dark:prose-invert max-w-none">
@@ -301,7 +334,6 @@ export default async function CoursePlayerPage({
                                                                 <p className="text-muted-foreground italic">No description available.</p>
                                                             )}
                                                         </div>
-
                                                         {currentLesson.content_text && (
                                                             <div className="mt-8 pt-8 border-t border-border">
                                                                 <h3 className="text-lg font-semibold mb-4">Lesson Transcript / Notes</h3>
@@ -312,7 +344,6 @@ export default async function CoursePlayerPage({
                                                             </div>
                                                         )}
                                                     </div>
-
                                                     <div className="space-y-6">
                                                         <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
                                                             <div className="flex items-center gap-3 mb-4">
@@ -327,10 +358,6 @@ export default async function CoursePlayerPage({
                                                             </div>
                                                             <div className="text-xs text-muted-foreground space-y-2">
                                                                 <div className="flex justify-between">
-                                                                    <span>Last Updated</span>
-                                                                    <span>{new Date(currentLesson.updated_at).toLocaleDateString()}</span>
-                                                                </div>
-                                                                <div className="flex justify-between">
                                                                     <span>Duration</span>
                                                                     <span>{Math.round((currentLesson.duration || 300) / 60)} mins</span>
                                                                 </div>
@@ -339,7 +366,6 @@ export default async function CoursePlayerPage({
                                                     </div>
                                                 </div>
                                             </TabsContent>
-
                                             <TabsContent value="resources" className="animate-in fade-in-50 duration-300">
                                                 <div className="p-12 border border-dashed border-border rounded-xl text-center bg-muted/20">
                                                     <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
@@ -347,7 +373,6 @@ export default async function CoursePlayerPage({
                                                     <p className="text-muted-foreground">There are no additional resources attached to this lesson.</p>
                                                 </div>
                                             </TabsContent>
-
                                             <TabsContent value="discussion" className="animate-in fade-in-50 duration-300">
                                                 <div className="max-w-2xl mx-auto text-center py-12">
                                                     <div className="bg-emerald-100 dark:bg-emerald-900/20 p-4 rounded-full inline-flex mb-6">
@@ -360,107 +385,75 @@ export default async function CoursePlayerPage({
                                                     <CommunityButton />
                                                 </div>
                                             </TabsContent>
-
-                                            <TabsContent value="notes" className="animate-in fade-in-50 duration-300">
-                                                <div className="p-12 border border-dashed border-border rounded-xl text-center bg-muted/20">
-                                                    <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                                                    <h3 className="text-lg font-medium">Personal Notes</h3>
-                                                    <p className="text-muted-foreground mb-4">You haven't taken any notes for this lesson yet.</p>
-                                                </div>
-                                            </TabsContent>
                                         </Tabs>
                                     </div>
                                 </div>
                             </div>
                         ) : isQuiz ? (
                             // PREMIUM QUIZ LAYOUT
-                            <div className="flex-1 flex flex-col h-full bg-muted/30 relative">
-                                {/* Header / Nav */}
-                                <div className="border-b border-border bg-background shadow-sm z-10 sticky top-0">
-                                    <div className="max-w-5xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between gap-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="bg-primary/10 p-2 rounded-lg text-primary">
-                                                <HelpCircle className="h-5 w-5" />
-                                            </div>
-                                            <div>
-                                                <h1 className="text-lg font-bold text-foreground line-clamp-1">{currentLesson.title}</h1>
-                                                <p className="text-xs text-muted-foreground">Exam Mode</p>
-                                            </div>
-                                        </div>
-                                        <div className="w-auto">
-                                            <LessonNavigation
-                                                courseId={courseId}
-                                                currentLessonId={currentLesson.id}
-                                                prevLessonId={prevLessonId}
-                                                nextLessonId={nextLessonId}
+                            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-muted/10 relative">
+                                <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12 w-full">
+                                    {(currentLesson as any).exam_id && examData ? (
+                                        <div className="animate-in zoom-in-95 duration-300">
+                                            <QuizPlayer
+                                                exam={examData}
+                                                attempts={examAttempts}
+                                                userId={user.id}
+                                                questionsCount={questionsCount}
                                             />
                                         </div>
-                                    </div>
-                                </div>
-
-                                {/* Main Quiz Area */}
-                                <div className="flex-1 overflow-y-auto">
-                                    <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 md:py-12">
-                                        {(currentLesson as any).exam_id && examData ? (
-                                            <div className="animate-in zoom-in-95 duration-300">
-                                                <QuizPlayer
-                                                    exam={examData}
-                                                    attempts={examAttempts}
-                                                    userId={user.id}
-                                                    questionsCount={questionsCount}
-                                                />
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center p-12 text-center bg-card rounded-2xl border border-border shadow-sm">
+                                            <div className="bg-muted p-4 rounded-full mb-4">
+                                                <HelpCircle className="h-8 w-8 text-muted-foreground" />
                                             </div>
-                                        ) : (
-                                            <div className="flex flex-col items-center justify-center p-12 text-center bg-card rounded-2xl border border-border shadow-sm">
-                                                <div className="bg-muted p-4 rounded-full mb-4">
-                                                    <HelpCircle className="h-8 w-8 text-muted-foreground" />
-                                                </div>
-                                                <h3 className="text-lg font-semibold mb-2">Quiz Not Available</h3>
-                                                <p className="text-muted-foreground max-w-md mx-auto">
-                                                    This quiz is currently being prepared. Check back later!
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
+                                            <h3 className="text-lg font-semibold mb-2">Quiz Not Available</h3>
+                                            <p className="text-muted-foreground max-w-md mx-auto">
+                                                This quiz is currently being prepared. Check back later!
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ) : (
                             // STANDARD LAYOUT (Text, PDF)
-                            <div className="flex-1 overflow-y-auto p-6 md:p-10 flex flex-col items-center bg-background">
-                                <div className="w-full max-w-4xl space-y-8">
-                                    <div className="border-b border-border pb-8">
-                                        <div className="flex items-center gap-3 mb-4">
-                                            <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 rounded-full px-3 border-none font-medium">
-                                                {course.level || "Beginner"}
-                                            </Badge>
-                                            <span className="text-sm text-muted-foreground">
-                                                {currentLesson.duration ? `${Math.round(currentLesson.duration / 60)} min read` : "5 min read"}
-                                            </span>
-                                        </div>
-                                        <h1 className="text-4xl font-bold tracking-tight mb-6 text-foreground">{currentLesson.title}</h1>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-8 w-8 border border-border">
-                                                <AvatarImage src={authorProfile?.avatar_url || "https://github.com/shadcn.png"} />
-                                                <AvatarFallback>{authorProfile?.full_name?.substring(0, 2).toUpperCase() || "AU"}</AvatarFallback>
-                                            </Avatar>
-                                            <span className="text-sm font-medium text-foreground">
-                                                By {authorProfile?.full_name || "Unknown Instructor"}
-                                            </span>
+                            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-background">
+                                <div className="w-full max-w-4xl mx-auto p-6 md:p-10 space-y-8">
+                                    {/* Content Title / Metadata */}
+                                    <div className="space-y-4 text-center border-b border-border pb-8">
+                                        <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider">
+                                            {currentLesson.content_type} Lesson
+                                        </Badge>
+                                        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">{currentLesson.title}</h1>
+                                        <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-6 w-6 border border-border">
+                                                    <AvatarImage src={authorProfile?.avatar_url || ""} />
+                                                    <AvatarFallback>IN</AvatarFallback>
+                                                </Avatar>
+                                                <span className="font-medium text-foreground">{authorProfile?.full_name || "Instructor"}</span>
+                                            </div>
+                                            <span>•</span>
+                                            <span>{currentLesson.duration ? `${Math.round(currentLesson.duration / 60)} min read` : "5 min read"}</span>
                                         </div>
                                     </div>
 
+                                    {/* Main Content Area */}
                                     <div className="space-y-8">
                                         {currentLesson.content_type === "pdf" && (
-                                            <div className="space-y-4">
+                                            <div className="rounded-xl border border-border overflow-hidden bg-muted/20 shadow-sm">
                                                 {currentLesson?.content_url ? (
-                                                    <CustomPDFViewer
-                                                        url={currentLesson.content_url}
-                                                        title={currentLesson.title}
-                                                        allowDownload={currentLesson.is_downloadable ?? true}
-                                                    />
+                                                    <div className="aspect-[4/3] w-full">
+                                                        {/* Aspect ratio for PDF viewer, or allow it to be tall */}
+                                                        <CustomPDFViewer
+                                                            url={currentLesson.content_url}
+                                                            title={currentLesson.title}
+                                                            allowDownload={currentLesson.is_downloadable ?? true}
+                                                        />
+                                                    </div>
                                                 ) : (
-                                                    <div className="aspect-video flex flex-col items-center justify-center bg-card rounded-xl border border-border text-muted-foreground">
-                                                        <FileText className="h-20 w-20 opacity-20 mb-4" />
+                                                    <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                                                        <FileText className="h-16 w-16 opacity-20 mb-4" />
                                                         <span className="text-lg font-medium">PDF Content Not Available</span>
                                                     </div>
                                                 )}
@@ -468,12 +461,17 @@ export default async function CoursePlayerPage({
                                         )}
 
                                         {currentLesson.content_type === "text" && (
-                                            <div className="prose dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-base prose-p:leading-relaxed">
+                                            <div className="prose dark:prose-invert max-w-none prose-lg">
                                                 {currentLesson.content_text ? (
                                                     <>
                                                         <style>{`
-                                                            .rich-text-content ul { list-style-type: disc !important; padding-left: 1.5em !important; margin-top: 0.5em !important; margin-bottom: 0.5em !important; }
-                                                            .rich-text-content ol { list-style-type: decimal !important; padding-left: 1.5em !important; margin-top: 0.5em !important; margin-bottom: 0.5em !important; }
+                                                            .rich-text-content { font-size: 1.125rem; line-height: 1.8; }
+                                                            .rich-text-content h1, .rich-text-content h2 { color: var(--foreground); margin-top: 2em; margin-bottom: 1em; }
+                                                            .rich-text-content p { margin-bottom: 1.5em; color: var(--muted-foreground); }
+                                                            .rich-text-content strong { color: var(--foreground); font-weight: 700; }
+                                                            .rich-text-content ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1.5em; }
+                                                            .rich-text-content blockquote { border-left: 4px solid var(--primary); padding-left: 1em; font-style: italic; color: var(--muted-foreground); }
+                                                            .rich-text-content code { background: var(--muted); padding: 0.2em 0.4em; rounded: 0.25em; font-size: 0.9em; }
                                                         `}</style>
                                                         <div dangerouslySetInnerHTML={{ __html: currentLesson.content_text }} className="rich-text-content" />
                                                     </>
@@ -487,15 +485,12 @@ export default async function CoursePlayerPage({
                                         )}
                                     </div>
 
-                                    <ConceptCard title={currentLesson?.title} contentType={currentLesson?.content_type} icon={icon}>
-                                        {currentLesson?.description}
-                                    </ConceptCard>
-                                    <LessonNavigation
-                                        courseId={courseId}
-                                        currentLessonId={currentLesson.id}
-                                        prevLessonId={prevLessonId}
-                                        nextLessonId={nextLessonId}
-                                    />
+                                    {/* Footer Section */}
+                                    <div className="pt-8 border-t border-border mt-12 flex flex-col items-center gap-4">
+                                        <p className="text-muted-foreground italic text-center text-sm">
+                                            End of lesson. Mark as complete to continue.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         )}
