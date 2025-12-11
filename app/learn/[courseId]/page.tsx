@@ -185,38 +185,21 @@ export default async function CoursePlayerPage({
     const icon = iconMap[key];
 
     const isQuiz = currentLesson?.content_type === "quiz";
+    const isVideo = currentLesson?.content_type === "video";
+
     let examData = null;
     let examAttempts: any[] = [];
     let questionsCount = 0;
 
     if (isQuiz && (currentLesson as any).exam_id) {
         const examId = (currentLesson as any).exam_id;
-
-        // Fetch exam details
-        const { data: exam } = await supabase
-            .from("exams")
-            .select("*")
-            .eq("id", examId)
-            .single();
-
+        const { data: exam } = await supabase.from("exams").select("*").eq("id", examId).single();
         examData = exam;
-
-        // Fetch attempts
         if (user) {
-            const { data: attempts } = await supabase
-                .from("exam_attempts")
-                .select("*, result:results(*)")
-                .eq("exam_id", examId)
-                .eq("user_id", user.id);
+            const { data: attempts } = await supabase.from("exam_attempts").select("*, result:results(*)").eq("exam_id", examId).eq("user_id", user.id);
             examAttempts = attempts || [];
         }
-
-        // Fetch questions count
-        const { data: sections } = await supabase
-            .from("sections")
-            .select("id, questions:questions(id)")
-            .eq("exam_id", examId);
-
+        const { data: sections } = await supabase.from("sections").select("id, questions:questions(id)").eq("exam_id", examId);
         if (sections) {
             questionsCount = sections.reduce((acc: number, section: any) => acc + (section.questions?.length || 0), 0);
         }
@@ -238,226 +221,268 @@ export default async function CoursePlayerPage({
                         moduleId={currentLesson?.module_id}
                         contentType={currentLesson?.content_type as any}
                     >
-                        <div className="flex-1 overflow-y-auto p-6 md:p-10 flex flex-col items-center bg-background">
-                            {currentLesson ? (
-                                <div className="w-full max-w-4xl space-y-8">
-
-                                    {/* Lesson Header - Hide for Quiz */}
-                                    {!isQuiz && (
-                                        <div className="border-b border-border pb-8">
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 rounded-full px-3 border-none font-medium">
-                                                    {course.level || "Beginner"}
-                                                </Badge>
-                                                <span className="text-sm text-muted-foreground">
-                                                    {currentLesson.duration ? `${Math.round(currentLesson.duration / 60)} min read` : "5 min read"}
-                                                </span>
-                                                <span className="text-sm text-muted-foreground">•</span>
-                                                <span className="text-sm text-muted-foreground">
-                                                    Last updated {new Date(currentLesson.updated_at || currentLesson.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                </span>
-                                            </div>
-                                            <h1 className="text-4xl font-bold tracking-tight mb-6 text-foreground">{currentLesson.title}</h1>
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-8 w-8 border border-border">
-                                                    <AvatarImage src={authorProfile?.avatar_url || "https://github.com/shadcn.png"} />
-                                                    <AvatarFallback>{authorProfile?.full_name?.substring(0, 2).toUpperCase() || "AU"}</AvatarFallback>
-                                                </Avatar>
-                                                <span className="text-sm font-medium text-foreground">
-                                                    By {authorProfile?.full_name || "Unknown Instructor"}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Main Content */}
-                                    <div className="space-y-8">
-                                        {/* Video Content */}
-                                        {currentLesson.content_type === "video" && (
+                        {isVideo ? (
+                            // PREMIUM VIDEO LAYOUT
+                            <div className="flex-1 flex flex-col h-full bg-background overflow-y-auto">
+                                {/* 1. Video Section (Full Width, Sticky-ish/Prominent) */}
+                                <div className="w-full bg-black relative shadow-xl z-20">
+                                    <div className="w-full h-auto aspect-video max-h-[85vh] mx-auto bg-black flex items-center justify-center">
+                                        {currentLesson.content_url || currentLesson.bunny_video_id || currentLesson.bunny_stream_id ? (
                                             <>
-                                                {/* Live Class */}
-                                                {currentLesson.is_live && currentLesson.meeting_url ? (
-                                                    <div className="p-4 sm:p-6 md:p-8">
-                                                        <LiveClassCard
-                                                            lessonTitle={currentLesson.title}
-                                                            meetingUrl={currentLesson.meeting_url}
-                                                            meetingDate={currentLesson.meeting_date}
-                                                            meetingPlatform={currentLesson.meeting_platform}
-                                                            instructorName={course.instructor_name}
-                                                        />
-                                                    </div>
+                                                {currentLesson.video_provider === 'bunny' && (currentLesson.bunny_video_id || currentLesson.bunny_stream_id) ? (
+                                                    <BunnyPlayer
+                                                        videoId={currentLesson.bunny_video_id || currentLesson.bunny_stream_id || ''}
+                                                        libraryId={currentLesson.bunny_library_id || ''}
+                                                        videoType={currentLesson.video_type || 'vod'}
+                                                        videoStatus={currentLesson.video_status}
+                                                        className="w-full h-full"
+                                                    />
                                                 ) : (
-                                                    /* Regular Video */
-                                                    <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-lg relative border border-border ring-1 ring-border/50">
-                                                        {currentLesson.content_url || currentLesson.bunny_video_id || currentLesson.bunny_stream_id ? (
-                                                            <>
-                                                                {currentLesson.video_provider === 'bunny' && (currentLesson.bunny_video_id || currentLesson.bunny_stream_id) ? (
-                                                                    <BunnyPlayer
-                                                                        videoId={currentLesson.bunny_video_id || currentLesson.bunny_stream_id || ''}
-                                                                        libraryId={currentLesson.bunny_library_id || ''}
-                                                                        videoType={currentLesson.video_type || 'vod'}
-                                                                        videoStatus={currentLesson.video_status}
-                                                                        className="w-full h-full"
-                                                                    />
-                                                                ) : (
-                                                                    <VideoPlayer url={currentLesson.content_url} />
-                                                                )}
-                                                            </>
-                                                        ) : (
-                                                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                                                                <PlayCircle className="h-20 w-20 opacity-20 mb-4" />
-                                                                <span className="text-lg font-medium">Video Content Placeholder</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                    <VideoPlayer url={currentLesson.content_url} />
                                                 )}
                                             </>
-                                        )}
-
-                                        {/* PDF Content */}
-                                        {currentLesson.content_type === "pdf" && (
-                                            <div className="space-y-4">
-                                                {currentLesson?.content_url ? (
-                                                    <CustomPDFViewer
-                                                        url={currentLesson.content_url}
-                                                        title={currentLesson.title}
-                                                        allowDownload={currentLesson.is_downloadable ?? true}
-                                                    />
-                                                ) : (
-                                                    <div className="aspect-video flex flex-col items-center justify-center bg-card rounded-xl border border-border text-muted-foreground">
-                                                        <FileText className="h-20 w-20 opacity-20 mb-4" />
-                                                        <span className="text-lg font-medium">PDF Content Not Available</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {/* Text Content */}
-                                        {currentLesson.content_type === "text" && (
-                                            <div className="prose dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-base prose-p:leading-relaxed">
-                                                {currentLesson.content_text ? (
-                                                    <>
-                                                        <style>{`
-                                                            .rich-text-content ul {
-                                                                list-style-type: disc !important;
-                                                                padding-left: 1.5em !important;
-                                                                margin-top: 0.5em !important;
-                                                                margin-bottom: 0.5em !important;
-                                                            }
-                                                            .rich-text-content ol {
-                                                                list-style-type: decimal !important;
-                                                                padding-left: 1.5em !important;
-                                                                margin-top: 0.5em !important;
-                                                                margin-bottom: 0.5em !important;
-                                                            }
-                                                        `}</style>
-                                                        <div
-                                                            dangerouslySetInnerHTML={{ __html: currentLesson.content_text }}
-                                                            className="rich-text-content"
-                                                        />
-                                                    </>
-                                                ) : (
-                                                    <div className="flex flex-col items-center justify-center py-20 text-muted-foreground border border-dashed border-border rounded-xl">
-                                                        <FileText className="h-20 w-20 opacity-20 mb-4" />
-                                                        <span className="text-lg font-medium">Text Content Not Available</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {/* Quiz/Exam Content */}
-                                        {currentLesson.content_type === "quiz" && (
-                                            <div className="space-y-6">
-                                                {(currentLesson as any).exam_id && examData ? (
-                                                    <QuizPlayer
-                                                        exam={examData}
-                                                        attempts={examAttempts}
-                                                        userId={user.id}
-                                                        questionsCount={questionsCount}
-                                                    />
-                                                ) : (
-                                                    <div className="p-8 rounded-xl bg-card border border-border text-center">
-                                                        <HelpCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                                                        <p className="text-muted-foreground">Quiz not configured yet</p>
-                                                    </div>
-                                                )}
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center text-white/50">
+                                                <PlayCircle className="h-16 w-16 mb-2 opacity-50" />
+                                                <span className="text-sm">Video content unavailable</span>
                                             </div>
                                         )}
                                     </div>
+                                </div>
 
-                                    {/* Key Concept Box - Hide for Quiz */}
-                                    {!isQuiz && (
-                                        <>
-                                            <ConceptCard
-                                                title={currentLesson?.title}
-                                                contentType={currentLesson?.content_type}
-                                                icon={icon}
-                                            >
-                                                {currentLesson?.description}
-                                            </ConceptCard>
-
-                                        </>
-                                    )}
-
-                                    {/* Footer Navigation */}
-                                    <LessonNavigation
-                                        courseId={courseId}
-                                        currentLessonId={currentLesson.id}
-                                        prevLessonId={prevLessonId}
-                                        nextLessonId={nextLessonId}
-                                    />
-
-                                    {/* Bottom Tabs - Hide for Quiz */}
-                                    {!isQuiz && (
-                                        <div className="mt-16">
-                                            <Tabs defaultValue="resources" className="w-full">
-                                                <TabsList className="w-full justify-start border-b border-border bg-transparent p-0 h-auto rounded-none">
-                                                    <TabsTrigger value="resources" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-emerald-500 rounded-none px-6 py-3 text-muted-foreground data-[state=active]:text-foreground font-medium transition-all">
-                                                        Resources
-                                                    </TabsTrigger>
-                                                    <TabsTrigger value="discussion" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-emerald-500 rounded-none px-6 py-3 text-muted-foreground data-[state=active]:text-foreground font-medium transition-all">
-                                                        Discussion (3)
-                                                    </TabsTrigger>
-                                                    <TabsTrigger value="notes" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-emerald-500 rounded-none px-6 py-3 text-muted-foreground data-[state=active]:text-foreground font-medium transition-all">
-                                                        Notes
-                                                    </TabsTrigger>
-                                                </TabsList>
-                                                <TabsContent value="resources" className="pt-8">
-                                                    <div className="p-8 border border-dashed border-border rounded-xl text-center">
-                                                        <p className="text-muted-foreground">Additional resources for this lesson will appear here.</p>
-                                                    </div>
-                                                </TabsContent>
-                                                <TabsContent value="discussion" className="pt-8">
-                                                    <div className="p-8 border border-dashed border-border rounded-xl text-center flex flex-col items-center gap-4">
-                                                        <div className="bg-emerald-100 dark:bg-emerald-900/20 p-4 rounded-full">
-                                                            <Users className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-lg font-semibold mb-2">Join the Discussion</h3>
-                                                            <p className="text-muted-foreground max-w-md mx-auto mb-6">
-                                                                Connect with other learners, ask questions, and share your progress in our community channels.
-                                                            </p>
-                                                            <CommunityButton />
-                                                        </div>
-                                                    </div>
-                                                </TabsContent>
-                                                <TabsContent value="notes" className="pt-8">
-                                                    <div className="p-8 border border-dashed border-border rounded-xl text-center">
-                                                        <p className="text-muted-foreground">Personal notes placeholder.</p>
-                                                    </div>
-                                                </TabsContent>
-                                            </Tabs>
+                                {/* 2. Action Bar & Navigation */}
+                                <div className="border-b border-border bg-card shadow-sm z-10 sticky top-0">
+                                    <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                                        <div className="flex-1 min-w-0">
+                                            <h1 className="text-lg md:text-xl font-bold text-foreground line-clamp-1" title={currentLesson.title}>
+                                                {currentLesson.title}
+                                            </h1>
+                                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+                                                <span>Lesson {currentLesson.lesson_order}</span>
+                                                <span>•</span>
+                                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal border-border">
+                                                    {course.level || "Course Lvl"}
+                                                </Badge>
+                                            </p>
                                         </div>
-                                    )}
+                                        <div className="w-full md:w-auto">
+                                            <LessonNavigation
+                                                courseId={courseId}
+                                                currentLessonId={currentLesson.id}
+                                                prevLessonId={prevLessonId}
+                                                nextLessonId={nextLessonId}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
 
+                                {/* 3. Tabs & Details */}
+                                <div className="flex-1 bg-background">
+                                    <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
+                                        <Tabs defaultValue="overview" className="w-full">
+                                            <TabsList className="bg-muted/50 p-1 h-auto rounded-lg mb-8 inline-flex flex-wrap gap-1">
+                                                <TabsTrigger value="overview" className="px-6 py-2 rounded-md font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Overview</TabsTrigger>
+                                                <TabsTrigger value="resources" className="px-6 py-2 rounded-md font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Resources</TabsTrigger>
+                                                <TabsTrigger value="discussion" className="px-6 py-2 rounded-md font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Discussion</TabsTrigger>
+                                                <TabsTrigger value="notes" className="px-6 py-2 rounded-md font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">Notes</TabsTrigger>
+                                            </TabsList>
+
+                                            <TabsContent value="overview" className="space-y-8 animate-in fade-in-50 duration-300">
+                                                {/* Description / Key Concepts */}
+                                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                                    <div className="lg:col-span-2 space-y-6">
+                                                        <div className="prose dark:prose-invert max-w-none">
+                                                            <h3 className="text-lg font-semibold mb-2">About this lesson</h3>
+                                                            {currentLesson.description ? (
+                                                                <p className="text-muted-foreground leading-relaxed">
+                                                                    {currentLesson.description}
+                                                                </p>
+                                                            ) : (
+                                                                <p className="text-muted-foreground italic">No description available.</p>
+                                                            )}
+                                                        </div>
+
+                                                        {currentLesson.content_text && (
+                                                            <div className="mt-8 pt-8 border-t border-border">
+                                                                <h3 className="text-lg font-semibold mb-4">Lesson Transcript / Notes</h3>
+                                                                <div
+                                                                    dangerouslySetInnerHTML={{ __html: currentLesson.content_text }}
+                                                                    className="rich-text-content prose dark:prose-invert max-w-none text-sm text-muted-foreground"
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="space-y-6">
+                                                        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+                                                            <div className="flex items-center gap-3 mb-4">
+                                                                <Avatar className="h-10 w-10 border border-border">
+                                                                    <AvatarImage src={authorProfile?.avatar_url || ""} />
+                                                                    <AvatarFallback>IN</AvatarFallback>
+                                                                </Avatar>
+                                                                <div>
+                                                                    <p className="text-sm font-medium leading-none">{authorProfile?.full_name}</p>
+                                                                    <p className="text-xs text-muted-foreground mt-1">Instructor</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-xs text-muted-foreground space-y-2">
+                                                                <div className="flex justify-between">
+                                                                    <span>Last Updated</span>
+                                                                    <span>{new Date(currentLesson.updated_at).toLocaleDateString()}</span>
+                                                                </div>
+                                                                <div className="flex justify-between">
+                                                                    <span>Duration</span>
+                                                                    <span>{Math.round((currentLesson.duration || 300) / 60)} mins</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </TabsContent>
+
+                                            <TabsContent value="resources" className="animate-in fade-in-50 duration-300">
+                                                <div className="p-12 border border-dashed border-border rounded-xl text-center bg-muted/20">
+                                                    <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                                                    <h3 className="text-lg font-medium">No Resources</h3>
+                                                    <p className="text-muted-foreground">There are no additional resources attached to this lesson.</p>
+                                                </div>
+                                            </TabsContent>
+
+                                            <TabsContent value="discussion" className="animate-in fade-in-50 duration-300">
+                                                <div className="max-w-2xl mx-auto text-center py-12">
+                                                    <div className="bg-emerald-100 dark:bg-emerald-900/20 p-4 rounded-full inline-flex mb-6">
+                                                        <Users className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                                                    </div>
+                                                    <h3 className="text-xl font-bold mb-3">Join the Conversation</h3>
+                                                    <p className="text-muted-foreground mb-8">
+                                                        Connect with fellow students, ask questions, and share insights about this lesson.
+                                                    </p>
+                                                    <CommunityButton />
+                                                </div>
+                                            </TabsContent>
+
+                                            <TabsContent value="notes" className="animate-in fade-in-50 duration-300">
+                                                <div className="p-12 border border-dashed border-border rounded-xl text-center bg-muted/20">
+                                                    <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                                                    <h3 className="text-lg font-medium">Personal Notes</h3>
+                                                    <p className="text-muted-foreground mb-4">You haven't taken any notes for this lesson yet.</p>
+                                                </div>
+                                            </TabsContent>
+                                        </Tabs>
+                                    </div>
                                 </div>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                                    <FileText className="h-20 w-20 opacity-20 mb-4" />
-                                    <span className="text-lg font-medium">No Lesson Selected</span>
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        ) : (
+                            // ORIGINAL / OTHER LAYOUT
+                            <div className="flex-1 overflow-y-auto p-6 md:p-10 flex flex-col items-center bg-background">
+                                {currentLesson ? (
+                                    <div className="w-full max-w-4xl space-y-8">
+                                        {!isQuiz && (
+                                            <div className="border-b border-border pb-8">
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 rounded-full px-3 border-none font-medium">
+                                                        {course.level || "Beginner"}
+                                                    </Badge>
+                                                    <span className="text-sm text-muted-foreground">
+                                                        {currentLesson.duration ? `${Math.round(currentLesson.duration / 60)} min read` : "5 min read"}
+                                                    </span>
+                                                    <span className="text-sm text-muted-foreground">•</span>
+                                                    <span className="text-sm text-muted-foreground">
+                                                        Last updated {new Date(currentLesson.updated_at || currentLesson.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                    </span>
+                                                </div>
+                                                <h1 className="text-4xl font-bold tracking-tight mb-6 text-foreground">{currentLesson.title}</h1>
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-8 w-8 border border-border">
+                                                        <AvatarImage src={authorProfile?.avatar_url || "https://github.com/shadcn.png"} />
+                                                        <AvatarFallback>{authorProfile?.full_name?.substring(0, 2).toUpperCase() || "AU"}</AvatarFallback>
+                                                    </Avatar>
+                                                    <span className="text-sm font-medium text-foreground">
+                                                        By {authorProfile?.full_name || "Unknown Instructor"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-8">
+                                            {/* (Render other content types: PDF, Text, Quiz, etc. - largely same as before but duplicated slightly for clarity inside conditional) */}
+                                            {currentLesson.content_type === "pdf" && (
+                                                <div className="space-y-4">
+                                                    {currentLesson?.content_url ? (
+                                                        <CustomPDFViewer
+                                                            url={currentLesson.content_url}
+                                                            title={currentLesson.title}
+                                                            allowDownload={currentLesson.is_downloadable ?? true}
+                                                        />
+                                                    ) : (
+                                                        <div className="aspect-video flex flex-col items-center justify-center bg-card rounded-xl border border-border text-muted-foreground">
+                                                            <FileText className="h-20 w-20 opacity-20 mb-4" />
+                                                            <span className="text-lg font-medium">PDF Content Not Available</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {currentLesson.content_type === "text" && (
+                                                <div className="prose dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-base prose-p:leading-relaxed">
+                                                    {currentLesson.content_text ? (
+                                                        <>
+                                                            <style>{`
+                                                                .rich-text-content ul { list-style-type: disc !important; padding-left: 1.5em !important; margin-top: 0.5em !important; margin-bottom: 0.5em !important; }
+                                                                .rich-text-content ol { list-style-type: decimal !important; padding-left: 1.5em !important; margin-top: 0.5em !important; margin-bottom: 0.5em !important; }
+                                                            `}</style>
+                                                            <div dangerouslySetInnerHTML={{ __html: currentLesson.content_text }} className="rich-text-content" />
+                                                        </>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground border border-dashed border-border rounded-xl">
+                                                            <FileText className="h-20 w-20 opacity-20 mb-4" />
+                                                            <span className="text-lg font-medium">Text Content Not Available</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {currentLesson.content_type === "quiz" && (
+                                                <div className="space-y-6">
+                                                    {(currentLesson as any).exam_id && examData ? (
+                                                        <QuizPlayer
+                                                            exam={examData}
+                                                            attempts={examAttempts}
+                                                            userId={user.id}
+                                                            questionsCount={questionsCount}
+                                                        />
+                                                    ) : (
+                                                        <div className="p-8 rounded-xl bg-card border border-border text-center">
+                                                            <HelpCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                                                            <p className="text-muted-foreground">Quiz not configured yet</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {!isQuiz && (
+                                            <>
+                                                <ConceptCard title={currentLesson?.title} contentType={currentLesson?.content_type} icon={icon}>
+                                                    {currentLesson?.description}
+                                                </ConceptCard>
+                                                <LessonNavigation
+                                                    courseId={courseId}
+                                                    currentLessonId={currentLesson.id}
+                                                    prevLessonId={prevLessonId}
+                                                    nextLessonId={nextLessonId}
+                                                />
+                                            </>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                                        <FileText className="h-20 w-20 opacity-20 mb-4" />
+                                        <span className="text-lg font-medium">No Lesson Selected</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </LessonTracker>
                 </CoursePlayerClient>
                 <CommunityModal />
