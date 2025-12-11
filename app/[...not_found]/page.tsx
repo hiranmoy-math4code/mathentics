@@ -1,8 +1,8 @@
 import Link from 'next/link'
 
-export const runtime = 'edge';
+export const runtime = 'edge'
 
-export default function NotFound() {
+export default function NotFoundCatchAll() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-50 text-gray-900">
             <h2 className="text-3xl font-bold mb-4">404 - Page Not Found</h2>
@@ -16,3 +16,6 @@ export default function NotFound() {
         </div>
     )
 }
+
+// Force static generation
+export const dynamic = 'force-static'
