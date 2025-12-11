@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { PlayCircle, FileText, HelpCircle, AlignLeft, Users, ChevronLeft } from "lucide-react";
+import { PlayCircle, FileText, HelpCircle, AlignLeft, Users, ChevronLeft, PanelLeft, Clock, RefreshCw, CheckCircle, Zap, Target, Sparkles } from "lucide-react";
 import { CoursePlayerClient } from "@/components/CoursePlayerClient";
 import { LessonTracker } from "@/components/LessonTracker";
 import VideoPlayer from "@/components/VideoPlayer";
@@ -23,6 +23,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 export const runtime = 'edge';
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { getQueryClient } from "@/lib/react-query";
+import { Button } from "@/components/ui/button";
 
 export default async function CoursePlayerPage({
     params,
@@ -223,50 +224,7 @@ export default async function CoursePlayerPage({
                         moduleId={currentLesson?.module_id}
                         contentType={currentLesson?.content_type as any}
                     >
-                        {/* UNIFIED HEADER FOR ALL LESSON TYPES */}
-                        <div className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 flex items-center justify-between px-2 md:px-6 shadow-sm gap-2">
-                            {/* Left: Sidebar Toggle & Title */}
-                            <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
-                                <Button variant="ghost" size="icon" className="flex-shrink-0 text-muted-foreground hover:text-foreground">
-                                    <PanelLeft className="h-5 w-5" />
-                                    <span className="sr-only">Toggle Sidebar</span>
-                                </Button>
 
-                                <div className="h-6 w-px bg-border hidden sm:block" />
-
-                                <div className="flex flex-col min-w-0">
-                                    <div className="flex items-center gap-2">
-                                        <h1 className="font-bold text-sm md:text-base tracking-tight line-clamp-1 uppercase" title={currentLesson.title}>
-                                            {currentLesson.title}
-                                        </h1>
-                                        {isQuiz && (
-                                            <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-200 text-[10px] px-1.5 h-4 md:h-5 rounded-sm flex-shrink-0 hidden sm:flex">
-                                                EXAM MODE
-                                            </Badge>
-                                        )}
-                                    </div>
-                                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium hidden md:inline-block">
-                                        {course.title || 'Course'}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Right: Actions & Navigation */}
-                            <div className="flex items-center gap-1 md:gap-2">
-                                <CommunityButton />
-                                <ModeToggle />
-
-                                <div className="pl-1 md:pl-2 ml-1 md:ml-2 border-l border-border">
-                                    <LessonNavigation
-                                        courseId={courseId}
-                                        currentLessonId={currentLesson.id}
-                                        prevLessonId={prevLessonId}
-                                        nextLessonId={nextLessonId}
-                                        variant="header"
-                                    />
-                                </div>
-                            </div>
-                        </div>
 
 
                         {isVideo ? (
@@ -378,27 +336,102 @@ export default async function CoursePlayerPage({
                             </div>
                         ) : isQuiz ? (
                             // PREMIUM QUIZ LAYOUT
-                            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-muted/10 relative">
-                                {/* Main Quiz Area */}
-                                <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12 w-full">
+                            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-background dark:via-background dark:to-background">
+
+                                {/* Animated Background Pattern */}
+                                <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
+                                    <div
+                                        className="absolute inset-0"
+                                        style={{
+                                            backgroundImage: 'radial-gradient(circle at 2px 2px, #94a3b8 1px, transparent 1px)',
+                                            backgroundSize: '32px 32px'
+                                        }}
+                                    />
+                                    {/* Gradient Overlays */}
+                                    <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl" />
+                                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-indigo-400/10 to-pink-400/10 rounded-full blur-3xl" />
+                                </div>
+
+                                {/* Main Content Area */}
+                                <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12 w-full">
+
                                     {(currentLesson as any).exam_id && examData ? (
-                                        <div className="animate-in zoom-in-95 duration-300">
-                                            <QuizPlayer
-                                                exam={examData}
-                                                attempts={examAttempts}
-                                                userId={user.id}
-                                                questionsCount={questionsCount}
-                                            />
+                                        <div className="animate-in fade-in zoom-in-95 duration-500 ease-out">
+                                            {/* Quiz Player Container - Premium Card Design */}
+                                            <div className="bg-white/90 dark:bg-card/90 backdrop-blur-sm rounded-3xl shadow-xl shadow-slate-200/60 dark:shadow-none border border-slate-200/80 dark:border-border overflow-hidden">
+                                                <QuizPlayer
+                                                    exam={examData}
+                                                    attempts={examAttempts}
+                                                    userId={user.id}
+                                                    questionsCount={questionsCount}
+                                                />
+                                            </div>
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col items-center justify-center p-12 text-center bg-card rounded-2xl border border-border shadow-sm">
-                                            <div className="bg-muted p-4 rounded-full mb-4">
-                                                <HelpCircle className="h-8 w-8 text-muted-foreground" />
+                                        /* Empty State - Enhanced "Coming Soon" Design */
+                                        <div className="flex flex-col items-center justify-center min-h-[500px] animate-in fade-in zoom-in-95 duration-500">
+                                            <div className="w-full max-w-xl bg-white/95 dark:bg-card/95 backdrop-blur-sm p-12 rounded-3xl border border-slate-200/80 dark:border-border shadow-2xl shadow-slate-300/40 dark:shadow-none text-center relative overflow-hidden">
+
+                                                {/* Decorative Top Accent */}
+                                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+
+                                                {/* Icon Container - Multi-layer Design */}
+                                                <div className="relative inline-flex items-center justify-center mb-8">
+                                                    {/* Outer glow */}
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl blur-2xl opacity-20 animate-pulse" />
+                                                    {/* Main icon background */}
+                                                    <div className="relative w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300">
+                                                        <Clock className="h-10 w-10 text-white" strokeWidth={2.5} />
+                                                    </div>
+                                                    {/* Sparkle accent */}
+                                                    <div className="absolute -top-1 -right-1">
+                                                        <Sparkles className="h-6 w-6 text-yellow-400 animate-pulse" />
+                                                    </div>
+                                                </div>
+
+                                                {/* Heading with Gradient */}
+                                                <h3 className="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-slate-100 dark:via-slate-200 dark:to-slate-100 bg-clip-text text-transparent">
+                                                    Quiz in Preparation
+                                                </h3>
+
+                                                {/* Description */}
+                                                <p className="text-slate-600 dark:text-slate-400 text-base leading-relaxed mb-8 max-w-md mx-auto">
+                                                    Our team is crafting engaging questions to help you master this lesson.
+                                                    <br className="hidden sm:block" />
+                                                    Check back soon or continue exploring other lessons.
+                                                </p>
+
+                                                {/* Feature Highlights */}
+                                                <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+                                                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-full">
+                                                        <Target className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                                        <span className="text-sm font-medium text-blue-700 dark:text-blue-400">Comprehensive</span>
+                                                    </div>
+                                                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20 rounded-full">
+                                                        <Zap className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                                                        <span className="text-sm font-medium text-purple-700 dark:text-purple-400">Interactive</span>
+                                                    </div>
+                                                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 rounded-full">
+                                                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                                                        <span className="text-sm font-medium text-green-700 dark:text-green-400">Validated</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Status Badge with Pulse */}
+                                                <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-full mb-8">
+                                                    <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                                                    <span className="text-sm font-semibold text-amber-700 dark:text-amber-400 tracking-wide">IN PROGRESS</span>
+                                                </div>
+
+                                                {/* Action Button */}
+                                                <button
+                                                    onClick={() => window.location.reload()}
+                                                    className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 dark:text-slate-900 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg shadow-slate-900/20 hover:shadow-xl hover:shadow-slate-900/30 hover:-translate-y-0.5"
+                                                >
+                                                    <RefreshCw className="h-4 w-4" />
+                                                    Refresh Page
+                                                </button>
                                             </div>
-                                            <h3 className="text-lg font-semibold mb-2">Quiz Not Available</h3>
-                                            <p className="text-muted-foreground max-w-md mx-auto">
-                                                This quiz is currently being prepared. Check back later!
-                                            </p>
                                         </div>
                                     )}
                                 </div>

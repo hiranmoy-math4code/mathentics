@@ -87,10 +87,10 @@ export function LessonNavigation({
                 <Button className="bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 p-0 md:w-auto md:h-9 md:px-5 gap-2 shadow-sm rounded-md uppercase text-xs font-bold tracking-wider" disabled={!nextLessonId} asChild={!!nextLessonId} size="sm">
                     {nextLessonId ? (
                         <Link href={`/learn/${courseId}?lessonId=${nextLessonId}`} title="Next Lesson">
-                            <span className="hidden md:inline">NEXT LESSON</span> <ChevronRight className="h-4 w-4 md:h-3 md:w-3" />
+                            <span className="hidden md:inline">NEXT </span> <ChevronRight className="h-4 w-4 md:h-3 md:w-3" />
                         </Link>
                     ) : (
-                        <span className="opacity-50 cursor-not-allowed flex items-center justify-center w-full h-full"><span className="hidden md:inline">NEXT LESSON</span> <ChevronRight className="h-4 w-4 md:h-3 md:w-3" /></span>
+                        <span className="opacity-50 cursor-not-allowed flex items-center justify-center w-full h-full"><span className="hidden md:inline">NEXT</span> <ChevronRight className="h-4 w-4 md:h-3 md:w-3" /></span>
                     )}
                 </Button>
             </div>
@@ -103,10 +103,10 @@ export function LessonNavigation({
             <Button variant="outline" className="gap-2 h-11 px-6 w-full sm:w-auto order-2 sm:order-1" disabled={!prevLessonId} asChild={!!prevLessonId}>
                 {prevLessonId ? (
                     <Link href={`/learn/${courseId}?lessonId=${prevLessonId}`}>
-                        <ChevronLeft className="h-4 w-4" /> Previous Lesson
+                        <ChevronLeft className="h-4 w-4" /> Prev
                     </Link>
                 ) : (
-                    <span><ChevronLeft className="h-4 w-4" /> Previous Lesson</span>
+                    <span><ChevronLeft className="h-4 w-4" /> Prev</span>
                 )}
             </Button>
 

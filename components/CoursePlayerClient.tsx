@@ -17,23 +17,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { PlayCircle, FileText, ChevronLeft, ChevronRight, HelpCircle, Menu, X, PanelLeftClose, PanelLeft, CheckCircle, BookOpen, Video, Share2, User, Book, Users, Lock } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
@@ -44,6 +28,8 @@ import { ModeToggle } from "@/components/mode-toggle"
 import { useCommunityModal } from "@/context/CommunityModalContext"
 import { useCourse } from "@/hooks/useCourse"
 import { useLessons } from "@/hooks/useLessons"
+import { LessonNavigation } from "@/components/LessonNavigation"
+import { CommunityButton } from "@/components/CommunityButton"
 
 interface CoursePlayerClientProps {
     courseId: string
@@ -87,6 +73,17 @@ export function CoursePlayerClient({
         }
         return allLessons[0]; // Default to first lesson if not specified
     }, [allLessons, lessonIdParam]);
+
+    // Calculate Prev/Next Lesson IDs for Navigation
+    const { prevLessonId, nextLessonId } = useMemo(() => {
+        if (!currentLesson || !allLessons.length) return { prevLessonId: null, nextLessonId: null };
+        const currentIndex = allLessons.findIndex((l: any) => l.id === currentLesson.id);
+        const prev = currentIndex > 0 ? allLessons[currentIndex - 1].id : null;
+        const next = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1].id : null;
+        return { prevLessonId: prev, nextLessonId: next };
+    }, [currentLesson, allLessons]);
+
+    const isQuiz = currentLesson?.content_type === "quiz";
 
     // Refetch user execution handled by hooks/props usually, keeping legacy effect for safety or removal
     useEffect(() => {
@@ -135,7 +132,7 @@ export function CoursePlayerClient({
 
     // Render loading or empty states if data isn't hydrated yet (should not happen with hydration)
     if (!course || !modules) {
-        return null;
+        return null; // Or a loading spinner
     }
 
     return (
@@ -253,14 +250,7 @@ export function CoursePlayerClient({
                     </TooltipProvider>
                 </ScrollArea>
                 <div className="p-4 border-t border-border bg-card text-xs text-muted-foreground">
-                    <div className="flex flex-col gap-2">
-                        <p>© 2022. All rights reserved.</p>
-                        <div className="flex gap-2">
-                            <Link href="#" className="hover:text-foreground transition-colors">Help Center</Link>
-                            <span>·</span>
-                            <Link href="#" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-                        </div>
-                    </div>
+                    <div className="w-full"><CommunityButton className="w-full justify-center" /></div>
                 </div>
             </motion.div>
 
@@ -371,12 +361,7 @@ export function CoursePlayerClient({
                             </ScrollArea>
                             <div className="p-4 border-t border-border bg-card text-xs text-muted-foreground">
                                 <div className="flex flex-col gap-2">
-                                    <p>© 2022. All rights reserved.</p>
-                                    <div className="flex gap-2">
-                                        <Link href="#" className="hover:text-foreground transition-colors">Help Center</Link>
-                                        <span>·</span>
-                                        <Link href="#" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-                                    </div>
+                                    <div className="w-full"><CommunityButton className="w-full justify-center" /></div>
                                 </div>
                             </div>
                         </motion.div>
@@ -386,91 +371,59 @@ export function CoursePlayerClient({
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-                {/* Top Navigation Bar */}
-                <div className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-6 shrink-0 z-10">
-                    <div className="flex items-center gap-4 flex-1">
-                        {/* Mobile menu button */}
-                        <button
-                            onClick={() => setSidebarOpen(true)}
-                            className="md:hidden p-2 hover:bg-accent rounded-lg transition-colors"
+                {/* Top Navigation Bar / Unified Header */}
+                <div className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-2 md:px-6 shrink-0 z-10 gap-2">
+                    {/* Left: Sidebar Toggle & Title */}
+                    <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="flex-shrink-0 text-muted-foreground hover:text-foreground"
+                            onClick={() => {
+                                // Toggle logic
+                                if (window.innerWidth < 768) {
+                                    setSidebarOpen(true)
+                                } else {
+                                    setDesktopSidebarCollapsed(!desktopSidebarCollapsed)
+                                }
+                            }}
                         >
-                            <Menu className="h-5 w-5 text-muted-foreground" />
-                        </button>
-                        {/* Desktop sidebar toggle */}
-                        <button
-                            onClick={() => setDesktopSidebarCollapsed(!desktopSidebarCollapsed)}
-                            className="hidden md:block p-2 hover:bg-accent rounded-lg transition-colors"
-                            title={desktopSidebarCollapsed ? "Show sidebar" : "Hide sidebar"}
-                        >
-                            {desktopSidebarCollapsed ? (
-                                <PanelLeft className="h-5 w-5 text-muted-foreground" />
-                            ) : (
-                                <PanelLeftClose className="h-5 w-5 text-muted-foreground" />
-                            )}
-                        </button>
+                            <PanelLeft className="h-5 w-5" />
+                            <span className="sr-only">Toggle Sidebar</span>
+                        </Button>
 
-                        {/* Breadcrumbs */}
-                        <Breadcrumb className="hidden md:flex">
-                            <BreadcrumbList>
-                                <BreadcrumbItem>
-                                    <BreadcrumbLink href="/student/dashboard" className="flex items-center gap-1">
-                                        <Book className="h-4 w-4" />
-                                    </BreadcrumbLink>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator />
-                                <BreadcrumbItem>
-                                    <BreadcrumbLink href={`/courses/${courseId}`} className="max-w-[150px] truncate">
-                                        {course.title}
-                                    </BreadcrumbLink>
-                                </BreadcrumbItem>
-                                <BreadcrumbSeparator />
-                                <BreadcrumbItem>
-                                    <BreadcrumbPage className="max-w-[200px] truncate font-medium">
-                                        {currentLesson?.title}
-                                    </BreadcrumbPage>
-                                </BreadcrumbItem>
-                            </BreadcrumbList>
-                        </Breadcrumb>
+                        <div className="h-6 w-px bg-border hidden sm:block" />
+
+                        <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-2">
+                                <h1 className="font-bold text-sm md:text-base tracking-tight line-clamp-1 uppercase" title={currentLesson?.title}>
+                                    {currentLesson?.title}
+                                </h1>
+                                {isQuiz && (
+                                    <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-200 text-[10px] px-1.5 h-4 md:h-5 rounded-sm flex-shrink-0 hidden sm:flex">
+                                        EXAM MODE
+                                    </Badge>
+                                )}
+                            </div>
+                            <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium hidden md:inline-block">
+                                {course.title || 'Course'}
+                            </span>
+                        </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    {/* Right: Actions & Navigation */}
+                    <div className="flex items-center gap-1 md:gap-2">
                         <ModeToggle />
 
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2 border-border bg-transparent">
-                                    <User className="h-4 w-4" />
-                                    <span className="max-w-[100px] truncate">{profile?.full_name || user?.email || "User"}</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>Profile</DropdownMenuItem>
-                                <DropdownMenuItem>Settings</DropdownMenuItem>
-                                <DropdownMenuItem>Log out</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            className="hidden sm:flex items-center gap-2 text-muted-foreground hover:text-foreground"
-                            onClick={() => openCommunity()}
-                        >
-                            <Users className="h-4 w-4" />
-                            Community
-                        </Button>
-
-                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 hidden sm:flex">
-                            <Share2 className="h-4 w-4" />
-                            Share
-                        </Button>
-
-                        <Avatar className="h-8 w-8 border border-border">
-                            <AvatarImage src={profile?.avatar_url} alt={profile?.full_name || "User"} />
-                            <AvatarFallback>{profile?.full_name?.charAt(0) || user?.email?.charAt(0) || "U"}</AvatarFallback>
-                        </Avatar>
+                        <div className="pl-1 md:pl-2 ml-1 md:ml-2 border-l border-border">
+                            <LessonNavigation
+                                courseId={courseId}
+                                currentLessonId={currentLesson?.id || ""}
+                                prevLessonId={prevLessonId}
+                                nextLessonId={nextLessonId}
+                                variant="header"
+                            />
+                        </div>
                     </div>
                 </div>
 

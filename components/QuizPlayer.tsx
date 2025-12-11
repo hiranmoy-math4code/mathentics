@@ -119,7 +119,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                                 <div className="bg-blue-200 dark:bg-blue-900/50 p-2.5 rounded-full mb-3 text-blue-700 dark:text-blue-300">
                                     <FileQuestion className="w-6 h-6" />
                                 </div>
-                                <span className="text-2xl font-bold text-slate-800 dark:text-slate-100 min-w-[2ch]">{questionsCount}</span>
+                                <span className="text-2xl font-bold text-foreground min-w-[2ch]">{questionsCount}</span>
                                 <span className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Questions</span>
                             </div>
 
@@ -128,7 +128,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                                 <div className="bg-orange-200 dark:bg-orange-900/50 p-2.5 rounded-full mb-3 text-orange-700 dark:text-orange-300">
                                     <Clock className="w-6 h-6" />
                                 </div>
-                                <span className="text-2xl font-bold text-slate-800 dark:text-slate-100 min-w-[2ch]">{exam.duration_minutes}m</span>
+                                <span className="text-2xl font-bold text-foreground min-w-[2ch]">{exam.duration_minutes}m</span>
                                 <span className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Duration</span>
                             </div>
 
@@ -137,7 +137,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                                 <div className="bg-emerald-200 dark:bg-emerald-900/50 p-2.5 rounded-full mb-3 text-emerald-700 dark:text-emerald-300">
                                     <ListChecks className="w-6 h-6" />
                                 </div>
-                                <span className="text-2xl font-bold text-slate-800 dark:text-slate-100 min-w-[2ch]">
+                                <span className="text-2xl font-bold text-foreground min-w-[2ch]">
                                     {limit === null || limit === undefined ? "∞" : attemptsLeft}
                                 </span>
                                 <span className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Attempts Left</span>
@@ -213,6 +213,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
 
                             {completedAttempts.map((attempt: any, idx: number) => {
                                 const result = Array.isArray(attempt.result) ? attempt.result[0] : attempt.result
+                                const score = result?.score ?? result?.obtained_marks ?? 0
                                 return (
                                     <div key={attempt.id} className="flex gap-4 items-start group">
                                         <div className="flex-shrink-0 w-3 h-3 rounded-full bg-muted-foreground/30 group-hover:bg-primary transition-colors mt-1.5 relative z-10" />
@@ -221,7 +222,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                                                 <h4 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">
                                                     Attempt #{completedAttempts.length - idx}
                                                 </h4>
-                                                <span className="text-xs text-muted-foreground font-bold">{result?.score ?? 0}/{exam.total_marks}</span>
+                                                <span className="text-xs text-muted-foreground font-bold">{score}/{exam.total_marks}</span>
                                             </div>
                                             <div className="flex justify-between items-center mt-1">
                                                 <span className="text-xs text-muted-foreground">{new Date(attempt.submitted_at).toLocaleDateString()}</span>
