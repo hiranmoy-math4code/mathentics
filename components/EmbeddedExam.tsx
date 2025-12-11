@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client"
 import { awardCoins } from "@/app/actions/rewardActions"
 import { useExamSession, useSubmitExam, useSaveAnswer, useUpdateTimer } from "@/hooks/student/useExamSession"
 import { useExamResult } from "@/hooks/useExamResult"
-import { toast } from "sonner"
+import { toast, Toaster } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
     Clock, CheckCircle2, Loader2, ArrowLeft, Flag, TrendingUp, Award, Target, BarChart3,
@@ -729,6 +729,9 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
 
     return (
         <div ref={examContainerRef} className="grid grid-cols-1 lg:grid-cols-[1fr_360px] bg-background text-foreground rounded-xl overflow-hidden border border-border h-full">
+            {/* Toaster for fullscreen mode */}
+            <Toaster richColors position="top-center" />
+
             {/* LEFT PANEL */}
             <div className="flex flex-col min-h-0 p-3 md:p-6 relative bg-background">
                 {/* HEADER NAV */}
