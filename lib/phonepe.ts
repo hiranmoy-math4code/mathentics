@@ -2,18 +2,23 @@ import { logger } from './logger';
 
 // Environment Variables
 const MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID;
+const CLIENT_ID = process.env.PHONEPE_CLIENT_ID || MERCHANT_ID;
 const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET;
-const CLIENT_VERSION = process.env.PHONEPE_CLIENT_VERSION || "1";
+const CLIENT_VERSION = parseInt(process.env.PHONEPE_CLIENT_VERSION || "1");
 const DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000";
 
-// Robust Environment Check
+// Environment Configuration
 const envVar = (process.env.PHONEPE_ENV || "").toLowerCase();
 const isProd = envVar === "prod" || envVar === "production";
 
-// Base URLs
-const PHONEPE_HOST_URL = isProd
-  ? "https://api.phonepe.com/apis/hermes"
-  : "https://api-preprod.phonepe.com/apis/pg-sandbox";
+// API Endpoints for Standard Checkout v2
+const API_BASE = isProd
+  ? 'https://api.phonepe.com/apis/pg'
+  : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
+
+const OAUTH_BASE = isProd
+  ? 'https://api.phonepe.com/apis/identity-manager'
+  : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
 
 // Validation
 if (!MERCHANT_ID || !CLIENT_SECRET) {
@@ -21,74 +26,106 @@ if (!MERCHANT_ID || !CLIENT_SECRET) {
 }
 
 /**
- * Utility: Create SHA-256 Hash using Web Crypto API
+ * Get OAuth Token for Standard Checkout v2
  */
-async function sha256(message: string): Promise<string> {
-  const msgBuffer = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-/**
- * Utility: Base64 Encode
- */
-function toBase64(str: string): string {
-  return btoa(unescape(encodeURIComponent(str)));
-}
-
-/**
- * Initiate Payment using Custom Fetch Implementation (Edge Compatible)
- */
-export async function createPayment(merchantTransactionId: string, amount: number, userId: string) {
+async function getOAuthToken(): Promise<string | null> {
   try {
+    const url = `${OAUTH_BASE}/v1/oauth/token`;
+
+    const params = new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: CLIENT_ID || "",
+      client_secret: CLIENT_SECRET || "",
+      client_version: CLIENT_VERSION.toString()
+    });
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: params,
+      cache: "no-store"
+    });
+
+    const data = await response.json();
+
+    if (data?.access_token) {
+      return data.access_token;
+    } else {
+      logger.error("❌ Token Generation Failed:", JSON.stringify(data));
+      return null;
+    }
+  } catch (error: any) {
+    logger.error("❌ Token Error:", error.message);
+    return null;
+  }
+}
+
+/**
+ * Initiate Payment using Standard Checkout v2
+ */
+export async function createPayment(
+  merchantTransactionId: string,
+  amount: number,
+  userId: string
+) {
+  try {
+    // Get OAuth Token
+    const token = await getOAuthToken();
+    if (!token) {
+      throw new Error("Failed to generate OAuth token");
+    }
+
     const redirectUrl = `${DOMAIN}/api/phonepe/redirect?transactionId=${merchantTransactionId}`;
     const callbackUrl = `${DOMAIN}/api/phonepe/callback`;
 
-    const payload = {
-      merchantId: MERCHANT_ID,
-      merchantTransactionId: merchantTransactionId,
-      merchantUserId: userId,
-      amount: amount * 100, // paise
-      redirectUrl: redirectUrl,
-      redirectMode: "REDIRECT",
-      callbackUrl: callbackUrl,
-      paymentInstrument: {
-        type: "PAY_PAGE"
+    // Build Payment Request for Standard Checkout v2
+    const paymentPayload = {
+      merchantOrderId: merchantTransactionId,
+      amount: amount * 100, // Convert to paise
+      paymentFlow: {
+        type: "PG_CHECKOUT",
+        merchantUrls: {
+          redirectUrl: redirectUrl,
+          callbackUrl: callbackUrl
+        }
       }
     };
 
-    const base64Payload = toBase64(JSON.stringify(payload));
-    const apiPath = "/pg/v1/pay";
+    const url = `${API_BASE}/checkout/v2/pay`;
 
-    // X-VERIFY calculation: SHA256(base64Payload + apiEndpoint + salt) + ### + saltIndex
-    const stringToHash = base64Payload + apiPath + CLIENT_SECRET;
-    const hash = await sha256(stringToHash);
-    const xVerify = `${hash}###${CLIENT_VERSION}`;
-
-    const url = `${PHONEPE_HOST_URL}${apiPath}`;
+    logger.log(`🚀 Initiating Payment: ${url}`);
+    logger.log(`   Payload:`, JSON.stringify(paymentPayload, null, 2));
 
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-VERIFY": xVerify,
-        "X-MERCHANT-ID": MERCHANT_ID || ""
+        "Authorization": `O-Bearer ${token}`
       },
-      body: JSON.stringify({ request: base64Payload })
+      body: JSON.stringify(paymentPayload),
+      cache: "no-store"
     });
 
     const data = await response.json();
 
-    if (data.success) {
+    logger.log(`   Response:`, JSON.stringify(data, null, 2));
+
+    if (data?.redirectUrl) {
       return {
         success: true,
         data: {
-          redirectUrl: data.data.instrumentResponse.redirectInfo.url
+          redirectUrl: data.redirectUrl
         }
       };
     } else {
-      throw new Error(data.message || "Payment initiation failed from PhonePe");
+      logger.error("❌ Payment Initiation Failed:", JSON.stringify(data));
+      return {
+        success: false,
+        error: data?.message || "Payment initiation failed",
+        details: data
+      };
     }
 
   } catch (error: any) {
@@ -102,37 +139,46 @@ export async function createPayment(merchantTransactionId: string, amount: numbe
 }
 
 /**
- * Check Payment Status (Edge Compatible)
+ * Check Payment Status using Standard Checkout v2 (OAuth Flow)
  */
 export async function checkPaymentStatus(merchantTransactionId: string) {
-  try {
-    const apiPath = `/pg/v1/status/${MERCHANT_ID}/${merchantTransactionId}`;
-    const stringToHash = apiPath + CLIENT_SECRET;
-    const hash = await sha256(stringToHash);
-    const xVerify = `${hash}###${CLIENT_VERSION}`;
+  logger.log(`🔄 Checking Payment Status (v2 OAuth) for: ${merchantTransactionId}`);
 
-    const url = `${PHONEPE_HOST_URL}${apiPath}`;
+  try {
+    // Get OAuth Token
+    const token = await getOAuthToken();
+    if (!token) {
+      throw new Error("Failed to generate OAuth token");
+    }
+
+    const url = `${API_BASE}/checkout/v2/order/${merchantTransactionId}/status`;
 
     const response = await fetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "X-VERIFY": xVerify,
-        "X-MERCHANT-ID": MERCHANT_ID || ""
-      }
+        "Authorization": `O-Bearer ${token}`
+      },
+      cache: "no-store"
     });
 
     const data = await response.json();
+
     return data;
 
   } catch (error: any) {
-    logger.error("   ❌ Status Check Error:", error.message);
-    return { success: false, code: "FAILED", message: error.message };
+    logger.error("❌ Status Check Error:", error.message);
+    return {
+      success: false,
+      code: "FAILED",
+      message: error.message
+    };
   }
 }
 
 /**
- * Initiate Refund (Edge Compatible)
+ * Initiate Refund using v1 API (checksum-based)
+ * Note: Standard Checkout v2 doesn't support refunds yet, so we use v1
  */
 export async function refundTransaction(
   originalTransactionId: string,
@@ -140,45 +186,64 @@ export async function refundTransaction(
   userId: string
 ) {
   try {
-    const newRefundTxnId = `RF${Date.now()}`;
-    const apiPath = "/pg/v1/refund";
+    // Node.js built-in crypto module
+    const crypto = require('crypto');
 
-    const payload = {
+    const newRefundTxnId = `RF${Date.now()}`;
+
+    const refundPayload = {
       merchantId: MERCHANT_ID,
       merchantUserId: userId,
       originalTransactionId: originalTransactionId,
       merchantTransactionId: newRefundTxnId,
-      amount: amount * 100, // paise
+      amount: amount * 100, // in paise
       callbackUrl: `${DOMAIN}/api/phonepe/callback`
     };
 
-    const base64Payload = toBase64(JSON.stringify(payload));
-    const stringToHash = base64Payload + apiPath + CLIENT_SECRET;
-    const hash = await sha256(stringToHash);
-    const xVerify = `${hash}###${CLIENT_VERSION}`;
+    const payload = JSON.stringify(refundPayload);
+    const payloadBase64 = Buffer.from(payload).toString('base64');
 
-    const url = `${PHONEPE_HOST_URL}${apiPath}`;
+    const saltKey = CLIENT_SECRET || "";
+    const saltIndex = CLIENT_VERSION || 1;
+
+    const apiPath = "/pg/v1/refund";
+    const stringToHash = payloadBase64 + apiPath + saltKey;
+    const sha256 = crypto.createHash('sha256').update(stringToHash).digest('hex');
+    const xVerify = `${sha256}###${saltIndex}`;
+
+    const url = `${API_BASE}${apiPath}`;
+
+    logger.log(`💸 Initiating Refund for: ${originalTransactionId}, Amount: ${amount}`);
 
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-VERIFY": xVerify,
-        "X-MERCHANT-ID": MERCHANT_ID || ""
+        "X-VERIFY": xVerify
       },
-      body: JSON.stringify({ request: base64Payload })
+      body: JSON.stringify({ request: payloadBase64 })
     });
 
-    const data = await response.json();
+    const resData = await response.json();
 
-    if (data.success) {
-      return { success: true, data: data.data, message: "Refund Initiated Successfully" };
+    if (resData.success) {
+      return {
+        success: true,
+        data: resData.data,
+        message: "Refund Initiated Successfully"
+      };
     } else {
-      return { success: false, message: data.message || "Refund Failed" };
+      return {
+        success: false,
+        message: resData.message || "Refund Failed"
+      };
     }
 
   } catch (error: any) {
-    logger.error("   ❌ Refund Error:", error.message);
-    return { success: false, message: error.message };
+    logger.error("❌ Refund Error:", error.message);
+    return {
+      success: false,
+      message: error.message
+    };
   }
 }
