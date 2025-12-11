@@ -120,7 +120,7 @@ export default function RootLayout({
               <AIMentor />
               <RewardInitializerWrapper />
             </MathJaxContext>
-            <SonnerToaster richColors position="top-center" />
+            <SonnerToaster richColors position="top-center" toastOptions={{ style: { zIndex: 9999 } }} />
             <Toaster />
           </ThemeProvider>
         </ReactQueryProviders>

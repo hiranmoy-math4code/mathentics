@@ -972,6 +972,9 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
             <div className="hidden lg:flex flex-col bg-card border-l border-border overflow-hidden">
                 <div className="p-5 border-b border-border">
                     <h4 className="font-bold text-foreground">Question Palette</h4>
+                    {currentSection && (
+                        <p className="text-sm text-muted-foreground mt-1 font-medium">{currentSection.title}</p>
+                    )}
                     <div className="flex gap-4 mt-4 text-xs text-muted-foreground flex-wrap">
                         <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-emerald-500"></div> Answered</div>
                         <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-amber-500"></div> Marked</div>
@@ -1036,7 +1039,12 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                             className="fixed inset-y-0 right-0 z-50 w-80 bg-card shadow-2xl border-l border-border lg:hidden flex flex-col"
                         >
                             <div className="p-4 flex items-center justify-between border-b border-border">
-                                <h4 className="font-bold text-foreground">Question Palette</h4>
+                                <div>
+                                    <h4 className="font-bold text-foreground">Question Palette</h4>
+                                    {currentSection && (
+                                        <p className="text-sm text-muted-foreground mt-0.5 font-medium">{currentSection.title}</p>
+                                    )}
+                                </div>
                                 <button onClick={() => setPaletteOpenMobile(false)} className="p-2 hover:bg-muted rounded-full">
                                     <X className="w-5 h-5 text-muted-foreground" />
                                 </button>
