@@ -96,49 +96,68 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Main Info Card with Watercolor Effect */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto bg-app transition-theme">
+            {/* Main Info Card with watercolor effect */}
             <div className="lg:col-span-2 relative">
-                <Card className="relative border-none dark:border dark:border-border shadow-xl bg-white dark:bg-card overflow-hidden z-10">
+                <Card className="relative border-none border-border shadow-xl bg-card overflow-hidden z-10 transition-theme">
                     <CardHeader className="pb-2 pt-8 text-center">
-                        <CardTitle className="text-4xl font-serif font-medium mb-3 tracking-wide">{exam.title}</CardTitle>
+                        <CardTitle className="text-4xl font-serif font-medium mb-3 tracking-wide text-foreground">
+                            {exam.title}
+                        </CardTitle>
                         <CardDescription className="text-base text-muted-foreground max-w-xl mx-auto">
-                            {exam.description || "This exam covers the comprehensive syllabus including Algebra, Calculus, and more."}
+                            {exam.description || 'This exam covers the comprehensive syllabus including Algebra, Calculus, and more.'}
                         </CardDescription>
                     </CardHeader>
+
                     <CardContent className="space-y-10 px-6 py-8">
                         {/* Stats Grid */}
                         <div className="grid grid-cols-3 gap-4 md:gap-6">
                             {/* Questions */}
-                            <div className="bg-blue-50 dark:bg-blue-500/10 p-4 py-8 rounded-xl border border-blue-100 dark:border-blue-500/20 flex flex-col items-center justify-center text-center shadow-sm">
-                                <div className="bg-blue-200 dark:bg-blue-900/50 p-2.5 rounded-full mb-3 text-blue-700 dark:text-blue-300">
-                                    <FileQuestion className="w-6 h-6" />
+                            <div className="p-4 py-8 rounded-xl border border-border flex flex-col items-center justify-center text-center shadow-sm transition-theme"
+                                style={{
+                                    background: 'linear-gradient(180deg, rgba(59,130,246,0.06), transparent)',
+                                }}>
+                                <div className="p-2.5 rounded-full mb-3" style={{ background: 'rgba(59,130,246,0.12)' }}>
+                                    <FileQuestion className="w-6 h-6 text-blue-700 dark:text-blue-300" />
                                 </div>
                                 <span className="text-2xl font-bold text-foreground min-w-[2ch]">{questionsCount}</span>
-                                <span className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Questions</span>
+                                <span className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">
+                                    Questions
+                                </span>
                             </div>
 
                             {/* Duration */}
-                            <div className="bg-orange-50 dark:bg-orange-500/10 p-4 py-8 rounded-xl border border-orange-100 dark:border-orange-500/20 flex flex-col items-center justify-center text-center shadow-sm">
-                                <div className="bg-orange-200 dark:bg-orange-900/50 p-2.5 rounded-full mb-3 text-orange-700 dark:text-orange-300">
-                                    <Clock className="w-6 h-6" />
+                            <div className="p-4 py-8 rounded-xl border border-border flex flex-col items-center justify-center text-center shadow-sm transition-theme"
+                                style={{
+                                    background: 'linear-gradient(180deg, rgba(249,115,22,0.06), transparent)',
+                                }}>
+                                <div className="p-2.5 rounded-full mb-3" style={{ background: 'rgba(249,115,22,0.12)' }}>
+                                    <Clock className="w-6 h-6 text-orange-700 dark:text-orange-300" />
                                 </div>
-                                <span className="text-2xl font-bold text-foreground min-w-[2ch]">{exam.duration_minutes}m</span>
-                                <span className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Duration</span>
+                                <span className="text-2xl font-bold text-foreground min-w-[2ch]">{exam.duration_minutes ?? 0}m</span>
+                                <span className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">
+                                    Duration
+                                </span>
                             </div>
 
                             {/* Attempts */}
-                            <div className="bg-emerald-50 dark:bg-emerald-500/10 p-4 py-8 rounded-xl border border-emerald-100 dark:border-emerald-500/20 flex flex-col items-center justify-center text-center shadow-sm">
-                                <div className="bg-emerald-200 dark:bg-emerald-900/50 p-2.5 rounded-full mb-3 text-emerald-700 dark:text-emerald-300">
-                                    <ListChecks className="w-6 h-6" />
+                            <div className="p-4 py-8 rounded-xl border border-border flex flex-col items-center justify-center text-center shadow-sm transition-theme"
+                                style={{
+                                    background: 'linear-gradient(180deg, rgba(16,185,129,0.06), transparent)',
+                                }}>
+                                <div className="p-2.5 rounded-full mb-3" style={{ background: 'rgba(16,185,129,0.12)' }}>
+                                    <ListChecks className="w-6 h-6 text-emerald-700 dark:text-emerald-300" />
                                 </div>
                                 <span className="text-2xl font-bold text-foreground min-w-[2ch]">
-                                    {limit === null || limit === undefined ? "∞" : attemptsLeft}
+                                    {limit === null || limit === undefined ? '∞' : attemptsLeft}
                                 </span>
-                                <span className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Attempts Left</span>
+                                <span className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">
+                                    Attempts Left
+                                </span>
                             </div>
                         </div>
                     </CardContent>
+
                     <CardFooter className="pb-8 px-6">
                         {(limit === null || limit === undefined || attemptsLeft > 0 || activeAttempt) ? (
                             <Button
@@ -148,7 +167,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                             >
                                 {activeAttempt ? (
                                     <>
-                                        <Play className="w-5 h-5 fill-current mr-2" /> Resume Quiz
+                                        <Play className="w-5 h-5 mr-2" /> Resume Quiz
                                     </>
                                 ) : hasAttempted ? (
                                     <>
@@ -156,7 +175,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                                     </>
                                 ) : (
                                     <>
-                                        <Play className="w-5 h-5 fill-current mr-2" /> Start Quiz
+                                        <Play className="w-5 h-5 mr-2" /> Start Quiz
                                     </>
                                 )}
                             </Button>
@@ -171,12 +190,13 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
 
             {/* Sidebar / History */}
             <div className="space-y-6">
-                <Card className="border-none dark:border dark:border-white/10 shadow-md bg-white/95 dark:bg-slate-950/50 h-full min-h-[400px]">
+                <Card className="border-none border-border shadow-md bg-card h-full min-h-[400px] transition-theme">
                     <CardHeader className="pb-4 border-b border-border/50">
-                        <CardTitle className="text-xl font-serif tracking-wide flex items-center gap-2">
+                        <CardTitle className="text-xl font-serif tracking-wide text-foreground flex items-center gap-2">
                             HISTORY
                         </CardTitle>
                     </CardHeader>
+
                     <CardContent className="pt-6 relative">
                         {/* Timeline Line */}
                         <div className="absolute left-[38px] top-6 bottom-6 w-0.5 bg-border z-0" />
@@ -188,7 +208,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
 
                             {activeAttempt && (
                                 <div className="flex gap-4 items-start group">
-                                    <div className="flex-shrink-0 w-4 h-4 rounded-full bg-orange-500 border-4 border-orange-100 dark:border-orange-900 mt-1 relative z-10 shadow-sm" />
+                                    <div className="w-4 h-4 rounded-full bg-orange-500 border-4 border-orange-100 dark:border-orange-900 mt-1 relative z-10 shadow-sm" />
                                     <div className="flex-1 -mt-0.5">
                                         <div className="flex justify-between items-start">
                                             <h4 className="font-bold text-sm text-foreground">In Progress</h4>
@@ -207,20 +227,25 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                             )}
 
                             {completedAttempts.map((attempt: any, idx: number) => {
-                                const result = Array.isArray(attempt.result) ? attempt.result[0] : attempt.result
-                                const score = result?.score ?? result?.obtained_marks ?? 0
+                                const result = Array.isArray(attempt.result) ? attempt.result[0] : attempt.result;
+                                const score = result?.score ?? result?.obtained_marks ?? 0;
                                 return (
                                     <div key={attempt.id} className="flex gap-4 items-start group">
-                                        <div className="flex-shrink-0 w-3 h-3 rounded-full bg-muted-foreground/30 group-hover:bg-primary transition-colors mt-1.5 relative z-10" />
+                                        <div className="w-3 h-3 rounded-full bg-muted-foreground/30 group-hover:bg-primary transition-colors mt-1.5 relative z-10" />
                                         <div className="flex-1 -mt-0.5">
                                             <div className="flex justify-between items-start">
                                                 <h4 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">
                                                     Attempt #{completedAttempts.length - idx}
                                                 </h4>
-                                                <span className="text-xs text-muted-foreground font-bold">{score}/{exam.total_marks}</span>
+                                                <span className="text-xs text-muted-foreground font-bold">
+                                                    {score}/{exam.total_marks ?? '-'}
+                                                </span>
                                             </div>
+
                                             <div className="flex justify-between items-center mt-1">
-                                                <span className="text-xs text-muted-foreground">{new Date(attempt.submitted_at).toLocaleDateString()}</span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    {attempt.submitted_at ? new Date(attempt.submitted_at).toLocaleDateString() : '-'}
+                                                </span>
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
@@ -232,7 +257,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                                             </div>
                                         </div>
                                     </div>
-                                )
+                                );
                             })}
                         </div>
                     </CardContent>

@@ -336,21 +336,7 @@ export default async function CoursePlayerPage({
                             </div>
                         ) : isQuiz ? (
                             // PREMIUM QUIZ LAYOUT
-                            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 dark:from-background dark:via-background dark:to-background">
-
-                                {/* Animated Background Pattern */}
-                                <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
-                                    <div
-                                        className="absolute inset-0"
-                                        style={{
-                                            backgroundImage: 'radial-gradient(circle at 2px 2px, #94a3b8 1px, transparent 1px)',
-                                            backgroundSize: '32px 32px'
-                                        }}
-                                    />
-                                    {/* Gradient Overlays */}
-                                    <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl" />
-                                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-indigo-400/10 to-pink-400/10 rounded-full blur-3xl" />
-                                </div>
+                            <div className="flex-1 flex flex-col min-h-0 overflow-y-auto relative bg-slate-50 dark:bg-background">
 
                                 {/* Main Content Area */}
                                 <div className="relative z-10 max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12 w-full">

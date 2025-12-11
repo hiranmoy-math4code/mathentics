@@ -299,15 +299,15 @@ export function PreviousResultView({
             <div className="p-4 md:p-6 space-y-6">
                 {/* Score Card */}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                    <div className="bg-gradient-to-br from-blue-900/50 to-blue-800/50 p-3 md:p-4 rounded-xl border border-blue-700 text-center">
-                        <Target className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 text-blue-400" />
-                        <div className="text-xl md:text-2xl font-bold text-blue-300">{result.score ?? result.obtained_marks ?? 0}</div>
-                        <div className="text-xs text-blue-400 font-medium">Score</div>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-3 md:p-4 rounded-xl border border-blue-200 dark:border-blue-800 text-center">
+                        <Target className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 text-blue-500 dark:text-blue-400" />
+                        <div className="text-xl md:text-2xl font-bold text-blue-700 dark:text-blue-300">{result.score ?? result.obtained_marks ?? 0}</div>
+                        <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">Score</div>
                     </div>
-                    <div className="bg-gradient-to-br from-purple-900/50 to-purple-800/50 p-3 md:p-4 rounded-xl border border-purple-700 text-center">
-                        <TrendingUp className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 text-purple-400" />
-                        <div className="text-xl md:text-2xl font-bold text-purple-300">{result.percentage?.toFixed(1) || 0}%</div>
-                        <div className="text-xs text-purple-400 font-medium">Percentage</div>
+                    <div className="bg-purple-50 dark:bg-purple-900/20 p-3 md:p-4 rounded-xl border border-purple-200 dark:border-purple-800 text-center">
+                        <TrendingUp className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 text-purple-500 dark:text-purple-400" />
+                        <div className="text-xl md:text-2xl font-bold text-purple-700 dark:text-purple-300">{result.percentage?.toFixed(1) || 0}%</div>
+                        <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">Percentage</div>
                     </div>
                     <div className={`bg-gradient-to-br p-3 md:p-4 rounded-xl border text-center col-span-2 md:col-span-1 ${passed ? 'from-emerald-500/20 to-emerald-600/20 border-emerald-500/50' : 'from-amber-500/20 to-amber-600/20 border-amber-500/50'}`}>
                         {passed ? (
@@ -634,7 +634,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-96 text-slate-500">
+            <div className="flex items-center justify-center h-96 text-muted-foreground">
                 <div className="flex flex-col items-center gap-3">
                     <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
                     <p>Loading Quiz...</p>
@@ -719,7 +719,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
 
                     <div className="flex items-center gap-2 md:gap-3">
                         {/* Saving Indicator */}
-                        <div className="hidden md:flex items-center gap-2 text-xs text-slate-500 font-medium">
+                        <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground font-medium">
                             {isSaving ? (
                                 <>
                                     <Loader2 className="w-3 h-3 animate-spin" />
