@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Layers, Clock, Award, Loader2, FileQuestion, GripVertical } from "lucide-react";
+import { Plus, X, Layers, Clock, Award, Loader2, FileQuestion, GripVertical, ListChecks } from "lucide-react";
 import SectionItem from "./SectionItem";
 import {
   DndContext,
@@ -91,6 +91,8 @@ export default function SectionsCard() {
     title: "",
     duration_minutes: "",
     total_marks: "",
+    required_attempts: "",
+    max_questions_to_attempt: "",
   });
 
   const sensors = useSensors(
@@ -131,8 +133,10 @@ export default function SectionsCard() {
       duration_minutes: Number(newSection.duration_minutes),
       total_marks: Number(newSection.total_marks),
       section_order: sections.length + 1,
+      required_attempts: newSection.required_attempts ? Number(newSection.required_attempts) : null,
+      max_questions_to_attempt: newSection.max_questions_to_attempt ? Number(newSection.max_questions_to_attempt) : null,
     });
-    setNewSection({ title: "", duration_minutes: "", total_marks: "" });
+    setNewSection({ title: "", duration_minutes: "", total_marks: "", required_attempts: "", max_questions_to_attempt: "" });
     setShowAddSection(false);
     setIsAdding(false);
     loadSections();
@@ -183,8 +187,8 @@ export default function SectionsCard() {
           <Button
             onClick={() => setShowAddSection(!showAddSection)}
             className={`${showAddSection
-                ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white"
-                : "bg-indigo-600 hover:bg-indigo-700 text-white"
+              ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white"
+              : "bg-indigo-600 hover:bg-indigo-700 text-white"
               }`}
           >
             {showAddSection ? (
@@ -238,6 +242,24 @@ export default function SectionsCard() {
                     onChange={(v) => setNewSection({ ...newSection, total_marks: v })}
                     type="number"
                     icon={<Award className="w-5 h-5 text-slate-400" />}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    label="Min Required Attempts (Optional)"
+                    value={newSection.required_attempts}
+                    onChange={(v) => setNewSection({ ...newSection, required_attempts: v })}
+                    type="number"
+                    icon={<ListChecks className="w-5 h-5 text-slate-400" />}
+                    description="Minimum questions student must attempt"
+                  />
+                  <FormField
+                    label="Max Allowed Attempts (Optional)"
+                    value={newSection.max_questions_to_attempt}
+                    onChange={(v) => setNewSection({ ...newSection, max_questions_to_attempt: v })}
+                    type="number"
+                    icon={<ListChecks className="w-5 h-5 text-slate-400" />}
+                    description="Maximum questions student can attempt"
                   />
                 </div>
                 <Button

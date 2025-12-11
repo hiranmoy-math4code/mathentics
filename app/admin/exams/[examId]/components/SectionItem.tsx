@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
-import { Clock, Award, ArrowRight, Trash2, Edit3, Save, X } from "lucide-react";
+import { Clock, Award, ArrowRight, Trash2, Edit3, Save, X, ListChecks } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
 
@@ -18,6 +18,8 @@ export default function SectionItem({ section, examId, onUpdate }: any) {
     title: section.title,
     duration_minutes: section.duration_minutes.toString(),
     total_marks: section.total_marks.toString(),
+    required_attempts: section.required_attempts?.toString() || "",
+    max_questions_to_attempt: section.max_questions_to_attempt?.toString() || "",
   });
 
   // Fetch actual marks from questions
@@ -60,6 +62,8 @@ export default function SectionItem({ section, examId, onUpdate }: any) {
           title: editData.title,
           duration_minutes: Number(editData.duration_minutes),
           total_marks: Number(editData.total_marks),
+          required_attempts: editData.required_attempts ? Number(editData.required_attempts) : null,
+          max_questions_to_attempt: editData.max_questions_to_attempt ? Number(editData.max_questions_to_attempt) : null,
         })
         .eq("id", section.id);
 
@@ -79,6 +83,8 @@ export default function SectionItem({ section, examId, onUpdate }: any) {
       title: section.title,
       duration_minutes: section.duration_minutes.toString(),
       total_marks: section.total_marks.toString(),
+      required_attempts: section.required_attempts?.toString() || "",
+      max_questions_to_attempt: section.max_questions_to_attempt?.toString() || "",
     });
     setIsEditing(false);
   };
@@ -123,6 +129,30 @@ export default function SectionItem({ section, examId, onUpdate }: any) {
                   value={editData.total_marks}
                   onChange={(e) => setEditData({ ...editData, total_marks: e.target.value })}
                   placeholder="Marks"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Min Required Attempts
+                </label>
+                <Input
+                  type="number"
+                  value={editData.required_attempts}
+                  onChange={(e) => setEditData({ ...editData, required_attempts: e.target.value })}
+                  placeholder="Optional"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Max Allowed Attempts
+                </label>
+                <Input
+                  type="number"
+                  value={editData.max_questions_to_attempt}
+                  onChange={(e) => setEditData({ ...editData, max_questions_to_attempt: e.target.value })}
+                  placeholder="Optional"
                 />
               </div>
             </div>
@@ -172,6 +202,16 @@ export default function SectionItem({ section, examId, onUpdate }: any) {
                     {actualMarks} marks ({questionCount} questions)
                   </span>
                 </div>
+                {(section.required_attempts || section.max_questions_to_attempt) && (
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
+                    <ListChecks className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                      {section.required_attempts && `Min: ${section.required_attempts}`}
+                      {section.required_attempts && section.max_questions_to_attempt && ' / '}
+                      {section.max_questions_to_attempt && `Max: ${section.max_questions_to_attempt}`}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
