@@ -14,11 +14,12 @@ const nextConfig: NextConfig = {
         if (!isServer) {
             config.resolve.fallback = {
                 ...config.resolve.fallback,
-                fs: false,        // File System মডিউল বাদ
-                net: false,       // Net মডিউল বাদ
-                tls: false,       // TLS মডিউল বাদ
-                crypto: false,    // Native Crypto ব্যবহার হবে, পলিফিল নয়
-                stream: false,    // Stream মডিউল বাদ
+                fs: false,
+                net: false,
+                tls: false,
+                crypto: require.resolve('crypto-browserify'),
+                stream: require.resolve('stream-browserify'),
+                vm: require.resolve('vm-browserify'),
                 child_process: false,
                 dns: false,
             };
