@@ -99,12 +99,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Main Info Card with Watercolor Effect */}
             <div className="lg:col-span-2 relative">
-                {/* Decorative Background Blobs */}
-                <div className="absolute -top-10 -left-10 w-64 h-64 bg-emerald-200/40 rounded-full blur-3xl -z-10 mix-blend-multiply dark:mix-blend-normal dark:bg-emerald-900/20" />
-                <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-blue-200/40 rounded-full blur-3xl -z-10 mix-blend-multiply dark:mix-blend-normal dark:bg-blue-900/20" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-white/50 dark:bg-background/50 backdrop-blur-sm rounded-3xl -z-0" />
-
-                <Card className="relative border-none dark:border dark:border-white/10 shadow-xl bg-white/80 dark:bg-slate-950/50 backdrop-blur-md overflow-hidden z-10">
+                <Card className="relative border-none dark:border dark:border-border shadow-xl bg-white dark:bg-card overflow-hidden z-10">
                     <CardHeader className="pb-2 pt-8 text-center">
                         <CardTitle className="text-4xl font-serif font-medium mb-3 tracking-wide">{exam.title}</CardTitle>
                         <CardDescription className="text-base text-muted-foreground max-w-xl mx-auto">
