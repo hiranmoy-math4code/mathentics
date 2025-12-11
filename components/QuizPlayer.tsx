@@ -104,7 +104,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                 <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-blue-200/40 rounded-full blur-3xl -z-10 mix-blend-multiply dark:mix-blend-normal dark:bg-blue-900/20" />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-white/50 dark:bg-background/50 backdrop-blur-sm rounded-3xl -z-0" />
 
-                <Card className="relative border-none shadow-xl bg-white/80 dark:bg-card/80 backdrop-blur-md overflow-hidden z-10">
+                <Card className="relative border-none dark:border dark:border-white/10 shadow-xl bg-white/80 dark:bg-slate-950/50 backdrop-blur-md overflow-hidden z-10">
                     <CardHeader className="pb-2 pt-8 text-center">
                         <CardTitle className="text-4xl font-serif font-medium mb-3 tracking-wide">{exam.title}</CardTitle>
                         <CardDescription className="text-base text-muted-foreground max-w-xl mx-auto">
@@ -115,7 +115,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                         {/* Stats Grid */}
                         <div className="grid grid-cols-3 gap-4 md:gap-6">
                             {/* Questions */}
-                            <div className="bg-blue-50 dark:bg-blue-950/30 p-4 py-8 rounded-xl border border-blue-100 dark:border-blue-900 flex flex-col items-center justify-center text-center shadow-sm">
+                            <div className="bg-blue-50 dark:bg-blue-500/10 p-4 py-8 rounded-xl border border-blue-100 dark:border-blue-500/20 flex flex-col items-center justify-center text-center shadow-sm">
                                 <div className="bg-blue-200 dark:bg-blue-900/50 p-2.5 rounded-full mb-3 text-blue-700 dark:text-blue-300">
                                     <FileQuestion className="w-6 h-6" />
                                 </div>
@@ -124,7 +124,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                             </div>
 
                             {/* Duration */}
-                            <div className="bg-orange-50 dark:bg-orange-950/30 p-4 py-8 rounded-xl border border-orange-100 dark:border-orange-900 flex flex-col items-center justify-center text-center shadow-sm">
+                            <div className="bg-orange-50 dark:bg-orange-500/10 p-4 py-8 rounded-xl border border-orange-100 dark:border-orange-500/20 flex flex-col items-center justify-center text-center shadow-sm">
                                 <div className="bg-orange-200 dark:bg-orange-900/50 p-2.5 rounded-full mb-3 text-orange-700 dark:text-orange-300">
                                     <Clock className="w-6 h-6" />
                                 </div>
@@ -133,7 +133,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                             </div>
 
                             {/* Attempts */}
-                            <div className="bg-emerald-50 dark:bg-emerald-950/30 p-4 py-8 rounded-xl border border-emerald-100 dark:border-emerald-900 flex flex-col items-center justify-center text-center shadow-sm">
+                            <div className="bg-emerald-50 dark:bg-emerald-500/10 p-4 py-8 rounded-xl border border-emerald-100 dark:border-emerald-500/20 flex flex-col items-center justify-center text-center shadow-sm">
                                 <div className="bg-emerald-200 dark:bg-emerald-900/50 p-2.5 rounded-full mb-3 text-emerald-700 dark:text-emerald-300">
                                     <ListChecks className="w-6 h-6" />
                                 </div>
@@ -176,7 +176,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
 
             {/* Sidebar / History */}
             <div className="space-y-6">
-                <Card className="border-none shadow-md bg-white/95 dark:bg-card/95 h-full min-h-[400px]">
+                <Card className="border-none dark:border dark:border-white/10 shadow-md bg-white/95 dark:bg-slate-950/50 h-full min-h-[400px]">
                     <CardHeader className="pb-4 border-b border-border/50">
                         <CardTitle className="text-xl font-serif tracking-wide flex items-center gap-2">
                             HISTORY
