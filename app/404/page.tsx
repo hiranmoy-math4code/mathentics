@@ -1,9 +1,8 @@
 import Link from 'next/link'
 
 export const runtime = 'edge'
-export const dynamic = 'force-dynamic'
 
-export default function NotFound() {
+export default function Custom404() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
             <h2 className="text-3xl font-bold mb-4">404 - Page Not Found</h2>

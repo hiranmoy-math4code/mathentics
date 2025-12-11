@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
 
     turbopack: {},
     reactStrictMode: true,
+    // Skip not-found generation
+    skipTrailingSlashRedirect: true,
 
     // ✅ Webpack Config for Cloudflare (সবচেয়ে গুরুত্বপূর্ণ অংশ)
     // এটি নিশ্চিত করে যে ভারী Node.js মডিউলগুলো ক্লায়েন্ট বা এজ বান্ডলে ঢুকবে না
