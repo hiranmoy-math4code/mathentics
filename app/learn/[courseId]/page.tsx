@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { PlayCircle, FileText, HelpCircle, AlignLeft, Users } from "lucide-react";
+import { PlayCircle, FileText, HelpCircle, AlignLeft, Users, ChevronLeft } from "lucide-react";
 import { CoursePlayerClient } from "@/components/CoursePlayerClient";
 import { LessonTracker } from "@/components/LessonTracker";
 import VideoPlayer from "@/components/VideoPlayer";
@@ -16,6 +16,8 @@ import CustomPDFViewer from "@/components/CustomPDFViewer";
 import { CommunityModalProvider } from "@/context/CommunityModalContext";
 import { CommunityModal } from "@/components/community/CommunityModal";
 import { CommunityButton } from "@/components/CommunityButton";
+import Link from "next/link";
+import { ModeToggle } from "@/components/mode-toggle";
 
 // React Query / Hydration
 export const runtime = 'edge';
@@ -228,9 +230,16 @@ export default async function CoursePlayerPage({
                                     <ChevronLeft className="h-5 w-5" />
                                 </Link>
                                 <div className="flex flex-col">
-                                    <h1 className="font-semibold text-sm md:text-base line-clamp-1 mr-2" title={currentLesson.title}>
-                                        {currentLesson.title}
-                                    </h1>
+                                    <div className="flex items-center gap-2">
+                                        <h1 className="font-semibold text-sm md:text-base line-clamp-1 mr-2" title={currentLesson.title}>
+                                            {currentLesson.title}
+                                        </h1>
+                                        {isQuiz && (
+                                            <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-200 text-[10px] px-1.5 h-5 rounded-sm">
+                                                EXAM MODE
+                                            </Badge>
+                                        )}
+                                    </div>
                                     <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
                                         {currentLesson.content_type || 'Lesson'} • {course.level || 'Course'}
                                     </span>
@@ -260,7 +269,7 @@ export default async function CoursePlayerPage({
                                 </div>
 
                                 <CommunityButton />
-                                <ThemeToggleBtn />
+                                <ModeToggle />
                             </div>
                         </div>
 
@@ -392,6 +401,7 @@ export default async function CoursePlayerPage({
                         ) : isQuiz ? (
                             // PREMIUM QUIZ LAYOUT
                             <div className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-muted/10 relative">
+                                {/* Main Quiz Area */}
                                 <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 md:py-12 w-full">
                                     {(currentLesson as any).exam_id && examData ? (
                                         <div className="animate-in zoom-in-95 duration-300">

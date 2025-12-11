@@ -96,152 +96,149 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {/* Main Info Card */}
-            <Card className="md:col-span-2 border-border shadow-md overflow-hidden flex flex-col">
-                <div className="h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-                <CardHeader className="pb-4">
-                    <div className="flex justify-between items-start gap-4">
-                        <div>
-                            <CardTitle className="text-3xl font-bold mb-2">{exam.title}</CardTitle>
-                            <CardDescription className="text-base leading-relaxed">
-                                {exam.description || "Challenge yourself and test your knowledge with this comprehensive quiz."}
-                            </CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="flex-1 space-y-8">
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-3 gap-4">
-                        <div className="bg-muted/30 p-4 rounded-xl border border-border flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors">
-                            <div className="bg-blue-100 dark:bg-blue-900/20 p-2 rounded-full mb-2 text-blue-600 dark:text-blue-400">
-                                <FileQuestion className="w-5 h-5" />
-                            </div>
-                            <span className="text-lg font-bold">{questionsCount}</span>
-                            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Questions</span>
-                        </div>
-                        <div className="bg-muted/30 p-4 rounded-xl border border-border flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors">
-                            <div className="bg-amber-100 dark:bg-amber-900/20 p-2 rounded-full mb-2 text-amber-600 dark:text-amber-400">
-                                <Clock className="w-5 h-5" />
-                            </div>
-                            <span className="text-lg font-bold">{exam.duration_minutes}m</span>
-                            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Duration</span>
-                        </div>
-                        <div className="bg-muted/30 p-4 rounded-xl border border-border flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors">
-                            <div className="bg-emerald-100 dark:bg-emerald-900/20 p-2 rounded-full mb-2 text-emerald-600 dark:text-emerald-400">
-                                <ListChecks className="w-5 h-5" />
-                            </div>
-                            <span className="text-lg font-bold">
-                                {limit === null || limit === undefined ? "∞" : attemptsLeft}
-                            </span>
-                            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide"> attempts left</span>
-                        </div>
-                    </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Main Info Card with Watercolor Effect */}
+            <div className="lg:col-span-2 relative">
+                {/* Decorative Background Blobs */}
+                <div className="absolute -top-10 -left-10 w-64 h-64 bg-emerald-200/40 rounded-full blur-3xl -z-10 mix-blend-multiply dark:mix-blend-normal dark:bg-emerald-900/20" />
+                <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-blue-200/40 rounded-full blur-3xl -z-10 mix-blend-multiply dark:mix-blend-normal dark:bg-blue-900/20" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-white/50 dark:bg-background/50 backdrop-blur-sm rounded-3xl -z-0" />
 
+                <Card className="relative border-none shadow-xl bg-white/80 dark:bg-card/80 backdrop-blur-md overflow-hidden z-10">
+                    <CardHeader className="pb-2 pt-8 text-center">
+                        <CardTitle className="text-4xl font-serif font-medium mb-3 tracking-wide">{exam.title}</CardTitle>
+                        <CardDescription className="text-base text-muted-foreground max-w-xl mx-auto">
+                            {exam.description || "This exam covers the comprehensive syllabus including Algebra, Calculus, and more."}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-10 px-6 py-8">
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-3 gap-4 md:gap-6">
+                            {/* Questions */}
+                            <div className="bg-blue-50 dark:bg-blue-950/30 p-4 py-8 rounded-xl border border-blue-100 dark:border-blue-900 flex flex-col items-center justify-center text-center shadow-sm">
+                                <div className="bg-blue-200 dark:bg-blue-900/50 p-2.5 rounded-full mb-3 text-blue-700 dark:text-blue-300">
+                                    <FileQuestion className="w-6 h-6" />
+                                </div>
+                                <span className="text-2xl font-bold text-slate-800 dark:text-slate-100 min-w-[2ch]">{questionsCount}</span>
+                                <span className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Questions</span>
+                            </div>
 
-                </CardContent>
-                <CardFooter className="pt-2 pb-6 flex flex-col sm:flex-row gap-4">
-                    {(limit === null || limit === undefined || attemptsLeft > 0 || activeAttempt) ? (
-                        <Button
-                            onClick={handleStart}
-                            size="lg"
-                            className="w-full sm:w-auto text-lg gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform"
-                        >
-                            {activeAttempt ? (
-                                <>
-                                    <Play className="w-5 h-5 fill-current" /> Resume Quiz
-                                </>
-                            ) : hasAttempted ? (
-                                <>
-                                    <RotateCcw className="w-5 h-5" /> Retake Quiz
-                                </>
-                            ) : (
-                                <>
-                                    <Play className="w-5 h-5 fill-current" /> Start Quiz
-                                </>
-                            )}
-                        </Button>
-                    ) : (
-                        <Button disabled size="lg" className="w-full sm:w-auto">
-                            No Attempts Remaining
-                        </Button>
-                    )}
-                </CardFooter>
-            </Card>
+                            {/* Duration */}
+                            <div className="bg-orange-50 dark:bg-orange-950/30 p-4 py-8 rounded-xl border border-orange-100 dark:border-orange-900 flex flex-col items-center justify-center text-center shadow-sm">
+                                <div className="bg-orange-200 dark:bg-orange-900/50 p-2.5 rounded-full mb-3 text-orange-700 dark:text-orange-300">
+                                    <Clock className="w-6 h-6" />
+                                </div>
+                                <span className="text-2xl font-bold text-slate-800 dark:text-slate-100 min-w-[2ch]">{exam.duration_minutes}m</span>
+                                <span className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Duration</span>
+                            </div>
+
+                            {/* Attempts */}
+                            <div className="bg-emerald-50 dark:bg-emerald-950/30 p-4 py-8 rounded-xl border border-emerald-100 dark:border-emerald-900 flex flex-col items-center justify-center text-center shadow-sm">
+                                <div className="bg-emerald-200 dark:bg-emerald-900/50 p-2.5 rounded-full mb-3 text-emerald-700 dark:text-emerald-300">
+                                    <ListChecks className="w-6 h-6" />
+                                </div>
+                                <span className="text-2xl font-bold text-slate-800 dark:text-slate-100 min-w-[2ch]">
+                                    {limit === null || limit === undefined ? "∞" : attemptsLeft}
+                                </span>
+                                <span className="text-[10px] md:text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Attempts Left</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                    <CardFooter className="pb-8 px-6">
+                        {(limit === null || limit === undefined || attemptsLeft > 0 || activeAttempt) ? (
+                            <Button
+                                onClick={handleStart}
+                                size="lg"
+                                className="w-full text-base font-bold uppercase tracking-wider py-6 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white shadow-lg shadow-orange-500/20 border-0 rounded-lg transition-all transform hover:scale-[1.01]"
+                            >
+                                {activeAttempt ? (
+                                    <>
+                                        <Play className="w-5 h-5 fill-current mr-2" /> Resume Quiz
+                                    </>
+                                ) : hasAttempted ? (
+                                    <>
+                                        <RotateCcw className="w-5 h-5 mr-2" /> Retake Quiz
+                                    </>
+                                ) : (
+                                    <>
+                                        <Play className="w-5 h-5 fill-current mr-2" /> Start Quiz
+                                    </>
+                                )}
+                            </Button>
+                        ) : (
+                            <Button disabled size="lg" className="w-full py-6 text-base uppercase font-bold tracking-wider">
+                                No Attempts Remaining
+                            </Button>
+                        )}
+                    </CardFooter>
+                </Card>
+            </div>
 
             {/* Sidebar / History */}
             <div className="space-y-6">
-                {/* Best Score Card (Placeholder or Real if calculated) */}
-                {completedAttempts.length > 0 && (
-                    <Card className="border-border shadow-sm overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/10 dark:to-orange-950/10">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-amber-900 dark:text-amber-100 flex items-center gap-2">
-                                <Trophy className="h-4 w-4 text-amber-500" /> Best Score
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-amber-600 dark:text-amber-500">
-                                {Math.max(...completedAttempts.map((a: any) => {
-                                    const res = Array.isArray(a.result) ? a.result[0] : a.result;
-                                    return res?.score || 0;
-                                }), 0)}
-                                <span className="text-sm text-muted-foreground ml-1 font-normal">/ {exam.total_marks}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
-
-                <Card className="border-border shadow-sm h-full max-h-[500px] flex flex-col">
-                    <CardHeader className="pb-3 border-b">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <History className="w-5 h-5 text-muted-foreground" />
-                            History
+                <Card className="border-none shadow-md bg-white/95 dark:bg-card/95 h-full min-h-[400px]">
+                    <CardHeader className="pb-4 border-b border-border/50">
+                        <CardTitle className="text-xl font-serif tracking-wide flex items-center gap-2">
+                            HISTORY
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-1 overflow-y-auto p-0">
-                        {(completedAttempts.length > 0 || activeAttempt) ? (
-                            <div className="divide-y divide-border">
-                                {activeAttempt && (
-                                    <div className="p-4 bg-primary/5 hover:bg-primary/10 transition-colors">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <Badge variant="default" className="bg-primary/80 hover:bg-primary/80">In Progress</Badge>
-                                            <span className="text-xs text-muted-foreground">Just now</span>
+                    <CardContent className="pt-6 relative">
+                        {/* Timeline Line */}
+                        <div className="absolute left-[38px] top-6 bottom-6 w-0.5 bg-border z-0" />
+
+                        <div className="space-y-6 relative z-10">
+                            {(completedAttempts.length === 0 && !activeAttempt) && (
+                                <p className="text-sm text-muted-foreground pl-4">No history yet.</p>
+                            )}
+
+                            {activeAttempt && (
+                                <div className="flex gap-4 items-start group">
+                                    <div className="flex-shrink-0 w-4 h-4 rounded-full bg-orange-500 border-4 border-orange-100 dark:border-orange-900 mt-1 relative z-10 shadow-sm" />
+                                    <div className="flex-1 -mt-0.5">
+                                        <div className="flex justify-between items-start">
+                                            <h4 className="font-bold text-sm text-foreground">In Progress</h4>
+                                            <span className="text-xs text-muted-foreground whitespace-nowrap">Just now</span>
                                         </div>
-                                        <p className="text-sm font-medium">Attempt #{completedAttempts.length + 1}</p>
-                                        <Button size="sm" variant="link" onClick={handleStart} className="p-0 h-auto mt-1 text-primary">Resume</Button>
+                                        <p className="text-xs font-medium text-muted-foreground mt-1">Attempt #{completedAttempts.length + 1}</p>
+                                        <Button
+                                            variant="link"
+                                            onClick={handleStart}
+                                            className="p-0 h-auto text-xs text-orange-600 font-semibold mt-1 hover:text-orange-700"
+                                        >
+                                            Resume
+                                        </Button>
                                     </div>
-                                )}
-                                {completedAttempts.map((attempt: any, idx: number) => {
-                                    const result = Array.isArray(attempt.result) ? attempt.result[0] : attempt.result
-                                    return (
-                                        <div key={attempt.id} className="p-4 hover:bg-muted/50 transition-colors group">
-                                            <div className="flex justify-between items-start mb-1">
-                                                <span className="text-sm font-medium">Attempt #{completedAttempts.length - idx}</span>
-                                                <span className="text-sm font-bold">
-                                                    {result?.score ?? 0}
-                                                    <span className="text-xs text-muted-foreground font-normal">/{exam.total_marks}</span>
-                                                </span>
+                                </div>
+                            )}
+
+                            {completedAttempts.map((attempt: any, idx: number) => {
+                                const result = Array.isArray(attempt.result) ? attempt.result[0] : attempt.result
+                                return (
+                                    <div key={attempt.id} className="flex gap-4 items-start group">
+                                        <div className="flex-shrink-0 w-3 h-3 rounded-full bg-muted-foreground/30 group-hover:bg-primary transition-colors mt-1.5 relative z-10" />
+                                        <div className="flex-1 -mt-0.5">
+                                            <div className="flex justify-between items-start">
+                                                <h4 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors">
+                                                    Attempt #{completedAttempts.length - idx}
+                                                </h4>
+                                                <span className="text-xs text-muted-foreground font-bold">{result?.score ?? 0}/{exam.total_marks}</span>
                                             </div>
-                                            <div className="flex justify-between items-center mt-2">
+                                            <div className="flex justify-between items-center mt-1">
                                                 <span className="text-xs text-muted-foreground">{new Date(attempt.submitted_at).toLocaleDateString()}</span>
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
-                                                    className="h-7 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="h-6 px-2 text-[10px] uppercase font-bold tracking-wider opacity-0 group-hover:opacity-100 transition-opacity"
                                                     onClick={() => handleViewResult(attempt)}
                                                 >
-                                                    View Details <ChevronRight className="h-3 w-3 ml-1" />
+                                                    View Result
                                                 </Button>
                                             </div>
                                         </div>
-                                    )
-                                })}
-                            </div>
-                        ) : (
-                            <div className="p-8 text-center text-muted-foreground text-sm">
-                                No attempts yet. Good luck!
-                            </div>
-                        )}
+                                    </div>
+                                )
+                            })}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
