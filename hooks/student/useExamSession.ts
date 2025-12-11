@@ -13,7 +13,13 @@ export type Question = {
     options?: Option[]
     section_id: string
 }
-export type Section = { id: string; title: string; questions: Question[] }
+export type Section = {
+    id: string;
+    title: string;
+    questions: Question[];
+    required_attempts?: number;
+    max_questions_to_attempt?: number;
+}
 export type Exam = { id: string; title: string; duration_minutes: number; total_marks?: number }
 export type Attempt = { id: string; status: string; exam_id: string; student_id: string; total_time_spent?: number }
 
