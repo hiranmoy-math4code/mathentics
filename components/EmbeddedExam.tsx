@@ -730,9 +730,9 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
     return (
         <div ref={examContainerRef} className="grid grid-cols-1 lg:grid-cols-[1fr_360px] bg-background text-foreground rounded-xl overflow-hidden border border-border h-full">
             {/* LEFT PANEL */}
-            <div className="p-3 md:p-6 relative bg-background">
+            <div className="flex flex-col min-h-0 p-3 md:p-6 relative bg-background">
                 {/* HEADER NAV */}
-                <div className="bg-card border border-border py-3 px-3 md:px-4 rounded-xl flex flex-wrap items-center justify-between gap-2 md:gap-3 shadow-sm mb-4">
+                <div className="flex-shrink-0 bg-card border border-border py-3 px-3 md:px-4 rounded-xl flex flex-wrap items-center justify-between gap-2 md:gap-3 shadow-sm mb-4">
                     <div className="flex flex-col flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                             <h2 className="text-base md:text-lg font-bold text-primary truncate">{sessionData.exam.title}</h2>
