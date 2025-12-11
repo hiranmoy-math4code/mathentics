@@ -10,28 +10,19 @@ const nextConfig: NextConfig = {
 
     // ✅ Webpack Config for Cloudflare (সবচেয়ে গুরুত্বপূর্ণ অংশ)
     // এটি নিশ্চিত করে যে ভারী Node.js মডিউলগুলো ক্লায়েন্ট বা এজ বান্ডলে ঢুকবে না
-    webpack: (config, { isServer, webpack }) => {
-        config.resolve.fallback = {
-            ...config.resolve.fallback,
-            fs: false,
-            net: false,
-            tls: false,
-            crypto: require.resolve('crypto-browserify'),
-            stream: require.resolve('stream-browserify'),
-            vm: require.resolve('vm-browserify'),
-            buffer: require.resolve('buffer/'),
-            child_process: false,
-            dns: false,
-            process: require.resolve('process/browser'),
-        };
-
-        config.plugins.push(
-            new webpack.ProvidePlugin({
-                Buffer: ['buffer', 'Buffer'],
-                process: 'process/browser',
-            })
-        );
-
+    webpack: (config, { isServer }) => {
+        if (!isServer) {
+            config.resolve.fallback = {
+                ...config.resolve.fallback,
+                fs: false,
+                net: false,
+                tls: false,
+                crypto: false,
+                stream: false,
+                child_process: false,
+                dns: false,
+            };
+        }
         return config;
     },
 
