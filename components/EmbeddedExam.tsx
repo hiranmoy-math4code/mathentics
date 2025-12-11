@@ -981,7 +981,9 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
 
                 <div className="flex-1 overflow-y-auto p-5">
                     <div className="grid grid-cols-5 gap-2">
-                        {allQuestions.map((q, i) => {
+                        {currentSection?.questions.map((q, sectionIdx) => {
+                            // Find global index for this question
+                            const globalIdx = allQuestions.findIndex(gq => gq.id === q.id)
                             const status = qStatus(q)
                             const isMarked = marked[q.id]
                             let cls = "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -990,15 +992,15 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                             else if (isMarked) cls = "bg-amber-500 text-white shadow-sm"
                             else if (status === "visited") cls = "bg-primary/30 text-primary border border-primary"
 
-                            if (activeQuestionIdx === i) cls += " ring-2 ring-offset-1 ring-offset-card ring-primary"
+                            if (activeQuestionIdx === globalIdx) cls += " ring-2 ring-offset-1 ring-offset-card ring-primary"
 
                             return (
                                 <button
                                     key={q.id}
-                                    onClick={() => setActiveQuestionIdx(i)}
+                                    onClick={() => setActiveQuestionIdx(globalIdx)}
                                     className={`h-10 w-full rounded-lg text-sm font-semibold transition-all ${cls}`}
                                 >
-                                    {i + 1}
+                                    {sectionIdx + 1}
                                 </button>
                             )
                         })}
@@ -1041,7 +1043,9 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                             </div>
                             <div className="flex-1 overflow-y-auto p-4">
                                 <div className="grid grid-cols-5 gap-2">
-                                    {allQuestions.map((q, i) => {
+                                    {currentSection?.questions.map((q, sectionIdx) => {
+                                        // Find global index for this question
+                                        const globalIdx = allQuestions.findIndex(gq => gq.id === q.id)
                                         const status = qStatus(q)
                                         const isMarked = marked[q.id]
                                         let cls = "bg-muted text-muted-foreground"
@@ -1050,18 +1054,18 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                                         else if (isMarked) cls = "bg-amber-500 text-white"
                                         else if (status === "visited") cls = "bg-primary/30 text-primary border border-primary"
 
-                                        if (activeQuestionIdx === i) cls += " ring-2 ring-offset-1 ring-offset-card ring-primary"
+                                        if (activeQuestionIdx === globalIdx) cls += " ring-2 ring-offset-1 ring-offset-card ring-primary"
 
                                         return (
                                             <button
                                                 key={q.id}
                                                 onClick={() => {
-                                                    setActiveQuestionIdx(i)
+                                                    setActiveQuestionIdx(globalIdx)
                                                     setPaletteOpenMobile(false)
                                                 }}
                                                 className={`h-10 w-full rounded-lg text-sm font-semibold transition-all ${cls}`}
                                             >
-                                                {i + 1}
+                                                {sectionIdx + 1}
                                             </button>
                                         )
                                     })}
