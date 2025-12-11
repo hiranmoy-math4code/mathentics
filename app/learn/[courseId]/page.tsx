@@ -224,72 +224,50 @@ export default async function CoursePlayerPage({
                         contentType={currentLesson?.content_type as any}
                     >
                         {/* UNIFIED HEADER FOR ALL LESSON TYPES */}
-                        <div className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 px-4 md:px-6 flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3 min-w-0">
-                                <Link href="/student" className="text-muted-foreground hover:text-foreground transition-colors">
-                                    <ChevronLeft className="h-5 w-5" />
-                                </Link>
-                                <div className="flex flex-col">
+                        <div className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 flex items-center justify-between px-2 md:px-6 shadow-sm gap-2">
+                            {/* Left: Sidebar Toggle & Title */}
+                            <div className="flex items-center gap-2 md:gap-4 min-w-0 flex-1">
+                                <Button variant="ghost" size="icon" className="flex-shrink-0 text-muted-foreground hover:text-foreground">
+                                    <PanelLeft className="h-5 w-5" />
+                                    <span className="sr-only">Toggle Sidebar</span>
+                                </Button>
+
+                                <div className="h-6 w-px bg-border hidden sm:block" />
+
+                                <div className="flex flex-col min-w-0">
                                     <div className="flex items-center gap-2">
-                                        <h1 className="font-semibold text-sm md:text-base line-clamp-1 mr-2" title={currentLesson.title}>
+                                        <h1 className="font-bold text-sm md:text-base tracking-tight line-clamp-1 uppercase" title={currentLesson.title}>
                                             {currentLesson.title}
                                         </h1>
                                         {isQuiz && (
-                                            <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-200 text-[10px] px-1.5 h-5 rounded-sm">
+                                            <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-200 text-[10px] px-1.5 h-4 md:h-5 rounded-sm flex-shrink-0 hidden sm:flex">
                                                 EXAM MODE
                                             </Badge>
                                         )}
                                     </div>
-                                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
-                                        {currentLesson.content_type || 'Lesson'} • {course.level || 'Course'}
+                                    <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium hidden md:inline-block">
+                                        {course.title || 'Course'}
                                     </span>
                                 </div>
                             </div>
 
-                            {/* Center: Navigation (Hidden on small mobile, visible on larger) */}
-                            <div className="hidden md:flex flex-1 justify-center">
-                                <LessonNavigation
-                                    courseId={courseId}
-                                    currentLessonId={currentLesson.id}
-                                    prevLessonId={prevLessonId}
-                                    nextLessonId={nextLessonId}
-                                    variant="header"
-                                />
-                            </div>
-
-                            {/* Right: Actions */}
-                            <div className="flex items-center gap-2">
-                                {/* Mobile Nav Trigger (if needed, but avoiding for cleaner UI) */}
-                                <div className="md:hidden">
-                                    {/* Mobile-only compact nav or just rely on bottom/floating controls? 
-                                        For now, keeping the main nav hidden on tiny screens to avoid crowding.
-                                        User asked for it in header, but fitting 3 buttons + title + actions in one row on mobile is hard.
-                                        I'll show a simplified version or rely on the sticky header behavior.
-                                     */}
-                                </div>
-
+                            {/* Right: Actions & Navigation */}
+                            <div className="flex items-center gap-1 md:gap-2">
                                 <CommunityButton />
                                 <ModeToggle />
+
+                                <div className="pl-1 md:pl-2 ml-1 md:ml-2 border-l border-border">
+                                    <LessonNavigation
+                                        courseId={courseId}
+                                        currentLessonId={currentLesson.id}
+                                        prevLessonId={prevLessonId}
+                                        nextLessonId={nextLessonId}
+                                        variant="header"
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        {/* Mobile Navigation Bar (Visible only on small screens, below header or sticky bottom? 
-                           Let's put it below header if screen is small, or keep it sticky bottom.
-                           Actually, user said "in header". For mobile, maybe just icon buttons?
-                           Let's stick to the MD hidden logic above and add a secondary mobile row if needed, 
-                           OR just accept that on mobile it might need to wrap or use the bottom navigation from legacy layout.
-                           
-                           Wait, for consistent "Header" experience, let's try to fit it or show it right below header on mobile.
-                        */}
-                        <div className="md:hidden border-b border-border bg-muted/20 px-4 py-2 flex justify-center">
-                            <LessonNavigation
-                                courseId={courseId}
-                                currentLessonId={currentLesson.id}
-                                prevLessonId={prevLessonId}
-                                nextLessonId={nextLessonId}
-                                variant="header"
-                            />
-                        </div>
 
                         {isVideo ? (
                             // PREMIUM VIDEO LAYOUT

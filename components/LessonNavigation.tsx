@@ -57,41 +57,40 @@ export function LessonNavigation({
 
     if (variant === "header") {
         return (
-            <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm" className="h-9 px-4 hidden md:flex gap-2 uppercase text-xs font-bold tracking-wider rounded-md border-2 border-muted-foreground/20 hover:border-muted-foreground/40 hover:bg-transparent" disabled={!prevLessonId} asChild={!!prevLessonId}>
+            <div className="flex items-center gap-1 md:gap-3">
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0 md:w-auto md:h-9 md:px-4 gap-2 uppercase text-xs font-bold tracking-wider rounded-md border-2 border-muted-foreground/20 hover:border-muted-foreground/40 hover:bg-transparent" disabled={!prevLessonId} asChild={!!prevLessonId}>
                     {prevLessonId ? (
                         <Link href={`/learn/${courseId}?lessonId=${prevLessonId}`} title="Previous Lesson">
-                            <ChevronLeft className="h-3 w-3" /> PREVIOUS
+                            <ChevronLeft className="h-4 w-4 md:h-3 md:w-3" /> <span className="hidden md:inline">PREVIOUS</span>
                         </Link>
                     ) : (
-                        <span className="opacity-50 cursor-not-allowed"><ChevronLeft className="h-3 w-3" /> PREVIOUS</span>
+                        <span className="opacity-50 cursor-not-allowed flex items-center justify-center w-full h-full"><ChevronLeft className="h-4 w-4 md:h-3 md:w-3" /> <span className="hidden md:inline">PREVIOUS</span></span>
                     )}
                 </Button>
 
                 <Button
                     variant="outline"
                     size="sm"
-                    className="h-9 px-4 hidden sm:flex gap-2 uppercase text-xs font-bold tracking-wider rounded-md border-2 border-muted-foreground/20 hover:border-muted-foreground/40 hover:bg-transparent text-muted-foreground hover:text-foreground"
+                    className="h-8 w-8 p-0 md:w-auto md:h-9 md:px-4 gap-2 uppercase text-xs font-bold tracking-wider rounded-md border-2 border-muted-foreground/20 hover:border-muted-foreground/40 hover:bg-transparent text-muted-foreground hover:text-foreground"
                     onClick={handleToggleComplete}
                     disabled={isMarkingComplete || isMarkingIncomplete}
                     title={isCompleted ? "Mark as Incomplete" : "Mark as Complete"}
                 >
                     {isCompleted ? (
-                        <CheckCircle className="h-3 w-3 text-emerald-500" />
+                        <CheckCircle className="h-4 w-4 md:h-3 md:w-3 text-emerald-500" />
                     ) : (
-                        // No icon for unchecked state in image, just text, but circle is fine? Image says "MARK COMPLETE" in a box.
-                        null
+                        <Circle className="h-4 w-4 md:h-3 md:w-3" />
                     )}
-                    <span>{isCompleted ? "COMPLETED" : "MARK COMPLETE"}</span>
+                    <span className="hidden md:inline">{isCompleted ? "COMPLETED" : "MARK COMPLETE"}</span>
                 </Button>
 
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white h-9 px-5 gap-2 shadow-sm rounded-md uppercase text-xs font-bold tracking-wider" disabled={!nextLessonId} asChild={!!nextLessonId} size="sm">
+                <Button className="bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 p-0 md:w-auto md:h-9 md:px-5 gap-2 shadow-sm rounded-md uppercase text-xs font-bold tracking-wider" disabled={!nextLessonId} asChild={!!nextLessonId} size="sm">
                     {nextLessonId ? (
                         <Link href={`/learn/${courseId}?lessonId=${nextLessonId}`} title="Next Lesson">
-                            NEXT LESSON <ChevronRight className="h-3 w-3" />
+                            <span className="hidden md:inline">NEXT LESSON</span> <ChevronRight className="h-4 w-4 md:h-3 md:w-3" />
                         </Link>
                     ) : (
-                        <span className="opacity-50 cursor-not-allowed">NEXT LESSON <ChevronRight className="h-3 w-3" /></span>
+                        <span className="opacity-50 cursor-not-allowed flex items-center justify-center w-full h-full"><span className="hidden md:inline">NEXT LESSON</span> <ChevronRight className="h-4 w-4 md:h-3 md:w-3" /></span>
                     )}
                 </Button>
             </div>
