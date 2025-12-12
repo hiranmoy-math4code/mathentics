@@ -23,21 +23,21 @@ BEGIN
                         'id', l.id,
                         'title', l.title,
                         'content_type', l.content_type,
-                        'content_url', l.content_url, -- Needed for player
-                        'content_text', l.content_text, -- Needed for player
+                        'content_url', l.content_url,
+                        'content_text', l.content_text,
                         'is_free_preview', COALESCE(l.is_free_preview, false),
                         'lesson_order', l.lesson_order,
                         'duration', l.video_duration,
-                        'video_provider', l.video_provider,
-                        'bunny_video_id', l.bunny_video_id,
-                        'bunny_library_id', l.bunny_library_id,
-                        'is_live', l.is_live,
-                        'meeting_date', l.meeting_date,
-                        'meeting_url', l.meeting_url,
-                        'meeting_platform', l.meeting_platform,
+                        -- 'video_provider', l.video_provider, -- Column does not exist
+                        -- 'bunny_video_id', l.bunny_video_id, -- Column does not exist
+                        -- 'bunny_library_id', l.bunny_library_id, -- Column does not exist
+                        -- 'is_live', l.is_live, -- Column does not exist
+                        -- 'meeting_date', l.meeting_date, -- Column does not exist
+                        -- 'meeting_url', l.meeting_url, -- Column does not exist
+                        -- 'meeting_platform', l.meeting_platform, -- Column does not exist
                         'exam_id', l.exam_id,
-                        'description', l.description,
-                        'is_downloadable', l.is_downloadable,
+                        -- 'description', l.description, -- Column does not exist
+                        -- 'is_downloadable', l.is_downloadable, -- Column does not exist
                         'created_at', l.created_at,
                         'updated_at', l.updated_at
                     ) ORDER BY l.lesson_order ASC

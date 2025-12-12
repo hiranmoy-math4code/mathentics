@@ -99,7 +99,12 @@ export default function Sidebar({
         {/* Logo */}
         <div className={`flex items-center gap-3 mb-8 transition-all duration-500 ${sidebarCollapsed ? "justify-center" : "px-2"}`}>
           <div className="w-auto px-2 h-10 min-w-[2.5rem] rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20">
-            <span className="text-xl">Σ✨{'}'}</span>
+            {/* Logo */}
+            <Link href="/" >
+              <div className="w-auto px-2 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:shadow-indigo-500/30 transition-all">
+                Σ✨{'}'}
+              </div>
+            </Link>
           </div>
           {!sidebarCollapsed && (
             <motion.div

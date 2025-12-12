@@ -117,7 +117,7 @@ export default function RootLayout({
           >
             <MathJaxContext version={3} config={config}>
               {children}
-              <AIMentor />
+              {/* <AIMentor /> */}
               <RewardInitializerWrapper />
             </MathJaxContext>
             <SonnerToaster richColors position="top-center" toastOptions={{ style: { zIndex: 9999 } }} />

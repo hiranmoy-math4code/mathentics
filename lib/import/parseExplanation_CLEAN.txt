@@ -1,0 +1,59 @@
+// CLEAN VERSION OF parseExplanation function
+// Copy this to replace lines 70-139 in examLatex.ts
+
+function parseExplanation(content: string): { 
+  type: 'structured' | 'freeform' | 'simple';
+  text?: string; 
+  given?: string; 
+  solution?: string; 
+  steps?: string; 
+} | null {
+  const match = content.match(/\\explanation\{([\s\S]*?)\}/);
+  if (!match) return null;
+  
+  const explanationText = match[1].trim();
+  if (!explanationText) return null;
+  
+  const cleanLatex = (text: string) => {
+    return text
+      .replace(/\\textbf\{([^}]*)\}/g, '$1')
+      .replace(/\\textit\{([^}]*)\}/g, '$1')
+      .replace(/\\emph\{([^}]*)\}/g, '$1')
+      .replace(/\\\\/g, '\n')
+      .replace(/\\text\{([^}]*)\}/g, '$1')
+      .replace(/\\noindent\s*/g, '')
+      .replace(/\\par\s*/g, '\n\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  };
+
+  const hasGiven = /\\textbf\{Given:\}/i.test(explanationText);
+  const hasSolution = /\\textbf\{Solution:\}/i.test(explanationText);
+  const hasSteps = /\\textbf\{Steps:\}/i.test(explanationText);
+  
+  if (hasGiven || hasSolution || hasSteps) {
+    const givenMatch = explanationText.match(/\\textbf\{Given:\}([\s\S]*?)(?=\\textbf\{(?:Solution|Steps):\}|$)/);
+    const solutionMatch = explanationText.match(/\\textbf\{Solution:\}([\s\S]*?)(?=\\textbf\{Steps:\}|$)/);
+    const stepsMatch = explanationText.match(/\\textbf\{Steps:\}([\s\S]*?)$/);
+    
+    return {
+      type: 'structured',
+      given: givenMatch?.[1] ? cleanLatex(givenMatch[1]) : undefined,
+      solution: solutionMatch?.[1] ? cleanLatex(solutionMatch[1]) : undefined,
+      steps: stepsMatch?.[1] ? cleanLatex(stepsMatch[1]) : undefined,
+    };
+  }
+  
+  const hasDisplayMath = /\\\[[\s\S]*?\\\]/.test(explanationText);
+  if (hasDisplayMath) {
+    return {
+      type: 'freeform',
+      text: cleanLatex(explanationText)
+    };
+  }
+  
+  return {
+    type: 'simple',
+    text: cleanLatex(explanationText)
+  };
+}

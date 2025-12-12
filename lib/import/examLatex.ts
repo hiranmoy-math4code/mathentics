@@ -29,6 +29,7 @@ type QuestionBlock = {
   negative_marks: number;
   difficulty?: "easy" | "medium" | "hard";
   topic?: string;
+  title?: string;
 };
 
 function stripComments(src: string): string {
@@ -96,10 +97,10 @@ export async function parseExamLatex(file: File): Promise<ExamBlock> {
       // remove the leading \question and spaces
       qblock = qblock.replace(/^\s*\\question\s*/m, "");
 
-      // Header: {TYPE}{TEXT}{MARKS}{NEG}{DIFF}{TOPIC}
+      // Header: {TYPE}{TEXT}{MARKS}{NEG}{DIFF}{TOPIC}{TITLE}
       // Allow spaces around braces and multiline TEXT
       const headerRe =
-        /^\{\s*([^}]*)\s*\}\s*\{\s*([\s\S]*?)\s*\}\s*\{\s*([^}]*)\s*\}\s*\{\s*([^}]*)\s*\}\s*\{\s*([^}]*)\s*\}\s*\{\s*([^}]*)\s*\}/;
+        /^\{\s*([^}]*)\s*\}\s*\{\s*([\s\S]*?)\s*\}\s*\{\s*([^}]*)\s*\}\s*\{\s*([^}]*)\s*\}\s*\{\s*([^}]*)\s*\}\s*\{\s*([^}]*)\s*\}(?:\s*\{\s*([^}]*)\s*\})?/;
       const meta = qblock.match(headerRe);
       if (!meta) continue; // skip malformed question
 
@@ -108,7 +109,8 @@ export async function parseExamLatex(file: File): Promise<ExamBlock> {
       const marks = Number(meta[3] || 1);
       const neg = Number(meta[4] || 0);
       const diff = (meta[5] || "easy").toLowerCase() as "easy" | "medium" | "hard";
-      const topic = ((meta[6] || "").trim()) || undefined;
+      const topic = ((meta[6] || '').trim()) || undefined;
+      const title = ((meta[7] || '').trim()) || exam.title; // Use custom title or fallback to exam name
 
       const content = qblock.slice(meta[0].length).trim();
 
@@ -141,9 +143,8 @@ export async function parseExamLatex(file: File): Promise<ExamBlock> {
         });
       }
 
-      // Explanation (optional)
-      const explanation = (content.match(/\\explanation\{([^}]*)\}/)?.[1] || "").trim() || null;
-
+      // Explanation (optional) - simple format, keep as-is for LaTeX math rendering
+      const explanation = content.match(/\\explanation\{([\s\S]*?)\}/)?.[1]?.trim() || null;
       // Final push
       questions.push({
         question_text: qText,
@@ -155,6 +156,7 @@ export async function parseExamLatex(file: File): Promise<ExamBlock> {
         negative_marks: neg,
         difficulty: diff,
         topic,
+        title
       });
     }
 
@@ -196,7 +198,7 @@ export async function importExamLatex(file: File, adminId: string) {
 
   // Insert sections + questions
   for (const sec of exam.sections) {
-       const sectionTotalMarks = sec.questions.reduce((sum, q) => {
+    const sectionTotalMarks = sec.questions.reduce((sum, q) => {
       const m = Number.isFinite(q.marks) ? Number(q.marks) : 0;
       return sum + m;
     }, 0);
@@ -221,7 +223,7 @@ export async function importExamLatex(file: File, adminId: string) {
         .from("question_bank")
         .insert({
           admin_id: adminId,
-          title: q.question_text.slice(0, 50),
+          title: q.title,
           question_text: q.question_text,
           question_type: q.question_type,
           marks: q.marks,

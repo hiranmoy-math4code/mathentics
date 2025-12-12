@@ -1,0 +1,13 @@
+﻿  // Helper function to clean LaTeX formatting
+  const cleanLatex = (text: string) => {
+    return text
+      .replace(/\\textbf\{([^}]*)\}/g, '')
+      .replace(/\\textit\{([^}]*)\}/g, '')
+      .replace(/\\emph\{([^}]*)\}/g, '')
+      .replace(/\\\\/g, '\n')
+      .replace(/\\text\{([^}]*)\}/g, '')
+      .replace(/\\noindent\s*/g, '')
+      .replace(/\\par\s*/g, '\n\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  };

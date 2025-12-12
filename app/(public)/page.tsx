@@ -266,7 +266,7 @@ const CourseCard = ({ course }: { course: PublicCourse }) => {
           <span>{course.profiles?.full_name || 'Instructor'}</span>
         </div>
         <div className="font-bold text-[#1F2A6B] text-lg">
-          ${course.price}
+          ₹ {course.price}
         </div>
       </div>
     </motion.div>
@@ -287,7 +287,7 @@ const ExamCard = ({ test }: { test: PublicTestSeries }) => {
       </div>
 
       <div className="flex justify-between items-center mt-auto">
-        <div className="text-xl font-bold text-[#1F2A6B]">${test.price}</div>
+        <div className="text-xl font-bold text-[#1F2A6B]">₹ {test.price}</div>
         <button className="text-[#14B8A6] font-bold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
           View Details <ArrowRight size={16} />
         </button>
@@ -538,61 +538,6 @@ const Testimonials = () => {
   );
 };
 
-const Pricing = () => {
-  return (
-    <section id="pricing" className="py-24 bg-[#FBFBFD]">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl lg:text-4xl font-extrabold text-[#1F2A6B]">Simple Pricing</h2>
-          <p className="text-slate-500 mt-4">Invest in your future. 14-day money-back guarantee.</p>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8 items-center max-w-6xl mx-auto">
-          {/* Basic */}
-          <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-            <h3 className="font-bold text-xl text-gray-900">Basic</h3>
-            <div className="text-4xl font-extrabold text-[#1F2A6B] my-4">$0</div>
-            <p className="text-gray-500 mb-6">Forever free for basic concepts.</p>
-            <ul className="space-y-3 mb-8 text-sm text-gray-600">
-              <li className="flex gap-2"><Check size={18} className="text-green-500" /> Access to 5 Courses</li>
-              <li className="flex gap-2"><Check size={18} className="text-green-500" /> Basic Python Sandbox</li>
-              <li className="flex gap-2"><Check size={18} className="text-green-500" /> Community Support</li>
-            </ul>
-            <button className="w-full py-3 rounded-lg border-2 border-[#1F2A6B] text-[#1F2A6B] font-bold hover:bg-indigo-50 transition-colors">Start Free</button>
-          </div>
-
-          {/* Pro */}
-          <div className="bg-[#1F2A6B] p-8 rounded-3xl shadow-2xl relative transform scale-105 z-10">
-            <div className="absolute top-0 right-0 bg-[#F6C85F] text-[#1F2A6B] text-xs font-bold px-3 py-1 rounded-bl-xl rounded-tr-xl uppercase">Best Value</div>
-            <h3 className="font-bold text-xl text-white">Pro Student</h3>
-            <div className="text-4xl font-extrabold text-white my-4">$19<span className="text-lg font-medium text-indigo-300">/mo</span></div>
-            <p className="text-indigo-200 mb-6">Full access to everything.</p>
-            <ul className="space-y-3 mb-8 text-sm text-indigo-100">
-              <li className="flex gap-2"><Check size={18} className="text-[#14B8A6]" /> All 40+ Premium Courses</li>
-              <li className="flex gap-2"><Check size={18} className="text-[#14B8A6]" /> Unlimited Mock Exams</li>
-              <li className="flex gap-2"><Check size={18} className="text-[#14B8A6]" /> 1-on-1 Mentor Chat</li>
-              <li className="flex gap-2"><Check size={18} className="text-[#14B8A6]" /> Advanced Analytics</li>
-            </ul>
-            <button className="w-full py-3 rounded-lg bg-[#14B8A6] text-white font-bold hover:bg-[#0d9488] shadow-lg shadow-teal-900/20 transition-all hover:-translate-y-1">Get Pro Access</button>
-          </div>
-
-          {/* Institution */}
-          <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
-            <h3 className="font-bold text-xl text-gray-900">Institution</h3>
-            <div className="text-4xl font-extrabold text-[#1F2A6B] my-4">Custom</div>
-            <p className="text-gray-500 mb-6">For schools and coaching centers.</p>
-            <ul className="space-y-3 mb-8 text-sm text-gray-600">
-              <li className="flex gap-2"><Check size={18} className="text-green-500" /> Bulk Student Licenses</li>
-              <li className="flex gap-2"><Check size={18} className="text-green-500" /> Teacher Dashboard</li>
-              <li className="flex gap-2"><Check size={18} className="text-green-500" /> Custom Syllabus Import</li>
-            </ul>
-            <button className="w-full py-3 rounded-lg border-2 border-gray-200 text-gray-600 font-bold hover:border-[#1F2A6B] hover:text-[#1F2A6B] transition-colors">Contact Sales</button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
 
 const CTA = () => {
   return (
@@ -623,7 +568,6 @@ export default function App() {
       <CoursesSection />
       <ExamSeriesSection />
       <DemoSection /><Testimonials />
-      <Pricing />
       <CTA />
 
 

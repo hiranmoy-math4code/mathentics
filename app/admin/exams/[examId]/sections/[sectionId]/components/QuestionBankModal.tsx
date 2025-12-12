@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useState, useMemo } from "react";
+import { useQuestionBank, useExamQuestions, useAddQuestionFromBank } from "@/hooks/admin/useQuestionBank";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,97 +27,44 @@ interface Props {
 }
 
 export default function QuestionBankModal({ show, setShow, sectionId, reloadQuestions }: Props) {
-  const [bankQuestions, setBankQuestions] = useState<any[]>([]);
-  const [existingQuestionIds, setExistingQuestionIds] = useState<Set<string>>(new Set());
-  const [isLoading, setIsLoading] = useState(true);
-  const [addingQuestionId, setAddingQuestionId] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
+
+  // Use custom hooks for data fetching with caching and pagination
+  const { data: bankData, isLoading: isBankLoading } = useQuestionBank(page, pageSize);
+  const { data: existingQuestionIds = [], isLoading: isExamLoading } = useExamQuestions(show ? sectionId : null);
+  const addQuestionMutation = useAddQuestionFromBank();
+
+  const bankQuestions = bankData?.questions || [];
+  const totalCount = bankData?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  // Track added questions by storing their bank IDs locally
+  const [addedQuestionIds, setAddedQuestionIds] = useState<Set<string>>(new Set());
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
-  const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!show) return;
-
-    const loadData = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const supabase = createClient();
-
-        // Load existing questions in ALL sections of this exam
-        // First get the exam_id from the section
-        const { data: sectionData } = await supabase
-          .from("sections")
-          .select("exam_id")
-          .eq("id", sectionId)
-          .single();
-
-        if (sectionData) {
-          // Get all sections of this exam
-          const { data: examSections } = await supabase
-            .from("sections")
-            .select("id")
-            .eq("exam_id", sectionData.exam_id);
-
-          const sectionIds = examSections?.map(s => s.id) || [];
-
-          // Get all questions from all sections of this exam
-          const { data: existingQuestions } = await supabase
-            .from("questions")
-            .select("question_bank_id")
-            .in("section_id", sectionIds);
-
-          const existingIds = new Set(
-            existingQuestions
-              ?.map(q => q.question_bank_id)
-              .filter(id => id !== null) || []
-          );
-          setExistingQuestionIds(existingIds);
-        }
-
-        // Load question bank
-        const { data, error: bankError } = await supabase
-          .from("question_bank")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (bankError) throw bankError;
-        setBankQuestions(data || []);
-      } catch (err: any) {
-        setError(err.message || "Failed to load question bank");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
-  }, [show, sectionId]);
+  const isLoading = isBankLoading || isExamLoading;
+  const error = addQuestionMutation.error?.message || null;
 
   const handleAddQuestion = async (bankQuestionId: string) => {
     try {
-      setAddingQuestionId(bankQuestionId);
-      setError(null);
-
-      const supabase = createClient();
-      const { error: rpcError } = await supabase.rpc("add_question_with_options", {
-        p_section_id: sectionId,
-        p_question_bank_id: bankQuestionId,
+      await addQuestionMutation.mutateAsync({
+        sectionId,
+        questionBankId: bankQuestionId,
       });
 
-      if (rpcError) throw rpcError;
-
-      // Add to existing IDs to prevent re-adding
-      setExistingQuestionIds(prev => new Set([...prev, bankQuestionId]));
+      // Track this question as added to disable button immediately
+      setAddedQuestionIds(prev => new Set([...prev, bankQuestionId]));
 
       setSuccessMessage("Question added successfully!");
       setTimeout(() => setSuccessMessage(null), 2000);
 
       await reloadQuestions();
     } catch (err: any) {
-      setError(err.message || "Failed to add question");
-    } finally {
-      setAddingQuestionId(null);
+      // Error is handled by mutation
     }
   };
 
@@ -130,7 +77,7 @@ export default function QuestionBankModal({ show, setShow, sectionId, reloadQues
     return colors[type?.toLowerCase()] || "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
   };
 
-  const filteredQuestions = bankQuestions.filter(q => {
+  const filteredQuestions = bankQuestions.filter((q: any) => {
     const matchesSearch =
       q.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       q.question_text?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -141,7 +88,7 @@ export default function QuestionBankModal({ show, setShow, sectionId, reloadQues
     return matchesSearch && matchesType;
   });
 
-  const questionTypes = ["all", ...new Set(bankQuestions.map(q => q.question_type?.toLowerCase()).filter(Boolean))];
+  const questionTypes = ["all", ...new Set(bankQuestions.map((q: any) => q.question_type?.toLowerCase()).filter(Boolean))];
 
   return (
     <Dialog open={show} onOpenChange={setShow}>
@@ -235,8 +182,10 @@ export default function QuestionBankModal({ show, setShow, sectionId, reloadQues
           ) : (
             <div className="space-y-4 mt-4">
               {filteredQuestions.map((q, index) => {
-                const isAlreadyAdded = existingQuestionIds.has(q.id);
-                const isAdding = addingQuestionId === q.id;
+                // Check if already added in this session or exists in exam
+                const isAlreadyAdded = addedQuestionIds.has(q.id);
+                const isAdding = addQuestionMutation.isPending && addQuestionMutation.variables?.questionBankId === q.id;
+
 
                 return (
                   <motion.div
@@ -245,8 +194,8 @@ export default function QuestionBankModal({ show, setShow, sectionId, reloadQues
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                     className={`relative overflow-hidden rounded-xl border p-5 transition-all duration-300 ${isAlreadyAdded
-                        ? "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 opacity-60"
-                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg"
+                      ? "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 opacity-60"
+                      : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg"
                       }`}
                   >
                     {isAlreadyAdded && (
@@ -317,17 +266,44 @@ export default function QuestionBankModal({ show, setShow, sectionId, reloadQues
           )}
         </div>
 
-        {/* Footer */}
+        {/* Footer with Pagination */}
         <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
           <div className="flex justify-between items-center">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              {filteredQuestions.length} {filteredQuestions.length === 1 ? "question" : "questions"} available
-              {existingQuestionIds.size > 0 && ` • ${existingQuestionIds.size} already in exam`}
+              {isLoading ? (
+                "Loading..."
+              ) : (
+                <>
+                  Showing {page * pageSize + 1}-{Math.min((page + 1) * pageSize, totalCount)} of {totalCount} questions
+                  {addedQuestionIds.size > 0 && ` • ${addedQuestionIds.size} added in this session`}
+                </>
+              )}
             </p>
-            <Button variant="outline" onClick={() => setShow(false)}>
-              <X className="w-4 h-4 mr-2" />
-              Close
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={page === 0 || isLoading}
+              >
+                Previous
+              </Button>
+              <span className="text-sm text-slate-600 dark:text-slate-400">
+                Page {page + 1} of {totalPages || 1}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => p + 1)}
+                disabled={page >= totalPages - 1 || isLoading}
+              >
+                Next
+              </Button>
+              <Button variant="outline" onClick={() => setShow(false)}>
+                <X className="w-4 h-4 mr-2" />
+                Close
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

@@ -22,50 +22,41 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      if (authError) throw authError;
 
-      // Fetch user profile to determine role
+      if (error) throw error;
+
+      // Check if user has a profile
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not found");
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, role')
+          .eq('id', user.id)
+          .single();
 
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+        if (!profile) {
+          setError("Account exists but profile is missing. Please contact support.");
+          return;
+        }
 
-      if (profileError) throw profileError;
-
-      // Direct redirect based on role
-      if (profile?.role === "admin") {
-        router.push("/admin/dashboard");
-      } else {
-        // Default to student dashboard for all other cases
-        router.push("/student/dashboard");
+        // Role-based routing
+        if (profile.role === 'admin') {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/student/dashboard");
+        }
+        router.refresh();
       }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+      setError(error instanceof Error ? error.message : "Invalid login credentials");
     } finally {
       setIsLoading(false);
     }
   };
-
-  React.useEffect(() => {
-    // Check for error in URL params (e.g. returned from callback)
-    const params = new URLSearchParams(window.location.search);
-    const errorMsg = params.get('error');
-    if (errorMsg) {
-      setError(decodeURIComponent(errorMsg));
-    }
-
-    // Optional: Clear any stale local storage or state if needed on login page load
-    // This helps prevent 'auto-login' loops if the auth state is messy
-  }, []);
-
 
   const handleGoogleLogin = async () => {
     const supabase = createClient();
@@ -75,12 +66,15 @@ export default function LoginPage() {
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
       if (error) throw error;
-      // Note: No redirection here as it's handled by OAuth
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred with Google Login");
+      setError(error instanceof Error ? error.message : "An error occurred with Google Sign In");
       setIsLoading(false);
     }
   };
@@ -93,34 +87,37 @@ export default function LoginPage() {
       className="w-full"
     >
       <div className="mb-8 text-center">
-        <Link href="/" className="inline-block">
+        <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
           <div className="flex items-center justify-center gap-3">
             <div className="w-auto px-2 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20">
               <span className="text-xl">Σ✨{'}'}</span>
             </div>
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">
               Math4Code
             </h1>
           </div>
         </Link>
-        <p className="mt-2 text-slate-400">Welcome back! Please login to continue.</p>
+        <p className="mt-3 text-slate-600">Welcome back! Please sign in to continue.</p>
       </div>
 
-      <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl">
-        <form onSubmit={handleLogin} className="space-y-5">
+      <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-violet-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+        <form onSubmit={handleLogin} className="space-y-5 relative z-10">
+          {/* Email */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300" htmlFor="email">
+            <label className="text-sm font-medium text-slate-700 ml-1" htmlFor="email">
               Email Address
             </label>
-            <div className="relative group">
+            <div className="relative group/input">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                <Mail className="h-5 w-5 text-slate-400 group-focus-within/input:text-indigo-500 transition-colors" />
               </div>
               <input
                 id="email"
                 type="email"
                 placeholder="you@example.com"
-                className="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all hover:border-slate-300"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -128,27 +125,28 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {/* Password */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-slate-300" htmlFor="password">
+            <div className="flex justify-between items-center">
+              <label className="text-sm font-medium text-slate-700 ml-1" htmlFor="password">
                 Password
               </label>
               <Link
                 href="/auth/forgot-password"
-                className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                className="text-xs text-indigo-600 hover:text-indigo-500 transition-colors font-medium"
               >
                 Forgot password?
               </Link>
             </div>
-            <div className="relative group">
+            <div className="relative group/input">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                <Lock className="h-5 w-5 text-slate-400 group-focus-within/input:text-indigo-500 transition-colors" />
               </div>
               <input
                 id="password"
                 type="password"
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all hover:border-slate-300"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -160,7 +158,7 @@ export default function LoginPage() {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              className="flex items-center gap-2 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm"
+              className="flex items-center gap-2 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 text-sm"
             >
               <AlertCircle className="h-4 w-4 shrink-0" />
               <p>{error}</p>
@@ -170,7 +168,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed transform active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed transform active:scale-[0.98]"
           >
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -182,13 +180,13 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-8">
+        <div className="mt-8 relative z-10">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-700/50"></div>
+              <div className="w-full border-t border-slate-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-[#0f172a] text-slate-500">Or continue with</span>
+              <span className="px-3 bg-white text-slate-500">Or continue with</span>
             </div>
           </div>
 
@@ -197,28 +195,27 @@ export default function LoginPage() {
               onClick={handleGoogleLogin}
               disabled={isLoading}
               type="button"
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-300 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl text-slate-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
             >
-              <FaGoogle className="h-4 w-4" />
+              <FaGoogle className="h-4 w-4 text-slate-600" />
               <span className="text-sm font-medium">Google</span>
             </button>
             <button
               disabled={isLoading}
               type="button"
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-300 transition-all disabled:opacity-70 disabled:cursor-not-allowed hidden"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl text-slate-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hidden"
             >
-              <FaGithub className="h-4 w-4" />
+              <FaGithub className="h-4 w-4 text-slate-600" />
               <span className="text-sm font-medium">GitHub</span>
             </button>
           </div>
         </div>
       </div>
 
-
-      <p className="mt-8 text-center text-sm text-slate-500">
-        Don&apos;t have an account?{" "}
-        <Link href="/auth/sign-up" className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
-          Create an account
+      <p className="mt-8 text-center text-sm text-slate-600">
+        Don't have an account?{" "}
+        <Link href="/auth/sign-up" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors hover:underline">
+          Sign up
         </Link>
       </p>
     </motion.div>

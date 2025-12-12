@@ -6,6 +6,9 @@ import { importExamToSupabase, parseExamWord } from "@/lib/import/examWord";
 import { importExamLatex, parseExamLatex } from "@/lib/import/examLatex";
 import { motion, AnimatePresence } from "framer-motion";
 import { renderWithLatex } from "@/lib/renderWithLatex";
+import { ExplanationRenderer } from "@/components/admin/ExplanationRenderer";
+import { DeleteConfirmDialog } from "@/components/admin/DeleteConfirmDialog";
+import { QuestionEditor } from "@/components/admin/QuestionEditor";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +22,9 @@ import {
   Clock,
   Award,
   FileQuestion,
-  Loader2
+  Loader2,
+  Trash2,
+  Edit
 } from "lucide-react";
 
 type PreviewExam = {
@@ -35,6 +40,7 @@ type PreviewExam = {
     title: string;
     section_order: number;
     questions: {
+      title: string; // Question title from LaTeX or auto-generated
       question_text: string;
       question_type: "MCQ" | "MSQ" | "NAT";
       marks: number;
@@ -58,6 +64,30 @@ export default function ImportExam() {
   const [preview, setPreview] = useState<PreviewExam | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
+  const [editMode, setEditMode] = useState(false); // NEW: Edit mode toggle
+  const [editedExam, setEditedExam] = useState<PreviewExam | null>(null); // NEW: Edited exam data
+
+  // Delete confirmation dialog state
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    type: 'question' | 'section' | null;
+    sectionIndex: number;
+    questionIndex?: number;
+    itemName: string;
+  }>({
+    open: false,
+    type: null,
+    sectionIndex: -1,
+    questionIndex: undefined,
+    itemName: ''
+  });
+
+  // Question editing state
+  const [editingQuestion, setEditingQuestion] = useState<{
+    sectionIndex: number;
+    questionIndex: number;
+  } | null>(null);
+
 
   useEffect(() => {
     (async () => {
@@ -67,8 +97,8 @@ export default function ImportExam() {
   }, [supabase]);
 
   const totalQuestions = useMemo(
-    () => preview?.sections.reduce((s, sec) => s + sec.questions.length, 0) ?? 0,
-    [preview]
+    () => (editedExam || preview)?.sections.reduce((s, sec) => s + sec.questions.length, 0) ?? 0,
+    [preview, editedExam]
   );
 
   const handleChooseFile = async (file: File) => {
@@ -102,6 +132,91 @@ export default function ImportExam() {
       setLoading(false);
     }
   };
+
+  // NEW: Open delete confirmation dialog for question
+  const handleDeleteQuestion = (sectionIndex: number, questionIndex: number) => {
+    const currentExam = editedExam || preview;
+    if (!currentExam) return;
+
+    const question = currentExam.sections[sectionIndex]?.questions[questionIndex];
+    if (!question) return;
+
+    setDeleteDialog({
+      open: true,
+      type: 'question',
+      sectionIndex,
+      questionIndex,
+      itemName: question.title || question.question_text.substring(0, 100)
+    });
+  };
+
+  // NEW: Open delete confirmation dialog for section
+  const handleDeleteSection = (sectionIndex: number) => {
+    const currentExam = editedExam || preview;
+    if (!currentExam) return;
+
+    const section = currentExam.sections[sectionIndex];
+    if (!section) return;
+
+    setDeleteDialog({
+      open: true,
+      type: 'section',
+      sectionIndex,
+      itemName: section.title
+    });
+  };
+
+  // NEW: Confirm deletion
+  const confirmDelete = () => {
+    const currentExam = editedExam || preview;
+    if (!currentExam) return;
+
+    if (deleteDialog.type === 'question' && deleteDialog.questionIndex !== undefined) {
+      const updatedExam = { ...currentExam };
+      updatedExam.sections = updatedExam.sections.map((sec, si) => {
+        if (si === deleteDialog.sectionIndex) {
+          return {
+            ...sec,
+            questions: sec.questions.filter((_, qi) => qi !== deleteDialog.questionIndex)
+          };
+        }
+        return sec;
+      });
+      setEditedExam(updatedExam);
+      setEditMode(true);
+    } else if (deleteDialog.type === 'section') {
+      const updatedExam = {
+        ...currentExam,
+        sections: currentExam.sections.filter((_, si) => si !== deleteDialog.sectionIndex)
+      };
+      setEditedExam(updatedExam);
+      setEditMode(true);
+    }
+
+    setDeleteDialog({ open: false, type: null, sectionIndex: -1, itemName: '' });
+  };
+
+  // NEW: Save edited question
+  const handleSaveQuestion = (sectionIndex: number, questionIndex: number, updatedQuestion: any) => {
+    const currentExam = editedExam || preview;
+    if (!currentExam) return;
+
+    const updatedExam = { ...currentExam };
+    updatedExam.sections = updatedExam.sections.map((sec, si) => {
+      if (si === sectionIndex) {
+        return {
+          ...sec,
+          questions: sec.questions.map((q, qi) => qi === questionIndex ? updatedQuestion : q)
+        };
+      }
+      return sec;
+    });
+
+    setEditedExam(updatedExam);
+    setEditMode(true);
+    setEditingQuestion(null);
+  };
+
 
   const handleConfirmImport = async () => {
     if (!adminId || !fileForImport || !fileKind) return;
@@ -179,8 +294,8 @@ export default function ImportExam() {
               <label
                 htmlFor="file-upload"
                 className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl transition-all duration-300 ${loading
-                    ? "border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 cursor-not-allowed"
-                    : "border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-900/10 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 cursor-pointer"
+                  ? "border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 cursor-not-allowed"
+                  : "border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-900/10 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 cursor-pointer"
                   }`}
               >
                 {loading ? (
@@ -261,6 +376,12 @@ export default function ImportExam() {
                       <Badge className="bg-white/20 text-white border-0">
                         Status: {preview.status}
                       </Badge>
+                      {editMode && (
+                        <Badge className="bg-yellow-500/90 text-white border-0 animate-pulse">
+                          <Edit className="w-3 h-3 mr-1" />
+                          Modified
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   <Button
@@ -278,7 +399,7 @@ export default function ImportExam() {
               {/* Content */}
               <div className="p-6 max-h-[60vh] overflow-y-auto">
                 <div className="space-y-4">
-                  {preview.sections.map((sec, idx) => {
+                  {(editedExam || preview)!.sections.map((sec, idx) => {
                     const secTotal = sec.questions.reduce((s, q) => s + (q.marks || 0), 0);
                     return (
                       <div key={idx} className="border border-slate-200 dark:border-slate-700 rounded-xl p-5 bg-slate-50 dark:bg-slate-800">
@@ -289,50 +410,117 @@ export default function ImportExam() {
                           <div className="flex items-center gap-3">
                             <Badge variant="outline">{sec.questions.length} questions</Badge>
                             <Badge variant="outline">{secTotal} marks</Badge>
+                            {/* Delete Section Button */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteSection(idx)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              disabled={loading}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </div>
                         </div>
-                        <div className="space-y-3">
-                          {sec.questions.slice(0, 3).map((q, qi) => (
-                            <div key={qi} className="p-4 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
-                                  {q.question_type}
-                                </Badge>
-                                <span className="text-xs text-slate-500 dark:text-slate-400">
-                                  {q.marks} marks • -{q.negative_marks} • {q.difficulty}
-                                </span>
-                              </div>
-                              <div className="text-sm text-slate-700 dark:text-slate-300 mb-3">
-                                {renderWithLatex(q.question_text)}
-                              </div>
-                              {q.question_type !== "NAT" && q.options?.length > 0 && (
-                                <div className="grid grid-cols-1 gap-2">
-                                  {q.options.map((op, oi) => (
-                                    <div
-                                      key={oi}
-                                      className={`flex items-center gap-2 p-2 rounded-md text-sm ${op.is_correct
-                                          ? "bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-800"
-                                          : "bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                                        }`}
+                        <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                          {sec.questions.map((q, qi) => {
+                            const isEditing = editingQuestion?.sectionIndex === idx && editingQuestion?.questionIndex === qi;
+
+                            return (
+                              <div key={qi} className="p-4 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 relative">
+                                {/* Action Buttons */}
+                                {!isEditing && (
+                                  <div className="absolute top-2 right-2 flex gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setEditingQuestion({ sectionIndex: idx, questionIndex: qi })}
+                                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                      disabled={loading}
                                     >
-                                      <span className="font-semibold text-slate-600 dark:text-slate-400">
-                                        {String.fromCharCode(65 + oi)}.
+                                      <Edit className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleDeleteQuestion(idx, qi)}
+                                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                      disabled={loading}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                )}
+
+                                {/* Question Editor or Display */}
+                                {isEditing ? (
+                                  <QuestionEditor
+                                    question={q}
+                                    onSave={(updated) => handleSaveQuestion(idx, qi, updated)}
+                                    onCancel={() => setEditingQuestion(null)}
+                                  />
+                                ) : (
+                                  <>
+                                    {/* Question Title */}
+                                    {q.title && (
+                                      <div className="mb-2 pb-2 border-b border-slate-200 dark:border-slate-700 pr-20">
+                                        <h5 className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                                          {q.title}
+                                        </h5>
+                                      </div>
+                                    )}
+
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
+                                        {q.question_type}
+                                      </Badge>
+                                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                                        {q.marks} marks • -{q.negative_marks} • {q.difficulty}
                                       </span>
-                                      <span className="flex-1">{renderWithLatex(op.text)}</span>
-                                      {op.is_correct && (
-                                        <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                      {q.topic && (
+                                        <Badge variant="outline" className="text-xs">
+                                          {q.topic}
+                                        </Badge>
                                       )}
                                     </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                          {sec.questions.length > 3 && (
-                            <p className="text-sm text-slate-500 dark:text-slate-400 text-center">
-                              + {sec.questions.length - 3} more questions...
-                            </p>
-                          )}
+
+                                    <div className="text-sm text-slate-700 dark:text-slate-300 mb-3">
+                                      {renderWithLatex(q.question_text)}
+                                    </div>
+
+                                    {q.question_type !== "NAT" && q.options?.length > 0 && (
+                                      <div className="grid grid-cols-1 gap-2 mb-3">
+                                        {q.options.map((op, oi) => (
+                                          <div
+                                            key={oi}
+                                            className={`flex items-center gap-2 p-2 rounded-md text-sm ${op.is_correct
+                                              ? "bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-800"
+                                              : "bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                                              }`}
+                                          >
+                                            <span className="font-semibold text-slate-600 dark:text-slate-400">
+                                              {String.fromCharCode(65 + oi)}.
+                                            </span>
+                                            <span className="flex-1">{renderWithLatex(op.text)}</span>
+                                            {op.is_correct && (
+                                              <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+
+                                    {/* Explanation using ExplanationRenderer */}
+                                    {q.explanation && (
+                                      <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+                                        <ExplanationRenderer explanation={q.explanation} />
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     );
@@ -386,6 +574,21 @@ export default function ImportExam() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
+        onConfirm={confirmDelete}
+        title={deleteDialog.type === 'question' ? 'Delete Question?' : 'Delete Section?'}
+        description={
+          deleteDialog.type === 'question'
+            ? 'Are you sure you want to delete this question? This will remove it from the preview.'
+            : 'Are you sure you want to delete this entire section? This will remove all questions in this section.'
+        }
+        itemName={deleteDialog.itemName}
+      />
     </>
+
   );
 }

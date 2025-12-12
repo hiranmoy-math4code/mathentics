@@ -106,7 +106,7 @@ function QuestionAnalysisView({
                             </div>
 
                             <div className="space-y-2 mb-6">
-                                {q.options?.map((opt: any) => {
+                                {q.options?.map((opt: any, optIdx: number) => {
                                     const isSelected = isOptionSelected(q, opt.id, userAns)
                                     const isRightOption = isOptionCorrect(q, opt.id)
 
@@ -120,7 +120,7 @@ function QuestionAnalysisView({
                                                 isSelected ? "bg-rose-500 text-white" :
                                                     "border border-muted-foreground/30"
                                                 }`}>
-                                                {isRightOption ? <CheckCircle2 className="w-3 h-3" /> : isSelected ? <X className="w-3 h-3" /> : String.fromCharCode(65 + idx)}
+                                                {isRightOption ? <CheckCircle2 className="w-3 h-3" /> : isSelected ? <X className="w-3 h-3" /> : String.fromCharCode(65 + optIdx)}
                                             </div>
                                             <span className="text-sm">{renderWithLatex(opt.option_text)}</span>
                                         </div>
