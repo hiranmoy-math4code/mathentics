@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2, Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import { FaGoogle, FaGithub } from "react-icons/fa";
 
-export default function SignUpPage() {
+function SignUpForm() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +18,8 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +41,18 @@ export default function SignUpPage() {
     }
 
     try {
+      const emailRedirectTo = new URL(
+        process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`
+      );
+      if (next) {
+        emailRedirectTo.searchParams.set("next", next);
+      }
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo:
-            process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`,
+          emailRedirectTo: emailRedirectTo.toString(),
           data: {
             full_name: fullName,
             role: role,
@@ -65,10 +73,15 @@ export default function SignUpPage() {
     const supabase = createClient();
     setIsLoading(true);
     try {
+      const redirectTo = new URL(`${window.location.origin}/auth/callback`);
+      if (next) {
+        redirectTo.searchParams.set("next", next);
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectTo.toString(),
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -302,10 +315,23 @@ export default function SignUpPage() {
 
       <p className="mt-8 text-center text-sm text-slate-600">
         Already have an account?{" "}
-        <Link href="/auth/login" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors hover:underline">
+        <Link
+          href={next ? `/auth/login?next=${encodeURIComponent(next)}` : "/auth/login"}
+          className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors hover:underline"
+        >
           Sign in
         </Link>
       </p>
     </motion.div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+      <Suspense fallback={<Loader2 className="h-8 w-8 animate-spin text-indigo-600" />}>
+        <SignUpForm />
+      </Suspense>
+    </div>
   );
 }

@@ -1,19 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2, Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
 import { FaGoogle, FaGithub } from "react-icons/fa";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +34,13 @@ export default function LoginPage() {
       // Check if user has a profile
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        // If "next" param exists (e.g. from Enroll button), redirect there
+        if (next) {
+          router.push(next);
+          router.refresh();
+          return;
+        }
+
         const { data: profile } = await supabase
           .from('profiles')
           .select('id, role')
@@ -62,10 +71,15 @@ export default function LoginPage() {
     const supabase = createClient();
     setIsLoading(true);
     try {
+      const redirectTo = new URL(`${window.location.origin}/auth/callback`);
+      if (next) {
+        redirectTo.searchParams.set("next", next);
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectTo.toString(),
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -214,10 +228,23 @@ export default function LoginPage() {
 
       <p className="mt-8 text-center text-sm text-slate-600">
         Don't have an account?{" "}
-        <Link href="/auth/sign-up" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors hover:underline">
+        <Link
+          href={next ? `/auth/sign-up?next=${encodeURIComponent(next)}` : "/auth/sign-up"}
+          className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors hover:underline"
+        >
           Sign up
         </Link>
       </p>
     </motion.div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+      <Suspense fallback={<Loader2 className="h-8 w-8 animate-spin text-indigo-600" />}>
+        <LoginForm />
+      </Suspense>
+    </div>
   );
 }
