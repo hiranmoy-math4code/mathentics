@@ -620,10 +620,16 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
 
                 // Award coins and mark complete
                 if (userId) {
-                    const rewardRes = await awardCoins(userId, 'quiz_completion', examId, `Completed quiz: ${sessionData.exam.title}`);
-                    if (rewardRes.success && rewardRes.message) {
-                        toast.success(rewardRes.message, { icon: "🪙" });
+                    try {
+                        const rewardRes = await awardCoins(userId, 'quiz_completion', examId, `Completed quiz: ${sessionData.exam.title}`);
+                        if (rewardRes.success && rewardRes.message) {
+                            toast.success(rewardRes.message, { icon: "🪙" });
+                        }
+                    } catch (error) {
+                        // Silently fail - don't break submission if reward fails
+                        console.error("Failed to award coins:", error);
                     }
+
                     // Mark lesson complete via context
                     markComplete();
                 }
