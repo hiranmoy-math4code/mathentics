@@ -11,7 +11,6 @@ import { Target } from "lucide-react";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { fetchLessonDetailedData } from "@/lib/data/lesson";
 
-export const runtime = 'edge';
 
 export default async function CourseLessonPage({
     params,
