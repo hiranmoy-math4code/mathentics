@@ -9,6 +9,8 @@ import { Target } from "lucide-react";
 
 
 
+export const runtime = 'edge';
+
 export default async function CourseLessonPage({
     params,
     searchParams,
