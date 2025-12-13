@@ -8,6 +8,8 @@ import { QuizSkeleton, VideoSkeleton, TextSkeleton } from "@/components/skeleton
 import { Target } from "lucide-react";
 
 
+import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
+import { fetchLessonDetailedData } from "@/lib/data/lesson";
 
 export const runtime = 'edge';
 
@@ -97,24 +99,34 @@ export default async function CourseLessonPage({
 
     const queryClient = getQueryClient();
 
+    // --- DIRECT FETCH FOR FIRST LOAD (Edge Compatible) ---
+    // Instead of calling a Server Action (which might be flaky on Edge SSR), 
+    // we use the existing authenticated Supabase client to fetch data directly.
+    const lessonData = await fetchLessonDetailedData(supabase, currentLesson.id, courseId, user.id);
+
+    // Seed the cache with the fetched data
+    queryClient.setQueryData(['lesson', currentLesson.id, courseId], lessonData);
+
     return (
-        <LessonTracker
-            key={currentLesson.id}
-            lessonId={currentLesson.id}
-            courseId={courseId}
-            moduleId={currentLesson.module_id}
-            contentType={currentLesson.content_type as any}
-        >
-            {/* SUSPENSE BOUNDARY: Allows Header/Sidebar to update while Content Hydrates/Fetches */}
-            <Suspense fallback={<SkeletonComponent />}>
-                <LessonContentClient
-                    lessonId={currentLesson.id}
-                    courseId={courseId}
-                    user={user}
-                    contentType={currentLesson.content_type as any}
-                />
-            </Suspense>
-        </LessonTracker>
+        <HydrationBoundary state={dehydrate(queryClient)}>
+            <LessonTracker
+                key={currentLesson.id}
+                lessonId={currentLesson.id}
+                courseId={courseId}
+                moduleId={currentLesson.module_id}
+                contentType={currentLesson.content_type as any}
+            >
+                {/* SUSPENSE BOUNDARY: Allows Header/Sidebar to update while Content Hydrates/Fetches */}
+                <Suspense fallback={<SkeletonComponent />}>
+                    <LessonContentClient
+                        lessonId={currentLesson.id}
+                        courseId={courseId}
+                        user={user}
+                        contentType={currentLesson.content_type as any}
+                    />
+                </Suspense>
+            </LessonTracker>
+        </HydrationBoundary>
     );
 }
 
