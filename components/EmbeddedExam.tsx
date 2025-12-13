@@ -614,19 +614,11 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
 
                 toast.success("Quiz submitted successfully!")
                 setIsTimerActive(false)
-                // Keep dialog open while transitioning to results
-                // setShowSubmitDialog(false) // REMOVED: Don't close dialog yet to prevent flash
 
                 // Wait a moment for database to update
                 await new Promise(resolve => setTimeout(resolve, 500))
 
-                // Check if results should be shown immediately
-                const { data: examData } = await supabase
-                    .from("exams")
-                    .select("result_visibility")
-                    .eq("id", examId)
-                    .single()
-
+                // Award coins and mark complete
                 if (userId) {
                     const rewardRes = await awardCoins(userId, 'quiz_completion', examId, `Completed quiz: ${sessionData.exam.title}`);
                     if (rewardRes.success && rewardRes.message) {
@@ -636,20 +628,38 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
                     markComplete();
                 }
 
-                if (examData?.result_visibility === "immediate") {
+                // Check if results should be shown immediately
+                let shouldShowResults = true; // Default to showing results
+                try {
+                    const { data: examData, error } = await supabase
+                        .from("exams")
+                        .select("result_visibility")
+                        .eq("id", examId)
+                        .single()
+
+                    if (!error && examData) {
+                        // Only hide results if explicitly set to manual or scheduled
+                        shouldShowResults = examData.result_visibility === "immediate" || !examData.result_visibility
+                    }
+                } catch (error) {
+                    console.error("Error fetching result visibility:", error)
+                    // On error, default to showing results
+                }
+
+                // Close the submit dialog
+                setShowSubmitDialog(false)
+
+                if (shouldShowResults) {
                     // If onSuccessfulSubmit is provided (standalone mode), use it
                     if (onSuccessfulSubmit) {
-                        setShowSubmitDialog(false)
                         onSuccessfulSubmit(sessionData.attempt.id)
                     } else {
                         // Otherwise show results inline (embedded mode)
                         setSubmittedAttemptId(sessionData.attempt.id)
                         setShowResults(true)
-                        setShowSubmitDialog(false)
                     }
                 } else {
                     toast.info("Results will be available once the instructor releases them")
-                    setShowSubmitDialog(false)
                     if (onExit) onExit()
                 }
             },

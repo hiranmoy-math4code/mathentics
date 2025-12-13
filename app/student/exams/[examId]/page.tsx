@@ -42,7 +42,7 @@ export default function ExamPanelSections() {
         onExit={() => router.push("/student/dashboard")}
         onSuccessfulSubmit={(attemptId) => {
           // In standalone mode, we redirect to the specialized results page instead of showing inline results
-          router.push(`/student/results/${attemptId}?attemptId=${attemptId}`)
+          router.push(`/student/results/attempt/${attemptId}`)
         }}
       />
     </LessonContext.Provider>
