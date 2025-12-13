@@ -21,7 +21,7 @@ export const useCourseModules = (courseId: string, initialData: ModuleWithLesson
                 .rpc('get_course_structure', { target_course_id: courseId });
 
             if (error) {
-                console.warn("RPC fetch failed in useCourseModules, falling back", error);
+                // Fallback to standard query if RPC fails
                 const { data: fallbackData, error: fallbackError } = await supabase
                     .from("modules")
                     .select("*, lessons(*)")
@@ -163,7 +163,9 @@ export const useCourseModules = (courseId: string, initialData: ModuleWithLesson
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ videoId: lesson.bunny_video_id })
-                }).catch(err => console.error("Background bunny deletion failed", err));
+                }).catch(() => {
+                    // Silently fail - background deletion is not critical
+                });
             }
 
             const { error } = await supabase.from("lessons").delete().eq("id", lesson.id);

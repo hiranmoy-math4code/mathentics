@@ -20,7 +20,6 @@ export const useChannels = (courseId: string) => {
                 .rpc('get_channels_with_meta', { target_course_id: courseId });
 
             if (error) {
-                console.error("Error fetching channels:", error);
                 throw error;
             }
 

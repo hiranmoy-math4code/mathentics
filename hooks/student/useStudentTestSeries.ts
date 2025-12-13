@@ -27,7 +27,6 @@ export function useStudentTestSeries(userId: string | undefined) {
                 .rpc('get_student_test_series_progress', { target_user_id: userId });
 
             if (error) {
-                console.error("Error fetching test series progress:", error);
                 throw error;
             }
 

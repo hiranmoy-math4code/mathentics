@@ -45,7 +45,6 @@ export const useChannelMessages = (channelId: string) => {
         .range(start, end);
 
       if (error) {
-        console.error('❌ Fetch messages error:', error);
         throw error;
       }
 
@@ -66,8 +65,6 @@ export const useChannelMessages = (channelId: string) => {
   useEffect(() => {
     if (!channelId) return;
 
-    // console.log('🔌 Setting up realtime subscription for channel:', channelId);
-
     const channel = supabase
       .channel(`community_messages:${channelId}`)
       .on(
@@ -79,8 +76,6 @@ export const useChannelMessages = (channelId: string) => {
           filter: `channel_id=eq.${channelId}`,
         },
         async (payload) => {
-          // console.log('📨 Realtime message received:', payload.new);
-
           // Fetch the complete message with profile
           const { data: newMessage, error } = await supabase
             .from("community_messages")
@@ -109,13 +104,10 @@ export const useChannelMessages = (channelId: string) => {
             .single();
 
           if (error) {
-            console.error('❌ Error fetching new message:', error);
             return;
           }
 
           if (newMessage) {
-            // console.log('✅ Adding message to cache:', newMessage.id);
-
             queryClient.setQueryData(["community", "messages", channelId], (old: any) => {
               if (!old) return { pages: [[newMessage]], pageParams: [0] };
 

@@ -181,7 +181,6 @@ export const useToggleBookmark = (channelId?: string) => {
             });
         },
         onError: (error) => {
-            console.error('Bookmark error:', error);
             toast({
                 title: 'Failed to update bookmark',
                 description: error instanceof Error ? error.message : 'Unknown error',

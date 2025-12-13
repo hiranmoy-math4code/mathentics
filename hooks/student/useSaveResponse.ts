@@ -36,6 +36,6 @@ export const useSaveResponse = () => {
         return data.id;
       }
     },
-    onError: (err:any) => { console.error(err); }
+    onError: () => { /* Error handled by React Query */ }
   });
 };

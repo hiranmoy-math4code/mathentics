@@ -32,8 +32,6 @@ export function useStudentCourses(userId: string | undefined) {
                 if (error.code === '20' || error.message.includes('AbortError') || error.message.includes('aborted')) {
                     return [];
                 }
-
-                console.error("Error fetching enrolled courses from RPC:", error.message);
                 throw error
             }
 

@@ -9,15 +9,10 @@ export const useSendMessage = (channelId: string) => {
 
     return useMutation({
         mutationFn: async ({ content, attachments = [] }: { content: string; attachments?: any[] }) => {
-            console.log('📤 Sending message to channel:', channelId);
-
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                console.error('❌ User not authenticated');
                 throw new Error("Not authenticated");
             }
-
-            console.log('👤 User:', user.id);
 
             const { data, error } = await supabase
                 .from("community_messages")
@@ -38,16 +33,12 @@ export const useSendMessage = (channelId: string) => {
                 .single();
 
             if (error) {
-                console.error('❌ Database insert error:', error);
                 throw error;
             }
 
-            console.log('✅ Message saved to database:', data);
             return data;
         },
         onMutate: async ({ content, attachments = [] }) => {
-            console.log('⚡ Optimistic update for:', content.substring(0, 50));
-
             await queryClient.cancelQueries({ queryKey: ["community", "messages", channelId] });
 
             const previousMessages = queryClient.getQueryData(["community", "messages", channelId]);
@@ -95,29 +86,18 @@ export const useSendMessage = (channelId: string) => {
 
             return { previousMessages };
         },
-        onSuccess: (data) => {
-            console.log('✅ Message sent successfully:', data?.id);
+        onSuccess: () => {
             toast.success("Message sent!");
         },
         onError: (error: any, _, context) => {
-            console.error('❌ Send message error:', error);
-
             if (context?.previousMessages) {
                 queryClient.setQueryData(["community", "messages", channelId], context.previousMessages);
             }
 
             const errorMessage = error.message || "Failed to send message";
             toast.error(errorMessage);
-
-            // Show more detailed error for debugging
-            if (error.code) {
-                console.error('Error code:', error.code);
-                console.error('Error details:', error.details);
-                console.error('Error hint:', error.hint);
-            }
         },
         onSettled: () => {
-            console.log('🔄 Invalidating queries for channel:', channelId);
             queryClient.invalidateQueries({ queryKey: ["community", "messages", channelId] });
         },
     });
@@ -163,9 +143,8 @@ export const useToggleReaction = () => {
             // Invalidate specific message or channel messages
             queryClient.invalidateQueries({ queryKey: ["community", "messages"] });
         },
-        onError: (error: any) => {
+        onError: () => {
             toast.error("Failed to update reaction");
-            console.error("Reaction error:", error);
         }
     });
 };

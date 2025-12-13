@@ -32,7 +32,6 @@ export const useNotifications = (userId?: string) => {
                 .limit(50); // Limit to last 50 notifications
 
             if (error) {
-                console.error("Error fetching notifications:", error);
                 throw error;
             }
             return data as Notification[];
@@ -96,7 +95,6 @@ export const useNotifications = (userId?: string) => {
                     filter: `user_id=eq.${userId}`,
                 },
                 (payload) => {
-                    console.log("🔔 Realtime Notification Received:", payload);
                     const newNotification = payload.new as Notification;
 
                     // 1. Invalidate query to refresh list
@@ -113,20 +111,12 @@ export const useNotifications = (userId?: string) => {
 
                     // 3. Play Sound
                     const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
-                    audio.play()
-                        .then(() => console.log("🔊 Sound played successfully"))
-                        .catch((e) => {
-                            if (e.name === "NotAllowedError") {
-                                console.warn("🔕 Audio blocked by browser. User must interact with the page first.");
-                            } else {
-                                console.error("❌ Error playing sound:", e);
-                            }
-                        });
+                    audio.play().catch(() => {
+                        // Silently fail - audio is not critical
+                    });
                 }
             )
-            .subscribe((status) => {
-                console.log(`📡 Notification Subscription Status: ${status}`);
-            });
+            .subscribe();
 
         return () => {
             supabase.removeChannel(channel);

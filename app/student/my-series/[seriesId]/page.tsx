@@ -9,6 +9,7 @@ import {
   BarChart2,
   Lock,
   RefreshCw,
+  ArrowLeft,
 } from "lucide-react"
 import Link from "next/link"
 import { use } from "react"
@@ -73,7 +74,7 @@ export default function TestSeriesDetails({
     )
   }
 
-  const { seriesInfo, tests } = data
+  const { seriesInfo, tests } = data as any
 
   return (
     <div className="p-6 md:p-10 space-y-8 bg-gradient-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen transition-colors duration-700">
@@ -84,6 +85,15 @@ export default function TestSeriesDetails({
         animate="visible"
         className="rounded-3xl bg-white/70 dark:bg-slate-800/60 backdrop-blur-lg p-6 shadow-xl border border-slate-100 dark:border-slate-700"
       >
+        <div className="mb-4">
+          <Link
+            href="/student/my-series"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-indigo-600 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to My Series
+          </Link>
+        </div>
+
         <h2 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white">
           {seriesInfo.title}
         </h2>
@@ -99,7 +109,7 @@ export default function TestSeriesDetails({
           <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
             <CheckCircle2 className="w-4 h-4" />
             <span>
-              Completed: {tests.filter((t) => t.status === "Completed").length}
+              Completed: {tests.filter((t: any) => t.status === "Completed").length}
             </span>
           </div>
         </div>
@@ -107,14 +117,15 @@ export default function TestSeriesDetails({
 
       {/* Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {tests.map((test, idx) => (
+        {tests.map((test: any, idx: number) => (
           <motion.div
             key={test.id}
             variants={fadeIn}
             initial="hidden"
             animate="visible"
             custom={idx}
-            className="p-6 rounded-2xl bg-white/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 shadow-lg transition-all"
+            className={`p-6 rounded-2xl bg-white/70 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 shadow-lg transition-all ${test.status === "Locked" ? "opacity-60 grayscale-[0.5]" : ""
+              }`}
           >
             <div className="flex justify-between items-start">
               <div>
@@ -127,9 +138,11 @@ export default function TestSeriesDetails({
               </div>
               <span
                 className={`text-xs px-2 py-1 rounded-full font-medium ${test.status === "Completed"
-                    ? "bg-green-100 text-green-700 dark:bg-green-700/30 dark:text-green-300"
-                    : test.status === "Ongoing"
-                      ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-700/30 dark:text-yellow-300"
+                  ? "bg-green-100 text-green-700 dark:bg-green-700/30 dark:text-green-300"
+                  : test.status === "Ongoing"
+                    ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-700/30 dark:text-yellow-300"
+                    : test.status === "Not Started"
+                      ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-700/30 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700"
                       : "bg-slate-200 text-slate-600 dark:bg-slate-700/40 dark:text-slate-400"
                   }`}
               >

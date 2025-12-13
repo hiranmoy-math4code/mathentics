@@ -30,7 +30,7 @@ export function useUser() {
                     }
                 }
             } catch (error) {
-                console.error("Error getting user:", error);
+                // Silently fail - auth errors are handled by Supabase
             } finally {
                 if (mounted) setLoading(false);
             }

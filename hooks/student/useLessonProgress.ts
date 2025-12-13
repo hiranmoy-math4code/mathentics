@@ -16,8 +16,6 @@ export function useMarkLessonComplete() {
         mutationFn: async ({ userId, lessonId, courseId }: MarkLessonCompleteParams) => {
             const supabase = createClient()
 
-            console.log("Upserting lesson progress:", { userId, lessonId, courseId });
-
             // Upsert lesson progress
             const { data, error } = await supabase
                 .from("lesson_progress")
@@ -37,11 +35,8 @@ export function useMarkLessonComplete() {
                 .single()
 
             if (error) {
-                console.error("Supabase upsert error:", error);
                 throw error;
             }
-
-            console.log("Lesson progress upserted:", data);
 
             // Update last accessed lesson in enrollment
             await supabase
@@ -57,10 +52,9 @@ export function useMarkLessonComplete() {
             // Award generic lesson completion coins
             // The Server Action handles duplicates/limits
             try {
-                const rewardRes = await awardCoins(userId, 'lesson_completion', lessonId, 'Completed a lesson');
-                console.log("Reward Result:", rewardRes);
+                await awardCoins(userId, 'lesson_completion', lessonId, 'Completed a lesson');
             } catch (err) {
-                console.error("Failed to award coins:", err);
+                // Silently fail - rewards are not critical
             }
             // ----------------------
 
@@ -83,8 +77,6 @@ export function useMarkLessonIncomplete() {
         mutationFn: async ({ userId, lessonId, courseId }: MarkLessonCompleteParams) => {
             const supabase = createClient()
 
-            console.log("Marking lesson incomplete:", { userId, lessonId, courseId });
-
             // Update lesson progress to incomplete
             const { data, error } = await supabase
                 .from("lesson_progress")
@@ -99,11 +91,8 @@ export function useMarkLessonIncomplete() {
                 .single()
 
             if (error) {
-                console.error("Supabase update error:", error);
                 throw error;
             }
-
-            console.log("Lesson marked incomplete:", data);
 
             return data
         },

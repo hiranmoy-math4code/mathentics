@@ -35,7 +35,6 @@ export const useLessons = (courseId: string) => {
 
             if (error) {
                 // Fallback to standard query if RPC fails (e.g., function not created yet)
-                console.warn("RPC failed, falling back to standard query:", error);
                 const { data: fallbackData, error: fallbackError } = await supabase
                     .from('modules')
                     .select(`

@@ -24,6 +24,7 @@ interface EmbeddedExamProps {
     examId: string
     onExit?: () => void
     isRetake?: boolean
+    onSuccessfulSubmit?: (attemptId: string) => void
 }
 
 interface QuizResult {
@@ -422,7 +423,7 @@ export function PreviousResultView({
     )
 }
 
-export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamProps) {
+export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSubmit }: EmbeddedExamProps) {
     const queryClient = useQueryClient()
     const supabase = createClient()
     const router = useRouter()
@@ -458,7 +459,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
         checkUser()
     }, [router, supabase])
 
-    const { data: sessionData, isLoading, error } = useExamSession(examId, userId, retakeAttempt > 0, !showResults)
+    const { data: sessionData, isLoading, error } = useExamSession(examId, userId, retakeAttempt, !showResults)
     const { mutate: submitExam, isPending: isSubmitting } = useSubmitExam()
     const { mutate: saveAnswer, isPending: isSaving } = useSaveAnswer()
     const { mutate: updateTimer } = useUpdateTimer()
@@ -636,10 +637,16 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                 }
 
                 if (examData?.result_visibility === "immediate") {
-                    setSubmittedAttemptId(sessionData.attempt.id)
-                    setShowResults(true)
-                    // Now safe to close dialog as we are unmounting or showing results
-                    setShowSubmitDialog(false)
+                    // If onSuccessfulSubmit is provided (standalone mode), use it
+                    if (onSuccessfulSubmit) {
+                        setShowSubmitDialog(false)
+                        onSuccessfulSubmit(sessionData.attempt.id)
+                    } else {
+                        // Otherwise show results inline (embedded mode)
+                        setSubmittedAttemptId(sessionData.attempt.id)
+                        setShowResults(true)
+                        setShowSubmitDialog(false)
+                    }
                 } else {
                     toast.info("Results will be available once the instructor releases them")
                     setShowSubmitDialog(false)
@@ -652,7 +659,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                 setShowSubmitDialog(false)
             }
         })
-    }, [sessionData, responses, submitExam, examId, userId, awardCoins, markComplete, onExit, supabase])
+    }, [sessionData, responses, submitExam, examId, userId, awardCoins, markComplete, onExit, onSuccessfulSubmit, supabase])
 
     const handleAutoSubmit = useCallback(() => {
         toast.info("Time's up! Submitting quiz...")
@@ -714,10 +721,14 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                 userId={userId}
                 attemptId={submittedAttemptId}
                 onRetake={() => {
-                    queryClient.invalidateQueries({ queryKey: ["exam-session"] })
+                    setRetakeAttempt(prev => {
+                        const newRetakeAttempt = prev + 1
+                        queryClient.invalidateQueries({ queryKey: ["exam-session", examId, userId, prev] })
+                        queryClient.invalidateQueries({ queryKey: ["exam-session", examId, userId, newRetakeAttempt] })
+                        return newRetakeAttempt
+                    })
                     setShowResults(false)
                     setSubmittedAttemptId(null)
-                    setRetakeAttempt(prev => prev + 1)
                 }}
                 onBack={onExit ? () => onExit() : undefined}
             />

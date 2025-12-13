@@ -30,7 +30,6 @@ export function useAllCourses(userId: string | undefined) {
                 });
 
             if (error) {
-                console.error("Error fetching all courses:", error);
                 throw error;
             }
 
