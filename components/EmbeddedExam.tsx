@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useQueryClient } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
@@ -11,15 +11,19 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
     Clock, CheckCircle2, Loader2, ArrowLeft, Flag, TrendingUp, Award, Target, BarChart3,
-    Menu, X, AlertTriangle, Save, ListChecks, Maximize, Minimize, PauseCircle
+    Menu, AlertTriangle, Save, ListChecks, Maximize, Minimize, PauseCircle, X
 } from "lucide-react"
 import { renderWithLatex } from "@/lib/renderWithLatex"
 import { useRouter } from "next/navigation"
 import { useLessonContext } from "@/context/LessonContext"
+import { ExamTimer } from "@/components/exam/ExamTimer"
+import { QuestionDisplay } from "@/components/exam/QuestionDisplay"
+import { QuestionPalette } from "@/components/exam/QuestionPalette"
 
 interface EmbeddedExamProps {
     examId: string
     onExit?: () => void
+    isRetake?: boolean
 }
 
 interface QuizResult {
@@ -184,13 +188,15 @@ export function PreviousResultView({
     userId,
     onRetake,
     attemptId,
-    initialResult
+    initialResult,
+    onBack
 }: {
     examId: string,
     userId: string,
     onRetake: () => void,
     attemptId?: string,
-    initialResult?: any
+    initialResult?: any,
+    onBack?: () => void
 }) {
     const [effectiveAttemptId, setEffectiveAttemptId] = useState<string | null>(attemptId || null)
     const [showAnalysis, setShowAnalysis] = useState(false)
@@ -393,10 +399,20 @@ export function PreviousResultView({
                         <Flag className="w-4 w-4 mr-2" />
                         Retake Quiz
                     </Button>
+                    {onBack && (
+                        <Button
+                            onClick={onBack}
+                            variant="outline"
+                            className="border-border text-foreground hover:bg-muted"
+                        >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Back to Attempts
+                        </Button>
+                    )}
                     <Button
                         onClick={() => window.location.reload()}
-                        variant="outline"
-                        className="border-border text-foreground hover:bg-muted"
+                        variant="secondary"
+                        className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
                     >
                         Continue Learning
                     </Button>
@@ -406,26 +422,24 @@ export function PreviousResultView({
     )
 }
 
-interface EmbeddedExamProps {
-    examId: string
-    onExit?: () => void
-    isRetake?: boolean
-}
-
 export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamProps) {
     const queryClient = useQueryClient()
     const supabase = createClient()
     const router = useRouter()
-    const examContainerRef = React.useRef<HTMLDivElement>(null)
+    const examContainerRef = useRef<HTMLDivElement>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [userId, setUserId] = useState<string | null>(null)
     const [responses, setResponses] = useState<Record<string, any>>({})
     const [marked, setMarked] = useState<Record<string, boolean>>({})
     const [visited, setVisited] = useState<Record<string, boolean>>({})
     const [activeQuestionIdx, setActiveQuestionIdx] = useState(0)
-    const [secondsLeft, setSecondsLeft] = useState(0)
-    const [showSubmitDialog, setShowSubmitDialog] = useState(false)
+
+    // Timer Logic - Ref to avoid re-renders
+    const timeRef = useRef(0)
+    const [initialTime, setInitialTime] = useState(0)
     const [isTimerActive, setIsTimerActive] = useState(false)
+
+    const [showSubmitDialog, setShowSubmitDialog] = useState(false)
     const [showResults, setShowResults] = useState(false)
     const [paletteOpenMobile, setPaletteOpenMobile] = useState(false)
     const [retakeAttempt, setRetakeAttempt] = useState(isRetake ? 1 : 0)
@@ -463,26 +477,11 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
         const totalDuration = sessionData.exam.duration_minutes * 60
         const timeSpent = sessionData.attempt.total_time_spent || 0
         const remaining = Math.max(0, totalDuration - timeSpent)
-        setSecondsLeft(remaining)
+
+        setInitialTime(remaining)
+        timeRef.current = remaining
         setIsTimerActive(true)
     }, [sessionData])
-
-    // Timer
-    useEffect(() => {
-        if (!isTimerActive || secondsLeft <= 0) return
-
-        const timer = setInterval(() => {
-            setSecondsLeft((s) => {
-                if (s <= 1) {
-                    handleAutoSubmit()
-                    return 0
-                }
-                return s - 1
-            })
-        }, 1000)
-
-        return () => clearInterval(timer)
-    }, [isTimerActive, secondsLeft])
 
     // Fullscreen handler
     useEffect(() => {
@@ -509,18 +508,28 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
         }
     }
 
-    const handlePauseAndExit = () => {
-        setShowPauseDialog(true)
+    const forceExitFullscreen = async () => {
+        if (document.fullscreenElement && document.exitFullscreen) {
+            try {
+                await document.exitFullscreen()
+            } catch (err) {
+                console.error("Error exiting fullscreen:", err)
+            }
+        }
     }
 
     const confirmPauseAndExit = async () => {
         setIsPausing(true)
         try {
             if (sessionData?.attempt?.id) {
-                // Wait for timer update to complete
+                // Determine time spent
+                const currentSecondsLeft = timeRef.current
+                const totalDur = sessionData.exam.duration_minutes * 60
+                const timeSpent = Math.max(0, totalDur - currentSecondsLeft)
+
                 await new Promise<void>((resolve, reject) => {
                     updateTimer(
-                        { attemptId: sessionData.attempt.id, timeSpent: sessionData.exam.duration_minutes * 60 - secondsLeft },
+                        { attemptId: sessionData.attempt.id, timeSpent },
                         {
                             onSuccess: () => resolve(),
                             onError: (error) => reject(error)
@@ -532,6 +541,9 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
             // Invalidate queries to ensure fresh data on return
             await queryClient.invalidateQueries({ queryKey: ["exam-attempts", examId, userId] })
             await queryClient.invalidateQueries({ queryKey: ["exam-session"] })
+
+            // Exit fullscreen if active
+            await forceExitFullscreen()
 
             setShowPauseDialog(false)
             if (onExit) onExit()
@@ -546,26 +558,19 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
     const allQuestions = sessionData?.sections.flatMap((s) => s.questions) || []
     const currentQuestion = allQuestions[activeQuestionIdx]
 
-    const formatTime = (s: number) => {
-        const h = Math.floor(s / 3600)
-        const m = Math.floor((s % 3600) / 60).toString().padStart(2, "0")
-        const sec = (s % 60).toString().padStart(2, "0")
-        return h > 0 ? `${h}:${m}:${sec}` : `${m}:${sec}`
-    }
-
-    const isAnswered = (val: any) => {
+    const isAnswered = useCallback((val: any) => {
         return val !== undefined && val !== null && val !== "" && !(Array.isArray(val) && val.length === 0)
-    }
+    }, [])
 
-    const getSectionAttemptCount = (sectionId: string) => {
+    const getSectionAttemptCount = useCallback((sectionId: string) => {
         const section = sessionData?.sections.find(s => s.id === sectionId)
         if (!section) return 0
         return section.questions.filter(q => isAnswered(responses[q.id])).length
-    }
+    }, [sessionData, responses, isAnswered])
 
     const currentSection = sessionData?.sections.find(s => s.id === currentQuestion?.section_id)
 
-    const handleSaveResponse = (qid: string, ans: any) => {
+    const handleSaveResponse = useCallback((qid: string, ans: any) => {
         // Max Attempts Enforcement
         if (currentSection?.max_questions_to_attempt) {
             const wasAnswered = isAnswered(responses[qid])
@@ -586,41 +591,13 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
         if (sessionData?.attempt?.id) {
             saveAnswer({ attemptId: sessionData.attempt.id, questionId: qid, answer: ans })
         }
-    }
+    }, [currentSection, getSectionAttemptCount, isAnswered, responses, sessionData?.attempt?.id, saveAnswer])
 
-    const nextQuestion = () => {
-        if (activeQuestionIdx < allQuestions.length - 1) setActiveQuestionIdx((i) => i + 1)
-    }
+    const handleMark = useCallback((qid: string) => {
+        setMarked((m) => ({ ...m, [qid]: !m[qid] }))
+    }, [])
 
-    const prevQuestion = () => {
-        if (activeQuestionIdx > 0) setActiveQuestionIdx((i) => i - 1)
-    }
-
-    const qStatus = (q: any) => {
-        if (!visited[q.id]) return "notVisited"
-        const a = responses[q.id]
-        if (isAnswered(a)) return "answered"
-        return "visited"
-    }
-
-    const validateMinimumAttempts = () => {
-        if (!sessionData) return true
-        let isValid = true
-        sessionData.sections.forEach(s => {
-            if (s.required_attempts && getSectionAttemptCount(s.id) < s.required_attempts) {
-                isValid = false
-                toast.warning(`Section "${s.title}" requires at least ${s.required_attempts} attempted questions.`)
-            }
-        })
-        return isValid
-    }
-
-    const handleAutoSubmit = () => {
-        toast.info("Time's up! Submitting quiz...")
-        performSubmit()
-    }
-
-    const performSubmit = async () => {
+    const performSubmit = useCallback(async () => {
         if (!sessionData?.attempt?.id || !sessionData?.exam) return
 
         submitExam({
@@ -631,9 +608,13 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
             totalMarks: sessionData.exam.total_marks || 0
         }, {
             onSuccess: async (result: any) => {
+                // Exit Fullscreen IMMEDIATELY
+                await forceExitFullscreen()
+
                 toast.success("Quiz submitted successfully!")
                 setIsTimerActive(false)
-                setShowSubmitDialog(false)
+                // Keep dialog open while transitioning to results
+                // setShowSubmitDialog(false) // REMOVED: Don't close dialog yet to prevent flash
 
                 // Wait a moment for database to update
                 await new Promise(resolve => setTimeout(resolve, 500))
@@ -657,8 +638,11 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                 if (examData?.result_visibility === "immediate") {
                     setSubmittedAttemptId(sessionData.attempt.id)
                     setShowResults(true)
+                    // Now safe to close dialog as we are unmounting or showing results
+                    setShowSubmitDialog(false)
                 } else {
                     toast.info("Results will be available once the instructor releases them")
+                    setShowSubmitDialog(false)
                     if (onExit) onExit()
                 }
             },
@@ -668,9 +652,26 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                 setShowSubmitDialog(false)
             }
         })
+    }, [sessionData, responses, submitExam, examId, userId, awardCoins, markComplete, onExit, supabase])
+
+    const handleAutoSubmit = useCallback(() => {
+        toast.info("Time's up! Submitting quiz...")
+        performSubmit()
+    }, [performSubmit])
+
+    const validateMinimumAttempts = () => {
+        if (!sessionData) return true
+        let isValid = true
+        sessionData.sections.forEach(s => {
+            if (s.required_attempts && getSectionAttemptCount(s.id) < s.required_attempts) {
+                isValid = false
+                toast.warning(`Section "${s.title}" requires at least ${s.required_attempts} attempted questions.`)
+            }
+        })
+        return isValid
     }
 
-    if (isLoading) {
+    if (isLoading || !userId) {
         return (
             <div className="flex items-center justify-center h-96 text-muted-foreground">
                 <div className="flex flex-col items-center gap-3">
@@ -685,7 +686,6 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
         const errorMessage = (error as Error)?.message || "Unknown error"
         const isAlreadySubmitted = errorMessage.includes("already been submitted")
 
-        // If already submitted, try to fetch the previous result
         if (isAlreadySubmitted && userId) {
             return <PreviousResultView
                 examId={examId}
@@ -707,7 +707,6 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
         )
     }
 
-    // Show Results View
     if (showResults && submittedAttemptId && userId) {
         return (
             <PreviousResultView
@@ -720,11 +719,11 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                     setSubmittedAttemptId(null)
                     setRetakeAttempt(prev => prev + 1)
                 }}
+                onBack={onExit ? () => onExit() : undefined}
             />
         )
     }
 
-    // Quiz Interface - Dark theme with collapsible sidebar
     if (!sessionData) return null
 
     return (
@@ -780,21 +779,19 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                             )}
                         </div>
 
-                        <div className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 rounded-full border text-xs md:text-sm ${secondsLeft < 300 ? 'bg-rose-500/10 text-rose-500 border-rose-500/30 animate-pulse' : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'}`}>
-                            <Clock className={`w-3 h-3 md:w-4 md:h-4 ${secondsLeft < 300 ? 'text-rose-500' : 'text-emerald-500'}`} />
-                            <div className="font-semibold tabular-nums">{formatTime(secondsLeft)}</div>
-                        </div>
+                        <ExamTimer
+                            key={initialTime}
+                            initialSeconds={initialTime}
+                            isActive={isTimerActive}
+                            onTimeUp={handleAutoSubmit}
+                            timeRef={timeRef}
+                        />
+
                         <button
                             onClick={() => {
                                 if (validateMinimumAttempts()) {
                                     setShowSubmitDialog(true)
                                 } else {
-                                    // Soft/Strict mode check could go here. For now, we allow trigger but warned.
-                                    // If strict, we might return. 
-                                    // Assuming soft/strict is handled by user preference or just warning for now.
-                                    // Let's at least show the dialog even if warning triggered?
-                                    // The user said "Soft/strict mode...". Since we don't know the config, 
-                                    // we'll proceed to dialog but stats will show red.
                                     setShowSubmitDialog(true)
                                 }
                             }}
@@ -803,8 +800,8 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                             Submit
                         </button>
                         <button
-                            onClick={handlePauseAndExit}
-                            className="hidden sm:flex items-center gap-2 bg-muted hover:bg-muted/80 text-muted-foreground px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-colors shadow-sm"
+                            onClick={() => setShowPauseDialog(true)}
+                            className="flex items-center gap-2 bg-muted hover:bg-muted/80 text-muted-foreground px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-colors shadow-sm"
                         >
                             <PauseCircle className="w-4 h-4" />
                             <span className="hidden lg:inline">Pause & Exit</span>
@@ -826,274 +823,38 @@ export function EmbeddedExam({ examId, onExit, isRetake = false }: EmbeddedExamP
                 </div>
 
                 {/* QUESTION CARD */}
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={currentQuestion?.id}
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex-1 flex flex-col min-h-0 bg-card rounded-2xl shadow-sm border border-border overflow-hidden"
-                    >
-                        {/* Scrollable Content Area */}
-                        <div className="flex-1 overflow-y-auto p-4 md:p-6">
-                            <div className="flex justify-between items-start mb-4 flex-wrap gap-2">
-                                <div className="text-xs md:text-sm font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
-                                    Question {activeQuestionIdx + 1}
-                                </div>
-                                <div className="text-xs md:text-sm text-muted-foreground">
-                                    Marks: <span className="font-semibold text-emerald-500">+{currentQuestion?.marks}</span> |
-                                    Negative: <span className="font-semibold text-rose-500">-{currentQuestion?.negative_marks}</span>
-                                </div>
-                            </div>
-
-                            <div className="text-base md:text-lg font-medium mb-6 leading-relaxed text-foreground">
-                                {renderWithLatex(currentQuestion?.question_text)}
-                            </div>
-
-                            {/* OPTIONS */}
-                            <div className="space-y-3 pb-4">
-                                {currentQuestion?.question_type === "MCQ" &&
-                                    currentQuestion?.options?.map((opt, idx) => {
-                                        const chosen = responses[currentQuestion.id] === opt.id
-                                        const optionLabel = String.fromCharCode(65 + idx)
-                                        return (
-                                            <button
-                                                key={opt.id}
-                                                onClick={() => handleSaveResponse(currentQuestion.id, opt.id)}
-                                                className={`w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-200 flex items-center gap-3 md:gap-4 group ${chosen
-                                                    ? "bg-primary/10 border-primary shadow-sm ring-1 ring-primary"
-                                                    : "bg-muted/30 border-border hover:border-primary hover:bg-muted/50"
-                                                    }`}
-                                            >
-                                                <div
-                                                    className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs md:text-sm font-bold transition-colors ${chosen
-                                                        ? "bg-primary text-primary-foreground"
-                                                        : "border border-muted-foreground/30 text-muted-foreground group-hover:border-primary group-hover:text-primary"
-                                                        }`}
-                                                >
-                                                    {optionLabel}
-                                                </div>
-                                                <span className="text-sm md:text-base text-foreground group-hover:text-foreground">{renderWithLatex(opt.option_text)}</span>
-                                            </button>
-                                        )
-                                    })}
-
-                                {currentQuestion?.question_type === "MSQ" &&
-                                    currentQuestion?.options?.map((opt, idx) => {
-                                        const current = (responses[currentQuestion.id] || []) as string[]
-                                        const checked = current.includes(opt.id)
-                                        const optionLabel = String.fromCharCode(65 + idx)
-                                        return (
-                                            <button
-                                                key={opt.id}
-                                                onClick={() => {
-                                                    const next = checked
-                                                        ? current.filter((x) => x !== opt.id)
-                                                        : [...current, opt.id]
-                                                    handleSaveResponse(currentQuestion.id, next)
-                                                }}
-                                                className={`w-full text-left p-3 md:p-4 rounded-xl border transition-all duration-200 flex items-center gap-3 md:gap-4 group ${checked
-                                                    ? "bg-amber-500/10 border-amber-500 shadow-sm ring-1 ring-amber-500"
-                                                    : "bg-muted/30 border-border hover:border-amber-500 hover:bg-muted/50"
-                                                    }`}
-                                            >
-                                                <div
-                                                    className={`w-6 h-6 rounded flex-shrink-0 flex items-center justify-center text-xs md:text-sm font-bold transition-colors ${checked ? "bg-amber-500 text-white" : "border border-muted-foreground/30 text-muted-foreground group-hover:border-amber-500"
-                                                        }`}
-                                                >
-                                                    {optionLabel}
-                                                </div>
-                                                <span className="text-sm md:text-base text-foreground group-hover:text-foreground">{renderWithLatex(opt.option_text)}</span>
-                                            </button>
-                                        )
-                                    })}
-
-                                {currentQuestion?.question_type === "NAT" && (
-                                    <div className="mt-2">
-                                        <label className="block text-sm font-medium text-foreground mb-2">Your Answer:</label>
-                                        <input
-                                            type="number"
-                                            className="w-full max-w-md p-3 rounded-lg border border-border bg-background text-foreground focus:border-primary focus:ring-2 focus:ring-primary/50 outline-none transition-all text-sm md:text-base"
-                                            placeholder="Enter numeric value..."
-                                            value={responses[currentQuestion.id] || ""}
-                                            onChange={(e) => handleSaveResponse(currentQuestion.id, e.target.value)}
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Fixed ACTION BUTTONS Footer */}
-                        <div className="flex-shrink-0 p-4 md:p-6 pt-4 border-t border-border bg-card/95 backdrop-blur-sm">
-                            <div className="flex flex-wrap justify-between items-center gap-2 md:gap-3">
-                                <div className="flex gap-2 flex-wrap">
-                                    <button
-                                        onClick={prevQuestion}
-                                        disabled={activeQuestionIdx === 0}
-                                        className="px-3 md:px-4 py-1.5 md:py-2 border border-border text-foreground rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors text-xs md:text-sm"
-                                    >
-                                        <ArrowLeft className="w-3 h-3 md:w-4 md:h-4" /> Previous
-                                    </button>
-                                    <button
-                                        onClick={() => handleSaveResponse(currentQuestion.id, null)}
-                                        className="px-3 md:px-4 py-1.5 md:py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors text-xs md:text-sm"
-                                    >
-                                        Clear
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setMarked((m) => ({ ...m, [currentQuestion.id]: !m[currentQuestion.id] }))
-                                            nextQuestion()
-                                        }}
-                                        className={`px-3 md:px-4 py-1.5 md:py-2 rounded-lg flex items-center gap-2 transition-colors text-xs md:text-sm ${marked[currentQuestion.id]
-                                            ? "bg-amber-500 text-white hover:bg-amber-600"
-                                            : "border border-amber-500 text-amber-500 hover:bg-amber-500/10"
-                                            }`}
-                                    >
-                                        <Flag className="w-3 h-3 md:w-4 md:h-4" /> {marked[currentQuestion.id] ? "Marked" : "Mark"}
-                                    </button>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={nextQuestion}
-                                        className="px-4 md:px-6 py-1.5 md:py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm transition-colors text-xs md:text-sm"
-                                    >
-                                        Save & Next
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                </AnimatePresence>
+                <QuestionDisplay
+                    question={currentQuestion}
+                    activeQuestionIdx={activeQuestionIdx}
+                    response={responses[currentQuestion?.id]}
+                    isMarked={marked[currentQuestion?.id] || false}
+                    onSave={handleSaveResponse}
+                    onMark={handleMark}
+                    onNext={() => {
+                        if (activeQuestionIdx < allQuestions.length - 1) setActiveQuestionIdx(i => i + 1)
+                    }}
+                    onPrev={() => {
+                        if (activeQuestionIdx > 0) setActiveQuestionIdx(i => i - 1)
+                    }}
+                    onClear={() => handleSaveResponse(currentQuestion.id, null)}
+                    isFirst={activeQuestionIdx === 0}
+                    isLast={activeQuestionIdx === allQuestions.length - 1}
+                />
             </div>
 
-            {/* RIGHT PALETTE (Desktop) */}
-            <div className="hidden lg:flex flex-col bg-card border-l border-border overflow-hidden">
-                <div className="p-5 border-b border-border">
-                    <h4 className="font-bold text-foreground">Question Palette</h4>
-                    {currentSection && (
-                        <p className="text-sm text-muted-foreground mt-1 font-medium">{currentSection.title}</p>
-                    )}
-                    <div className="flex gap-4 mt-4 text-xs text-muted-foreground flex-wrap">
-                        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-emerald-500"></div> Answered</div>
-                        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-amber-500"></div> Marked</div>
-                        <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-primary/30 border border-primary"></div> Visited</div>
-                    </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-5">
-                    <div className="grid grid-cols-5 gap-2">
-                        {currentSection?.questions.map((q, sectionIdx) => {
-                            // Find global index for this question
-                            const globalIdx = allQuestions.findIndex(gq => gq.id === q.id)
-                            const status = qStatus(q)
-                            const isMarked = marked[q.id]
-                            let cls = "bg-muted text-muted-foreground hover:bg-muted/80"
-
-                            if (status === "answered") cls = "bg-emerald-500 text-white shadow-sm"
-                            else if (isMarked) cls = "bg-amber-500 text-white shadow-sm"
-                            else if (status === "visited") cls = "bg-primary/30 text-primary border border-primary"
-
-                            if (activeQuestionIdx === globalIdx) cls += " ring-2 ring-offset-1 ring-offset-card ring-primary"
-
-                            return (
-                                <button
-                                    key={q.id}
-                                    onClick={() => setActiveQuestionIdx(globalIdx)}
-                                    className={`h-10 w-full rounded-lg text-sm font-semibold transition-all ${cls}`}
-                                >
-                                    {sectionIdx + 1}
-                                </button>
-                            )
-                        })}
-                    </div>
-                </div>
-
-                <div className="p-5 border-t border-border bg-background">
-                    <button
-                        onClick={() => setShowSubmitDialog(true)}
-                        className="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 rounded-xl font-bold shadow-sm transition-colors"
-                    >
-                        Submit Exam
-                    </button>
-                </div>
-            </div>
-
-            {/* MOBILE PALETTE DRAWER */}
-            <AnimatePresence>
-                {paletteOpenMobile && (
-                    <>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setPaletteOpenMobile(false)}
-                            className="fixed inset-0 bg-black/60 z-40 lg:hidden"
-                        />
-                        <motion.div
-                            initial={{ x: "100%" }}
-                            animate={{ x: 0 }}
-                            exit={{ x: "100%" }}
-                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                            className="fixed inset-y-0 right-0 z-50 w-80 bg-card shadow-2xl border-l border-border lg:hidden flex flex-col"
-                        >
-                            <div className="p-4 flex items-center justify-between border-b border-border">
-                                <div>
-                                    <h4 className="font-bold text-foreground">Question Palette</h4>
-                                    {currentSection && (
-                                        <p className="text-sm text-muted-foreground mt-0.5 font-medium">{currentSection.title}</p>
-                                    )}
-                                </div>
-                                <button onClick={() => setPaletteOpenMobile(false)} className="p-2 hover:bg-muted rounded-full">
-                                    <X className="w-5 h-5 text-muted-foreground" />
-                                </button>
-                            </div>
-                            <div className="flex-1 overflow-y-auto p-4">
-                                <div className="grid grid-cols-5 gap-2">
-                                    {currentSection?.questions.map((q, sectionIdx) => {
-                                        // Find global index for this question
-                                        const globalIdx = allQuestions.findIndex(gq => gq.id === q.id)
-                                        const status = qStatus(q)
-                                        const isMarked = marked[q.id]
-                                        let cls = "bg-muted text-muted-foreground"
-
-                                        if (status === "answered") cls = "bg-emerald-500 text-white"
-                                        else if (isMarked) cls = "bg-amber-500 text-white"
-                                        else if (status === "visited") cls = "bg-primary/30 text-primary border border-primary"
-
-                                        if (activeQuestionIdx === globalIdx) cls += " ring-2 ring-offset-1 ring-offset-card ring-primary"
-
-                                        return (
-                                            <button
-                                                key={q.id}
-                                                onClick={() => {
-                                                    setActiveQuestionIdx(globalIdx)
-                                                    setPaletteOpenMobile(false)
-                                                }}
-                                                className={`h-10 w-full rounded-lg text-sm font-semibold transition-all ${cls}`}
-                                            >
-                                                {sectionIdx + 1}
-                                            </button>
-                                        )
-                                    })}
-                                </div>
-                            </div>
-                            <div className="p-4 border-t border-border">
-                                <button
-                                    onClick={() => {
-                                        setPaletteOpenMobile(false)
-                                        setShowSubmitDialog(true)
-                                    }}
-                                    className="w-full bg-rose-600 text-white py-3 rounded-xl font-bold"
-                                >
-                                    Submit Exam
-                                </button>
-                            </div>
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
+            {/* RIGHT PALETTE (Desktop & Mobile handled by component) */}
+            <QuestionPalette
+                questions={allQuestions}
+                activeQuestionIdx={activeQuestionIdx}
+                responses={responses}
+                marked={marked}
+                visited={visited}
+                onNavigate={(idx) => setActiveQuestionIdx(idx)}
+                onSubmit={() => setShowSubmitDialog(true)}
+                sectionTitle={currentSection?.title}
+                isMobileOpen={paletteOpenMobile}
+                onMobileClose={() => setPaletteOpenMobile(false)}
+            />
 
             {/* SUBMIT CONFIRMATION DIALOG */}
             <AnimatePresence>

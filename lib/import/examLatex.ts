@@ -144,7 +144,8 @@ export async function parseExamLatex(file: File): Promise<ExamBlock> {
       }
 
       // Explanation (optional) - simple format, keep as-is for LaTeX math rendering
-      const explanation = content.match(/\\explanation\{([\s\S]*?)\}/)?.[1]?.trim() || null;
+      const explanation = content.match(/\\explanation\{([\s\S]*)\}$/)?.[1] ?? null;
+
       // Final push
       questions.push({
         question_text: qText,
