@@ -7,7 +7,7 @@ import LessonContentClient from "@/components/lesson/LessonContentClient";
 import { QuizSkeleton, VideoSkeleton, TextSkeleton } from "@/components/skeletons/LessonSkeletons";
 import { Target } from "lucide-react";
 
-export const runtime = 'edge';
+
 
 export default async function CourseLessonPage({
     params,
