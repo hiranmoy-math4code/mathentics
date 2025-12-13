@@ -26,7 +26,12 @@ export default async function CourseLessonPage({
 
     // Fast Auth Check
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) redirect(`/auth/login?next=/learn/${courseId}`);
+    if (!user) {
+        const nextPath = lessonId
+            ? `/learn/${courseId}?lessonId=${lessonId}`
+            : `/learn/${courseId}`;
+        redirect(`/auth/login?next=${encodeURIComponent(nextPath)}`);
+    }
 
     // Check enrollment status
     const { data: enrollment } = await supabase
