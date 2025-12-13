@@ -249,7 +249,11 @@ export function CoursePlayerClient({
                         </Accordion>
                     </TooltipProvider>
                 </ScrollArea>
-                <div className="p-4 border-t border-border bg-card text-xs text-muted-foreground">
+                <div className="p-4 border-t border-border bg-card text-xs text-muted-foreground space-y-2">
+                    <Link href="/student/dashboard" className="flex items-center gap-2 p-2 hover:bg-muted rounded-md transition-colors text-foreground/80 hover:text-foreground">
+                        <ChevronLeft className="h-4 w-4" />
+                        <span className="font-medium">Go to Dashboard</span>
+                    </Link>
                     <div className="w-full"><CommunityButton className="w-full justify-center" /></div>
                 </div>
             </motion.div>
@@ -359,10 +363,12 @@ export function CoursePlayerClient({
                                     ))}
                                 </Accordion>
                             </ScrollArea>
-                            <div className="p-4 border-t border-border bg-card text-xs text-muted-foreground">
-                                <div className="flex flex-col gap-2">
-                                    <div className="w-full"><CommunityButton className="w-full justify-center" /></div>
-                                </div>
+                            <div className="p-4 border-t border-border bg-card text-xs text-muted-foreground space-y-2">
+                                <Link href="/student/dashboard" onClick={() => setSidebarOpen(false)} className="flex items-center gap-2 p-2 hover:bg-muted rounded-md transition-colors text-foreground/80 hover:text-foreground">
+                                    <ChevronLeft className="h-4 w-4" />
+                                    <span className="font-medium">Go to Dashboard</span>
+                                </Link>
+                                <div className="w-full"><CommunityButton className="w-full justify-center" /></div>
                             </div>
                         </motion.div>
                     </>
@@ -388,7 +394,7 @@ export function CoursePlayerClient({
                                 }
                             }}
                         >
-                            <PanelLeft className="h-5 w-5" />
+                            <Menu className="h-5 w-5" />
                             <span className="sr-only">Toggle Sidebar</span>
                         </Button>
 
