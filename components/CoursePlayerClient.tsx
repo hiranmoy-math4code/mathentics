@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, startTransition } from "react"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -30,6 +30,7 @@ import { useCourse } from "@/hooks/useCourse"
 import { useLessons } from "@/hooks/useLessons"
 import { LessonNavigation } from "@/components/LessonNavigation"
 import { CommunityButton } from "@/components/CommunityButton"
+import { ClientSideLink } from "@/components/ClientSideLink"
 
 interface CoursePlayerClientProps {
     courseId: string
@@ -214,9 +215,10 @@ export function CoursePlayerClient({
                                                 }
 
                                                 return (
-                                                    <Link
+                                                    <ClientSideLink
                                                         key={lesson.id}
                                                         href={`/learn/${courseId}?lessonId=${lesson.id}`}
+                                                        lessonId={lesson.id}
                                                         className={cn(
                                                             "group flex items-start gap-3 py-3 px-4 text-sm transition-all rounded-lg border-l-4",
                                                             isActive
@@ -239,7 +241,7 @@ export function CoursePlayerClient({
                                                         {isCompleted && (
                                                             <CheckCircle className="h-5 w-5 shrink-0 text-emerald-500 fill-emerald-500/10" />
                                                         )}
-                                                    </Link>
+                                                    </ClientSideLink>
                                                 );
                                             })}
                                         </div>
@@ -328,9 +330,10 @@ export function CoursePlayerClient({
                                                         }
 
                                                         return (
-                                                            <Link
+                                                            <ClientSideLink
                                                                 key={lesson.id}
                                                                 href={`/learn/${courseId}?lessonId=${lesson.id}`}
+                                                                lessonId={lesson.id}
                                                                 onClick={() => setSidebarOpen(false)}
                                                                 className={cn(
                                                                     "group flex items-start gap-3 py-3 px-4 text-sm transition-all rounded-lg border-l-4",
@@ -354,7 +357,7 @@ export function CoursePlayerClient({
                                                                 {isCompleted && (
                                                                     <CheckCircle className="h-5 w-5 shrink-0 text-emerald-500 fill-emerald-500/10" />
                                                                 )}
-                                                            </Link>
+                                                            </ClientSideLink>
                                                         );
                                                     })}
                                                 </div>

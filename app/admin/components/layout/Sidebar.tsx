@@ -21,13 +21,20 @@ import {
   Gift,
   MessageSquare
 } from "lucide-react";
-import Link from "next/link";
+import { SmartLink } from "@/components/SmartLink";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useCommunityModal } from "@/context/CommunityModalContext";
 
+
 interface SidebarProps {
-  menuItems: { icon: keyof typeof iconMap; label: string; href: string; onClick?: string }[];
+  menuItems: {
+    icon: keyof typeof iconMap;
+    label: string;
+    href: string;
+    onClick?: string;
+    prefetch?: () => Promise<any>; // For data prefetching
+  }[];
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (v: boolean) => void;
   profile?: any;
@@ -100,11 +107,11 @@ export default function Sidebar({
         <div className={`flex items-center gap-3 mb-8 transition-all duration-500 ${sidebarCollapsed ? "justify-center" : "px-2"}`}>
           <div className="w-auto px-2 h-10 min-w-[2.5rem] rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20">
             {/* Logo */}
-            <Link href="/" >
+            <SmartLink href="/" queryKey={['route', '/']} >
               <div className="w-auto px-2 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:shadow-indigo-500/30 transition-all">
                 Σ✨{'}'}
               </div>
-            </Link>
+            </SmartLink>
           </div>
           {!sidebarCollapsed && (
             <motion.div
@@ -169,9 +176,11 @@ export default function Sidebar({
             }
 
             return (
-              <Link
+              <SmartLink
                 key={it.label}
                 href={it.href}
+                queryKey={it.prefetch ? ['route-data', it.href] : undefined}
+                prefetchQuery={it.prefetch}
                 className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 relative overflow-hidden
                 ${isActive
                     ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 shadow-sm"
@@ -202,7 +211,7 @@ export default function Sidebar({
                     {it.label}
                   </div>
                 )}
-              </Link>
+              </SmartLink>
             );
           })}
         </nav>
@@ -363,9 +372,11 @@ export default function Sidebar({
                   }
 
                   return (
-                    <Link
+                    <SmartLink
                       key={it.label}
                       href={it.href}
+                      queryKey={it.prefetch ? ['route-data', it.href] : undefined}
+                      prefetchQuery={it.prefetch}
                       onClick={() => setIsMobileOpen(false)}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
                       ${isActive
@@ -380,7 +391,7 @@ export default function Sidebar({
                       {isActive && (
                         <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
                       )}
-                    </Link>
+                    </SmartLink>
                   );
                 })}
               </nav>

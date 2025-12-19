@@ -31,7 +31,25 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     { icon: "layers", label: "All Courses", href: "/student/dashboard?tab=all-courses" },
     { icon: "messagesquare", label: "Community", href: "#", onClick: "openCommunity" },
     { icon: "trendingup", label: "My Series", href: "/student/my-series" },
-    { icon: "award", label: "Result", href: "/student/results" },
+    {
+      icon: "award",
+      label: "Result",
+      href: "/student/results",
+      prefetch: async () => {
+        // Prefetch results data on hover
+        const supabase = (await import('@/lib/supabase/client')).createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return null;
+
+        const { data } = await supabase
+          .from("results")
+          .select("*, exam_attempts(exam_id, exams(title))")
+          .eq("exam_attempts.student_id", user.id)
+          .order("created_at", { ascending: false });
+
+        return data;
+      }
+    },
     { icon: "gift", label: "Rewards", href: "/student/rewards" },
     { icon: "layers", label: "All Series", href: "/student/all-test-series" },
     { icon: "settings", label: "Settings", href: "/student/settings" },

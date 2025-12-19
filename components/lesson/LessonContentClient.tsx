@@ -23,13 +23,16 @@ export default function LessonContentClient({
     user: any;
     contentType?: 'video' | 'quiz' | 'text' | 'pdf';
 }) {
-    // Determine Skeleton Type based on initialData or fallback (we don't know type if no data yet, so generic or passed prop?)
-    // Ideally we pass 'type' from parent if available, but here we'll rely on fetch status.
+    // ⚡ CRITICAL: Use isPending AND check for data existence
+    // isPending = true only on FIRST load (no data at all)
+    // isLoading = true even when showing placeholder data
+    // This ensures we show previous lesson instantly while fetching new one
+    const { data: fullData, isPending, isError, isFetching } = useLessonData(lessonId, courseId);
 
-    // Using the hook
-    const { data: fullData, isLoading, isError } = useLessonData(lessonId, courseId);
-
-    if (isLoading) {
+    // Only show skeleton if BOTH conditions are true:
+    // 1. isPending (no query has run yet)
+    // 2. No data exists (not even placeholder/cached data)
+    if (isPending && !fullData) {
         if (contentType === 'video') return <VideoSkeleton />;
         if (contentType === 'quiz') return <QuizSkeleton />;
         return <TextSkeleton />;

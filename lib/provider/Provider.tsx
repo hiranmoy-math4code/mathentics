@@ -28,7 +28,7 @@ export function ReactQueryProviders({ children }: { children: React.ReactNode })
         defaultOptions: {
           queries: {
             staleTime: 1000 * 60 * 5, // 5 minutes - data stays fresh
-            gcTime: 1000 * 60 * 10, // 10 minutes - garbage collection
+            gcTime: 1000 * 60 * 30, // 30 minutes - extended garbage collection for better cache hits
             retry: (failureCount, error) => {
               // Don't retry on 4xx errors (client errors)
               if (error instanceof Error && "status" in error) {
@@ -38,9 +38,9 @@ export function ReactQueryProviders({ children }: { children: React.ReactNode })
               // Retry up to 3 times for other errors
               return failureCount < 3;
             },
-            refetchOnWindowFocus: false,
-            refetchOnReconnect: true,
-            refetchOnMount: true,
+            refetchOnWindowFocus: false, // Prevent unnecessary refetches
+            refetchOnReconnect: true, // Refetch on network reconnect
+            refetchOnMount: false, // Use cached data on mount for instant navigation
           },
           mutations: {
             retry: 1,

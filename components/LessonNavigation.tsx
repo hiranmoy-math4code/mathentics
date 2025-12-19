@@ -1,12 +1,12 @@
 "use client"
 
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, CheckCircle, Circle } from "lucide-react"
 import { useLessonProgress, useMarkLessonComplete, useMarkLessonIncomplete } from "@/hooks/student/useLessonProgress"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { ClientSideLink } from "@/components/ClientSideLink"
 
 interface LessonNavigationProps {
     courseId: string
@@ -60,9 +60,13 @@ export function LessonNavigation({
             <div className="flex items-center gap-1 md:gap-3">
                 <Button variant="outline" size="sm" className="h-8 w-8 p-0 md:w-auto md:h-9 md:px-4 gap-2 uppercase text-xs font-bold tracking-wider rounded-md border-2 border-muted-foreground/20 hover:border-muted-foreground/40 hover:bg-transparent" disabled={!prevLessonId} asChild={!!prevLessonId}>
                     {prevLessonId ? (
-                        <Link href={`/learn/${courseId}?lessonId=${prevLessonId}`} title="Previous Lesson">
+                        <ClientSideLink
+                            href={`/learn/${courseId}?lessonId=${prevLessonId}`}
+                            lessonId={prevLessonId}
+                            className="flex items-center justify-center w-full h-full"
+                        >
                             <ChevronLeft className="h-4 w-4 md:h-3 md:w-3" /> <span className="hidden md:inline">PREVIOUS</span>
-                        </Link>
+                        </ClientSideLink>
                     ) : (
                         <span className="opacity-50 cursor-not-allowed flex items-center justify-center w-full h-full"><ChevronLeft className="h-4 w-4 md:h-3 md:w-3" /> <span className="hidden md:inline">PREVIOUS</span></span>
                     )}
@@ -86,9 +90,13 @@ export function LessonNavigation({
 
                 <Button className="bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 p-0 md:w-auto md:h-9 md:px-5 gap-2 shadow-sm rounded-md uppercase text-xs font-bold tracking-wider" disabled={!nextLessonId} asChild={!!nextLessonId} size="sm">
                     {nextLessonId ? (
-                        <Link href={`/learn/${courseId}?lessonId=${nextLessonId}`} title="Next Lesson">
+                        <ClientSideLink
+                            href={`/learn/${courseId}?lessonId=${nextLessonId}`}
+                            lessonId={nextLessonId}
+                            className="flex items-center justify-center w-full h-full"
+                        >
                             <span className="hidden md:inline">NEXT </span> <ChevronRight className="h-4 w-4 md:h-3 md:w-3" />
-                        </Link>
+                        </ClientSideLink>
                     ) : (
                         <span className="opacity-50 cursor-not-allowed flex items-center justify-center w-full h-full"><span className="hidden md:inline">NEXT</span> <ChevronRight className="h-4 w-4 md:h-3 md:w-3" /></span>
                     )}
@@ -102,9 +110,13 @@ export function LessonNavigation({
         <div className="flex flex-col sm:flex-row items-center justify-between mt-12 pt-8 border-t border-border gap-4">
             <Button variant="outline" className="gap-2 h-11 px-6 w-full sm:w-auto order-2 sm:order-1" disabled={!prevLessonId} asChild={!!prevLessonId}>
                 {prevLessonId ? (
-                    <Link href={`/learn/${courseId}?lessonId=${prevLessonId}`}>
+                    <ClientSideLink
+                        href={`/learn/${courseId}?lessonId=${prevLessonId}`}
+                        lessonId={prevLessonId}
+                        className="flex items-center gap-2"
+                    >
                         <ChevronLeft className="h-4 w-4" /> Prev
-                    </Link>
+                    </ClientSideLink>
                 ) : (
                     <span><ChevronLeft className="h-4 w-4" /> Prev</span>
                 )}
@@ -131,9 +143,13 @@ export function LessonNavigation({
 
             <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 h-11 px-6 shadow-md shadow-emerald-500/20 w-full sm:w-auto order-1 sm:order-3" disabled={!nextLessonId} asChild={!!nextLessonId}>
                 {nextLessonId ? (
-                    <Link href={`/learn/${courseId}?lessonId=${nextLessonId}`}>
+                    <ClientSideLink
+                        href={`/learn/${courseId}?lessonId=${nextLessonId}`}
+                        lessonId={nextLessonId}
+                        className="flex items-center gap-2"
+                    >
                         Next Lesson <ChevronRight className="h-4 w-4" />
-                    </Link>
+                    </ClientSideLink>
                 ) : (
                     <span>Next Lesson <ChevronRight className="h-4 w-4" /></span>
                 )}
