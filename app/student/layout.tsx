@@ -80,11 +80,20 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     avatar_url: null, // useCurrentUser might not fetch avatar_url, add if needed
   };
 
+  // Check if we're on a payment route - if so, render children directly
+  const isPaymentRoute = pathname?.startsWith('/student/payment');
+
   return (
     <CommunityModalProvider>
-      <AdminClientLayout profile={layoutProfile} links={links}>
-        <StudentAppContainer initialRoute={pathname} />
-      </AdminClientLayout>
+      {isPaymentRoute ? (
+        // For payment routes, render children directly without the SPA container
+        <>{children}</>
+      ) : (
+        // For other routes, use the SPA container
+        <AdminClientLayout profile={layoutProfile} links={links}>
+          <StudentAppContainer initialRoute={pathname} />
+        </AdminClientLayout>
+      )}
       <CommunityModal />
     </CommunityModalProvider>
   );
