@@ -1,8 +1,5 @@
 "use client";
 
-// Disable edge runtime for this page to ensure proper rendering
-export const runtime = 'nodejs';
-
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
