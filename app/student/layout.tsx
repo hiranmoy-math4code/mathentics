@@ -1,16 +1,18 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import AdminClientLayout from "../admin/AdminClientLayout";
 import { CommunityModalProvider } from "@/context/CommunityModalContext";
 import { CommunityModal } from "@/components/community/CommunityModal";
 import { useCurrentUser } from "@/hooks/student/useCurrentUser";
+import { StudentAppContainer } from "@/components/StudentAppContainer";
 
 export const runtime = 'edge';
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { data: profile, isLoading } = useCurrentUser();
 
   useEffect(() => {
@@ -81,7 +83,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   return (
     <CommunityModalProvider>
       <AdminClientLayout profile={layoutProfile} links={links}>
-        {children}
+        <StudentAppContainer initialRoute={pathname} />
       </AdminClientLayout>
       <CommunityModal />
     </CommunityModalProvider>

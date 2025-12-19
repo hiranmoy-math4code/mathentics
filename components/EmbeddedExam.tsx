@@ -484,6 +484,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
         setIsTimerActive(true)
     }, [sessionData])
 
+
     // Fullscreen handler
     useEffect(() => {
         const handleFullscreenChange = () => {
@@ -594,9 +595,11 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
         }
     }, [currentSection, getSectionAttemptCount, isAnswered, responses, sessionData?.attempt?.id, saveAnswer])
 
+
     const handleMark = useCallback((qid: string) => {
         setMarked((m) => ({ ...m, [qid]: !m[qid] }))
     }, [])
+
 
     const performSubmit = useCallback(async () => {
         if (!sessionData?.attempt?.id || !sessionData?.exam) return

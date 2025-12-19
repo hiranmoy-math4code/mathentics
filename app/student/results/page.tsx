@@ -1,6 +1,5 @@
 "use client"
 
-import React from "react"
 import { createClient } from "@/lib/supabase/client"
 import {
   Card,
@@ -83,8 +82,8 @@ export default function ResultsPage() {
         </CardHeader>
 
         <CardContent className="overflow-x-auto mt-3">
-          {/* 🔹 Loading Skeleton */}
-          {(isLoading || isFetching) && (
+          {/* 🔹 Conditional Skeleton - Only show if data not in cache */}
+          {isLoading && !results ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
                 <div
@@ -99,10 +98,10 @@ export default function ResultsPage() {
                 </div>
               ))}
             </div>
-          )}
+          ) : null}
 
-          {/* 🔹 Data Table */}
-          {!isLoading && results && results.length > 0 ? (
+          {/* 🔹 Data Table - Show immediately if data exists in cache */}
+          {results && results.length > 0 ? (
             <Table className="min-w-full">
               <TableHeader>
                 <TableRow className="bg-gradient-to-r from-indigo-100 via-sky-100 to-blue-100 dark:from-slate-700 dark:via-slate-700 dark:to-slate-800">

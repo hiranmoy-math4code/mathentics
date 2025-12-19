@@ -50,7 +50,6 @@ export function CoursePlayerClient({
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false)
     const [userId, setUserId] = useState<string | null>(user?.id || null)
-    const [progressPercentage, setProgressPercentage] = useState(0)
     const { openCommunity } = useCommunityModal()
 
     // LAYER 2 OPTIMIZATION: Use Hooks with Cached Data
@@ -103,25 +102,12 @@ export function CoursePlayerClient({
     // Fetch lesson progress
     const { data: lessonProgress } = useLessonProgress(userId || undefined, courseId)
 
-    // Fetch enrollment progress
-    useEffect(() => {
-        const fetchProgress = async () => {
-            if (!userId) return
-
-            const supabase = createClient()
-            const { data } = await supabase
-                .from("enrollments")
-                .select("progress_percentage")
-                .eq("user_id", userId)
-                .eq("course_id", courseId)
-                .single()
-
-            if (data) {
-                setProgressPercentage(data.progress_percentage || 0)
-            }
-        }
-        fetchProgress()
-    }, [userId, courseId, lessonProgress])
+    // Calculate progress from lesson progress data
+    const progressPercentage = useMemo(() => {
+        if (!lessonProgress || !allLessons.length) return 0
+        const completedCount = lessonProgress.filter(p => p.completed).length
+        return Math.round((completedCount / allLessons.length) * 100)
+    }, [lessonProgress, allLessons])
 
     // Check if lesson is completed
     const isLessonCompleted = (lessonId: string) => {

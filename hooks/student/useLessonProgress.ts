@@ -60,8 +60,68 @@ export function useMarkLessonComplete() {
 
             return data
         },
+        onMutate: async (variables) => {
+            // Cancel outgoing refetches
+            await queryClient.cancelQueries({ queryKey: ["student-courses", variables.userId] })
+            await queryClient.cancelQueries({ queryKey: ["lesson-progress", variables.userId, variables.courseId] })
+
+            // Snapshot previous values
+            const previousCourses = queryClient.getQueryData(["student-courses", variables.userId])
+            const previousProgress = queryClient.getQueryData(["lesson-progress", variables.userId, variables.courseId])
+
+            // Optimistically update lesson progress
+            queryClient.setQueryData(["lesson-progress", variables.userId, variables.courseId], (old: any) => {
+                if (!old) return old
+                const existing = old.find((p: any) => p.lesson_id === variables.lessonId)
+                if (existing) {
+                    return old.map((p: any) =>
+                        p.lesson_id === variables.lessonId
+                            ? { ...p, completed: true, completed_at: new Date().toISOString() }
+                            : p
+                    )
+                } else {
+                    return [...old, {
+                        user_id: variables.userId,
+                        lesson_id: variables.lessonId,
+                        course_id: variables.courseId,
+                        completed: true,
+                        completed_at: new Date().toISOString()
+                    }]
+                }
+            })
+
+            // Optimistically update course progress
+            queryClient.setQueryData(["student-courses", variables.userId], (old: any) => {
+                if (!old) return old
+                return old.map((course: any) => {
+                    if (course.id === variables.courseId) {
+                        const newCompletedLessons = course.completed_lessons + 1
+                        const newProgress = course.total_lessons > 0
+                            ? Math.round((newCompletedLessons / course.total_lessons) * 100)
+                            : 0
+                        return {
+                            ...course,
+                            completed_lessons: newCompletedLessons,
+                            progress_percentage: newProgress
+                        }
+                    }
+                    return course
+                })
+            })
+
+            return { previousCourses, previousProgress }
+        },
+        onError: (err, variables, context) => {
+            // Rollback on error
+            if (context?.previousCourses) {
+                queryClient.setQueryData(["student-courses", variables.userId], context.previousCourses)
+            }
+            if (context?.previousProgress) {
+                queryClient.setQueryData(["lesson-progress", variables.userId, variables.courseId], context.previousProgress)
+            }
+        },
         onSuccess: (_, variables) => {
-            // Invalidate relevant queries
+            // Invalidate relevant queries to get accurate server data
             queryClient.invalidateQueries({ queryKey: ["student-courses", variables.userId] })
             queryClient.invalidateQueries({ queryKey: ["lesson-progress", variables.userId, variables.courseId] })
             // Refresh rewards UI
@@ -96,8 +156,57 @@ export function useMarkLessonIncomplete() {
 
             return data
         },
+        onMutate: async (variables) => {
+            // Cancel outgoing refetches
+            await queryClient.cancelQueries({ queryKey: ["student-courses", variables.userId] })
+            await queryClient.cancelQueries({ queryKey: ["lesson-progress", variables.userId, variables.courseId] })
+
+            // Snapshot previous values
+            const previousCourses = queryClient.getQueryData(["student-courses", variables.userId])
+            const previousProgress = queryClient.getQueryData(["lesson-progress", variables.userId, variables.courseId])
+
+            // Optimistically update lesson progress
+            queryClient.setQueryData(["lesson-progress", variables.userId, variables.courseId], (old: any) => {
+                if (!old) return old
+                return old.map((p: any) =>
+                    p.lesson_id === variables.lessonId
+                        ? { ...p, completed: false, completed_at: null }
+                        : p
+                )
+            })
+
+            // Optimistically update course progress
+            queryClient.setQueryData(["student-courses", variables.userId], (old: any) => {
+                if (!old) return old
+                return old.map((course: any) => {
+                    if (course.id === variables.courseId) {
+                        const newCompletedLessons = Math.max(0, course.completed_lessons - 1)
+                        const newProgress = course.total_lessons > 0
+                            ? Math.round((newCompletedLessons / course.total_lessons) * 100)
+                            : 0
+                        return {
+                            ...course,
+                            completed_lessons: newCompletedLessons,
+                            progress_percentage: newProgress
+                        }
+                    }
+                    return course
+                })
+            })
+
+            return { previousCourses, previousProgress }
+        },
+        onError: (err, variables, context) => {
+            // Rollback on error
+            if (context?.previousCourses) {
+                queryClient.setQueryData(["student-courses", variables.userId], context.previousCourses)
+            }
+            if (context?.previousProgress) {
+                queryClient.setQueryData(["lesson-progress", variables.userId, variables.courseId], context.previousProgress)
+            }
+        },
         onSuccess: (_, variables) => {
-            // Invalidate relevant queries
+            // Invalidate relevant queries to get accurate server data
             queryClient.invalidateQueries({ queryKey: ["student-courses", variables.userId] })
             queryClient.invalidateQueries({ queryKey: ["lesson-progress", variables.userId, variables.courseId] })
         },

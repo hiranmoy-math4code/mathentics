@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRef, ReactNode } from 'react';
+import { useRef, ReactNode, useTransition } from 'react';
+import Link from 'next/link';
 
 interface SmartLinkProps {
     href: string;
@@ -50,6 +51,7 @@ export function SmartLink({
     const router = useRouter();
     const queryClient = useQueryClient();
     const prefetchedRef = useRef(false);
+    const [isPending, startTransition] = useTransition();
 
     const handlePrefetch = () => {
         // Prevent duplicate prefetches
@@ -73,13 +75,27 @@ export function SmartLink({
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
 
-        // Call custom onClick if provided
+        // Call custom onClick if provided (for things like closing mobile menu)
         if (onClick) {
             onClick();
         }
 
-        // Use router.push for instant client-side navigation
-        router.push(href);
+        // ⚡ INSTANT STUDENT NAVIGATION: Use StudentAppContainer if available
+        if (href.startsWith('/student/') && (window as any).__studentNavigate) {
+            (window as any).__studentNavigate(href);
+            return;
+        }
+
+        // ⚡ INSTANT ADMIN NAVIGATION: Use AdminAppContainer if available
+        if (href.startsWith('/admin/') && (window as any).__adminNavigate) {
+            (window as any).__adminNavigate(href);
+            return;
+        }
+
+        // Otherwise use router.push for navigation (prefetching should make it fast)
+        startTransition(() => {
+            router.push(href);
+        });
     };
 
     return (
@@ -89,6 +105,7 @@ export function SmartLink({
             onMouseEnter={handlePrefetch} // Desktop: Hover prefetch
             onPointerDown={handlePrefetch} // Mobile: Touch prefetch (before click)
             className={className}
+            style={{ cursor: 'pointer' }}
         >
             {children}
         </a>
