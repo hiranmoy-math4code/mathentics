@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { Clock, FileQuestion, ListChecks, Trophy, Play, RotateCcw, ChevronRight, History } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
+import { checkExamAccess } from "@/lib/examAccess"
+import { ExamAccessChecker, ExamAccessStatus } from "@/components/ExamAccessChecker"
+import { Loader2 } from "lucide-react"
 
 interface QuizPlayerProps {
     exam: {
@@ -27,6 +30,39 @@ interface QuizPlayerProps {
 export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts = 1 }: QuizPlayerProps) {
     const [view, setView] = useState<"landing" | "exam" | "result">("landing")
     const [selectedAttempt, setSelectedAttempt] = useState<any>(null)
+    const [accessStatus, setAccessStatus] = useState<ExamAccessStatus | null>(null)
+
+    // Check exam access on mount and when exam changes
+    useEffect(() => {
+        let cancelled = false
+
+        // Reset state when exam changes
+        setAccessStatus(null)
+
+        async function checkAccess() {
+            try {
+                const status = await checkExamAccess(exam.id, userId)
+
+                // Only update if not cancelled (component still mounted with same exam)
+                if (!cancelled) {
+                    setAccessStatus(status)
+                }
+            } catch (error) {
+                console.error("Failed to check exam access:", error)
+                if (!cancelled) {
+                    // Fail open - allow access on error
+                    setAccessStatus({ accessible: true, reason: "accessible" })
+                }
+            }
+        }
+
+        checkAccess()
+
+        // Cleanup function to prevent state updates if exam changes
+        return () => {
+            cancelled = true
+        }
+    }, [exam.id, userId]) // Re-run when exam ID changes
 
     // Fetch attempts with React Query
     const { data: attemptsData, refetch } = useQuery({
@@ -67,6 +103,15 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
             refetch()
         }
     }, [view, refetch])
+
+    // Access denied / locked state
+    if (accessStatus && !accessStatus.accessible) {
+        return (
+            <div className="max-w-4xl mx-auto py-8 px-4">
+                <ExamAccessChecker status={accessStatus} />
+            </div>
+        )
+    }
 
     if (view === "exam") {
         return <EmbeddedExam examId={exam.id} onExit={() => setView("landing")} isRetake={hasAttempted && !activeAttempt} />
@@ -198,6 +243,9 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                     </CardHeader>
 
                     <CardContent className="pt-6 relative">
+                        {/* Decorative Top Accent */}
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+
                         {/* Timeline Line */}
                         <div className="absolute left-[38px] top-6 bottom-6 w-0.5 bg-border z-0" />
 

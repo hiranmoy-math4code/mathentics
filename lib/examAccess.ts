@@ -62,10 +62,11 @@ export async function checkExamAccess(
         // 1. Find the lesson containing this exam
         const { data: currentLesson } = await supabase
             .from("lessons")
-            .select("id, title, prerequisite_lesson_id, sequential_unlock_enabled, content_type")
+            .select("id, title, prerequisite_lesson_id, sequential_unlock_enabled, content_type, exam_id")
             .eq("exam_id", examId)
             .eq("content_type", "quiz")
-            .single()
+            .limit(1)
+            .maybeSingle()
 
         // If exam is not in a quiz lesson, or lesson doesn't exist, allow access
         if (!currentLesson) {
@@ -76,7 +77,11 @@ export async function checkExamAccess(
         }
 
         // 2. Check if this lesson has sequential unlock enabled and a prerequisite
-        if (currentLesson.sequential_unlock_enabled && currentLesson.prerequisite_lesson_id) {
+        // SAFEGUARD: Ignore if prerequisite is the lesson itself (prevent infinite lock)
+        if (currentLesson.sequential_unlock_enabled &&
+            currentLesson.prerequisite_lesson_id &&
+            currentLesson.prerequisite_lesson_id !== currentLesson.id) {
+
             // 3. Get the prerequisite lesson and its exam
             const { data: prereqLesson } = await supabase
                 .from("lessons")
@@ -85,6 +90,14 @@ export async function checkExamAccess(
                 .single()
 
             if (prereqLesson && prereqLesson.exam_id) {
+                // Safeguard: If the prerequisite points to the SAME exam, ignore it (deadlock prevention)
+                if (prereqLesson.exam_id === examId) {
+                    return {
+                        accessible: true,
+                        reason: "accessible"
+                    }
+                }
+
                 // 4. Check if student has completed the prerequisite lesson's exam
                 const { data: prerequisiteAttempts } = await supabase
                     .from("exam_attempts")
@@ -110,11 +123,11 @@ export async function checkExamAccess(
             reason: "accessible"
         }
     } catch (error) {
-        console.error("Error checking exam access:", error)
+        console.error("❌ Error checking exam access:", error)
+        // Return accessible on error to avoid blocking students
         return {
-            accessible: false,
-            reason: undefined,
-            message: "Error checking exam access"
+            accessible: true,
+            reason: "accessible"
         }
     }
 }
