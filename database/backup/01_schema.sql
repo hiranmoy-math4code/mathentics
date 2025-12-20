@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     CONSTRAINT profiles_referred_by_fkey FOREIGN KEY (referred_by) REFERENCES public.profiles(id)
 );
 
+
 -- ============================================================================
 -- COURSE MANAGEMENT SYSTEM
 -- ============================================================================

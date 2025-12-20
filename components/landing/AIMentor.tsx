@@ -222,7 +222,6 @@ function AIMentorContent() {
     };
 
     const handleBuy = (productId: string) => {
-        console.log("Navigating to product:", productId);
         setIsOpen(false);
         // router.push(`/courses/${productId}`); // Uncomment for real navigation
     };

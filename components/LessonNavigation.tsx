@@ -1,12 +1,13 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, CheckCircle, Circle } from "lucide-react"
+import { ChevronLeft, ChevronRight, CheckCircle, Circle, Loader2 } from "lucide-react"
 import { useLessonProgress, useMarkLessonComplete, useMarkLessonIncomplete } from "@/hooks/student/useLessonProgress"
 import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { ClientSideLink } from "@/components/ClientSideLink"
+import { cn } from "@/lib/utils"
 
 interface LessonNavigationProps {
     courseId: string
@@ -44,81 +45,90 @@ export function LessonNavigation({
 
         if (isCompleted) {
             markIncomplete({ userId, lessonId: currentLessonId, courseId }, {
-                onSuccess: () => toast.success("Lesson marked as incomplete"),
-                onError: () => toast.error("Failed to mark incomplete")
+                onSuccess: () => toast.success("Marked incomplete"),
+                onError: () => toast.error("Failed to update")
             })
         } else {
             markComplete({ userId, lessonId: currentLessonId, courseId }, {
-                onSuccess: () => toast.success("Lesson marked as complete"),
-                onError: () => toast.error("Failed to mark complete")
+                onSuccess: () => toast.success("Marked complete! 🎉"),
+                onError: () => toast.error("Failed to update")
             })
         }
     }
 
     if (variant === "header") {
         return (
-            <div className="flex items-center gap-1 md:gap-3">
-                <Button variant="outline" size="sm" className="h-8 w-8 p-0 md:w-auto md:h-9 md:px-4 gap-2 uppercase text-xs font-bold tracking-wider rounded-md border-2 border-muted-foreground/20 hover:border-muted-foreground/40 hover:bg-transparent" disabled={!prevLessonId} asChild={!!prevLessonId}>
-                    {prevLessonId ? (
-                        <ClientSideLink
-                            href={`/learn/${courseId}?lessonId=${prevLessonId}`}
-                            lessonId={prevLessonId}
-                            className="flex items-center justify-center w-full h-full"
-                        >
-                            <ChevronLeft className="h-4 w-4 md:h-3 md:w-3" /> <span className="hidden md:inline">PREVIOUS</span>
-                        </ClientSideLink>
-                    ) : (
-                        <span className="opacity-50 cursor-not-allowed flex items-center justify-center w-full h-full"><ChevronLeft className="h-4 w-4 md:h-3 md:w-3" /> <span className="hidden md:inline">PREVIOUS</span></span>
-                    )}
-                </Button>
-
+            <div className="flex items-center gap-1.5 md:gap-3 w-full justify-end sm:justify-center">
+                {/* PREVIOUS BUTTON - Icon only on mobile */}
                 <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 w-8 p-0 md:w-auto md:h-9 md:px-4 gap-2 uppercase text-xs font-bold tracking-wider rounded-md border-2 border-muted-foreground/20 hover:border-muted-foreground/40 hover:bg-transparent text-muted-foreground hover:text-foreground"
-                    onClick={handleToggleComplete}
-                    disabled={isMarkingComplete || isMarkingIncomplete}
-                    title={isCompleted ? "Mark as Incomplete" : "Mark as Complete"}
+                    className="h-9 w-9 p-0 flex-shrink-0 md:w-auto md:px-4 md:h-9 gap-2 border-2 border-muted-foreground/10 hover:border-muted-foreground/30 rounded-md"
+                    disabled={!prevLessonId}
+                    asChild={!!prevLessonId}
                 >
-                    {isCompleted ? (
-                        <CheckCircle className="h-4 w-4 md:h-3 md:w-3 text-emerald-500" />
-                    ) : (
-                        <Circle className="h-4 w-4 md:h-3 md:w-3" />
-                    )}
-                    <span className="hidden md:inline">{isCompleted ? "COMPLETED" : "MARK COMPLETE"}</span>
-                </Button>
-
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white h-8 w-8 p-0 md:w-auto md:h-9 md:px-5 gap-2 shadow-sm rounded-md uppercase text-xs font-bold tracking-wider" disabled={!nextLessonId} asChild={!!nextLessonId} size="sm">
-                    {nextLessonId ? (
-                        <ClientSideLink
-                            href={`/learn/${courseId}?lessonId=${nextLessonId}`}
-                            lessonId={nextLessonId}
-                            className="flex items-center justify-center w-full h-full"
-                        >
-                            <span className="hidden md:inline">NEXT </span> <ChevronRight className="h-4 w-4 md:h-3 md:w-3" />
+                    {prevLessonId ? (
+                        <ClientSideLink href={`/learn/${courseId}?lessonId=${prevLessonId}`} lessonId={prevLessonId}>
+                            <ChevronLeft className="h-4 w-4" />
+                            <span className="hidden md:inline text-xs font-bold tracking-wider">PREV</span>
                         </ClientSideLink>
                     ) : (
-                        <span className="opacity-50 cursor-not-allowed flex items-center justify-center w-full h-full"><span className="hidden md:inline">NEXT</span> <ChevronRight className="h-4 w-4 md:h-3 md:w-3" /></span>
+                        <span className="opacity-30"><ChevronLeft className="h-4 w-4" /></span>
                     )}
                 </Button>
-            </div>
+
+                {/* COMPLETE TOGGLE - Small circle on mobile */}
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                        "h-9 w-9 p-0 flex-shrink-0 md:w-auto md:px-4 md:h-9 gap-2 border-2 transition-all rounded-md",
+                        isCompleted ? "border-emerald-500/20 bg-emerald-50/10" : "border-muted-foreground/10"
+                    )}
+                    onClick={handleToggleComplete}
+                    disabled={isMarkingComplete || isMarkingIncomplete}
+                >
+                    {isMarkingComplete || isMarkingIncomplete ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : isCompleted ? (
+                        <CheckCircle className="h-4 w-4 text-emerald-500" />
+                    ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="hidden md:inline text-xs font-bold tracking-wider uppercase">
+                        {isCompleted ? "DONE" : "COMPLETE"}
+                    </span>
+                </Button>
+
+                {/* NEXT BUTTON - Icon only on mobile */}
+                <Button
+                    className="h-9 w-9 p-0 flex-shrink-0 md:w-auto md:px-5 md:h-9 gap-2 bg-orange-500 hover:bg-orange-600 text-white shadow-sm rounded-md"
+                    disabled={!nextLessonId}
+                    asChild={!!nextLessonId}
+                >
+                    {nextLessonId ? (
+                        <ClientSideLink href={`/learn/${courseId}?lessonId=${nextLessonId}`} lessonId={nextLessonId}>
+                            <span className="hidden md:inline text-xs font-bold tracking-wider">NEXT</span>
+                            <ChevronRight className="h-4 w-4" />
+                        </ClientSideLink>
+                    ) : (
+                        <span className="opacity-50"><ChevronRight className="h-4 w-4" /></span>
+                    )}
+                </Button>
+            </div >
         )
     }
 
-    // Default variant
+    // Default Bottom Navigation
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between mt-12 pt-8 border-t border-border gap-4">
             <Button variant="outline" className="gap-2 h-11 px-6 w-full sm:w-auto order-2 sm:order-1" disabled={!prevLessonId} asChild={!!prevLessonId}>
                 {prevLessonId ? (
-                    <ClientSideLink
-                        href={`/learn/${courseId}?lessonId=${prevLessonId}`}
-                        lessonId={prevLessonId}
-                        className="flex items-center gap-2"
-                    >
-                        <ChevronLeft className="h-4 w-4" /> Prev
+                    <ClientSideLink href={`/learn/${courseId}?lessonId=${prevLessonId}`} lessonId={prevLessonId}>
+                        <ChevronLeft className="h-4 w-4" /> Prev Lesson
                     </ClientSideLink>
                 ) : (
-                    <span><ChevronLeft className="h-4 w-4" /> Prev</span>
+                    <span className="flex items-center gap-2"><ChevronLeft className="h-4 w-4" /> Prev</span>
                 )}
             </Button>
 
@@ -129,29 +139,19 @@ export function LessonNavigation({
                 disabled={isMarkingComplete || isMarkingIncomplete}
             >
                 {isCompleted ? (
-                    <>
-                        <CheckCircle className="h-4 w-4 text-emerald-500" />
-                        Mark Incomplete
-                    </>
+                    <><CheckCircle className="h-5 w-5 text-emerald-500" /> Completed</>
                 ) : (
-                    <>
-                        <Circle className="h-4 w-4" />
-                        Mark Complete
-                    </>
+                    <><Circle className="h-5 w-5" /> Mark Complete</>
                 )}
             </Button>
 
-            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 h-11 px-6 shadow-md shadow-emerald-500/20 w-full sm:w-auto order-1 sm:order-3" disabled={!nextLessonId} asChild={!!nextLessonId}>
+            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 h-11 px-8 shadow-md shadow-emerald-500/10 w-full sm:w-auto order-1 sm:order-3 font-bold" disabled={!nextLessonId} asChild={!!nextLessonId}>
                 {nextLessonId ? (
-                    <ClientSideLink
-                        href={`/learn/${courseId}?lessonId=${nextLessonId}`}
-                        lessonId={nextLessonId}
-                        className="flex items-center gap-2"
-                    >
+                    <ClientSideLink href={`/learn/${courseId}?lessonId=${nextLessonId}`} lessonId={nextLessonId}>
                         Next Lesson <ChevronRight className="h-4 w-4" />
                     </ClientSideLink>
                 ) : (
-                    <span>Next Lesson <ChevronRight className="h-4 w-4" /></span>
+                    <span className="flex items-center gap-2">Finished <CheckCircle className="h-4 w-4" /></span>
                 )}
             </Button>
         </div>

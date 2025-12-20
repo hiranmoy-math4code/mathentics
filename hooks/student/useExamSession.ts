@@ -41,7 +41,59 @@ export function useExamSession(examId: string, userId: string | null, retakeAtte
             if (examError) throw examError
             if (!exam) throw new Error("Exam not found")
 
-            // 2. Fetch Sections with Questions and Options
+            // 2. Check exam scheduling (start_time and end_time)
+            const now = new Date()
+            const examData = exam as any
+
+            if (examData.start_time) {
+                const startTime = new Date(examData.start_time)
+                if (now < startTime) {
+                    throw new Error(`This exam is not yet available. It will start on ${startTime.toLocaleString()}.`)
+                }
+            }
+
+            if (examData.end_time) {
+                const endTime = new Date(examData.end_time)
+                if (now > endTime) {
+                    throw new Error(`This exam has ended. It was available until ${endTime.toLocaleString()}.`)
+                }
+            }
+
+            // 3. Check LESSON-based prerequisite (quiz lessons only)
+            const { data: currentLesson } = await supabase
+                .from("lessons")
+                .select("id, title, prerequisite_lesson_id, sequential_unlock_enabled")
+                .eq("exam_id", examId)
+                .eq("content_type", "quiz")
+                .single()
+
+            if (currentLesson?.sequential_unlock_enabled && currentLesson.prerequisite_lesson_id) {
+                // Get the prerequisite lesson and its exam
+                const { data: prereqLesson } = await supabase
+                    .from("lessons")
+                    .select("id, title, exam_id")
+                    .eq("id", currentLesson.prerequisite_lesson_id)
+                    .single()
+
+                if (prereqLesson?.exam_id) {
+                    // Check if student has completed the prerequisite lesson's exam
+                    const { data: prerequisiteAttempts, error: prereqError } = await supabase
+                        .from("exam_attempts")
+                        .select("id, status")
+                        .eq("exam_id", prereqLesson.exam_id)
+                        .eq("student_id", userId)
+                        .eq("status", "submitted")
+
+                    if (prereqError) throw prereqError
+
+                    if (!prerequisiteAttempts || prerequisiteAttempts.length === 0) {
+                        const prereqTitle = prereqLesson.title || "the previous quiz"
+                        throw new Error(`You must complete ${prereqTitle} before accessing this exam.`)
+                    }
+                }
+            }
+
+            // 4. Fetch Sections with Questions and Options
             const { data: sections, error: sectionsError } = await supabase
                 .from("sections")
                 .select("*, questions(*, options(*))")
@@ -50,7 +102,7 @@ export function useExamSession(examId: string, userId: string | null, retakeAtte
 
             if (sectionsError) throw sectionsError
 
-            // 3. Find or Create Attempt
+            // 5. Find or Create Attempt
             let attempt: Attempt | null = null
 
             const { data: existingAttempts, error: attemptsError } = await supabase

@@ -134,7 +134,7 @@ export function LiveClassPlayer({
                     email: userEmail,
                 }}
                 onApiReady={(externalApi) => {
-                    console.log('Jitsi API ready');
+                    // Jitsi API ready
                     setIsLoading(false);
 
                     // Set display name
@@ -149,7 +149,7 @@ export function LiveClassPlayer({
                     }
                 }}
                 onReadyToClose={() => {
-                    console.log('Meeting ended');
+                    // Meeting ended
                     onMeetingEnd?.();
                 }}
                 getIFrameRef={(iframeRef) => {

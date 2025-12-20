@@ -83,7 +83,7 @@ export function ImageUpload({
 
                 // Debug: Check available buckets
                 const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-                console.log("Available buckets:", buckets);
+                // Buckets available
                 if (bucketError) console.error("Error listing buckets:", bucketError);
 
                 toast.error("Failed to upload image: " + (error as any).message);
