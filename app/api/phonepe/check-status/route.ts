@@ -35,6 +35,7 @@ export async function POST(req: Request) {
         try {
             // Try to use Admin Client for RLS bypass
             supabase = createAdminClient();
+            // supabase = await createClient();
         } catch (e) {
             console.warn("⚠️ SUPABASE_SERVICE_ROLE_KEY missing. Falling back to standard client.");
             supabase = await createClient();
@@ -43,7 +44,6 @@ export async function POST(req: Request) {
         // 1. Call PhonePe Status API
         const statusResponse = await checkPaymentStatus(transactionId);
 
-        // 2. Determine Status
         let status = "pending";
 
         // Cast to any to handle SDK/Manual response type safely
@@ -73,26 +73,29 @@ export async function POST(req: Request) {
 
         // 3. Update Database
         // Try updating course_payments first
-        let { data: payment, error: updateError } = await supabase
+        console.log(transactionId)
+        let { data: payments, error: updateError } = await supabase
             .from("course_payments")
             .update({
                 status: status,
                 metadata: statusResponse
             })
             .eq("transaction_id", transactionId)
-            .select()
-            .single();
+            .select();
 
+        let payment = payments?.[0] || null;
+        console.log("payment", payment)
         let isTestSeries = false;
 
         // If not found in course_payments, try payments (test series)
         if (!payment) {
-            const { data: tsPayment, error: tsError } = await supabase
+            const { data: tsPayments, error: tsError } = await supabase
                 .from("payments")
                 .update({ status: status })
                 .eq("phonepe_transaction_id", transactionId)
-                .select()
-                .single();
+                .select();
+
+            const tsPayment = tsPayments?.[0] || null;
 
             if (tsPayment) {
                 payment = tsPayment;
@@ -104,8 +107,20 @@ export async function POST(req: Request) {
         }
 
         if (updateError || !payment) {
-            console.error("Payment update error:", updateError);
-            return NextResponse.json({ error: "Failed to update payment record" }, { status: 500 });
+            console.error("❌ Payment record not found in database:", transactionId);
+            console.error("Update error:", updateError);
+            console.error("Payment found:", payment);
+
+            // Return more helpful error message
+            return NextResponse.json({
+                error: "Transaction not found in database",
+                details: "This transaction ID does not exist in our records. Please ensure the payment was initiated correctly.",
+                transactionId: transactionId,
+                status: "failed"
+            }, {
+                status: 404,
+                headers: corsHeaders
+            });
         }
 
         // 4. If Success, Activate Enrollment
