@@ -22,7 +22,6 @@ import { Video, FileText, File, HelpCircle, Trash, Save, Copy, Loader2 } from "l
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { BunnyUploader } from "./BunnyUploader";
-import { JitsiLiveCreator } from "./JitsiLiveCreator";
 import { BunnyPlayer } from "@/components/BunnyPlayer";
 import { ExamSettingsDialog } from "@/components/ExamSettingsDialog";
 
@@ -337,51 +336,6 @@ export function LessonEditor({ lesson, course, onUpdate, onDelete }: LessonEdito
                                                 </div>
                                             </div>
                                         )}
-                                    </TabsContent>
-
-                                    <TabsContent value="live" className="space-y-4">
-                                        <JitsiLiveCreator
-                                            lessonId={lesson.id}
-                                            lessonTitle={title}
-                                            initialMeetingData={
-                                                lesson.jitsi_meeting_id && lesson.jitsi_meeting_url
-                                                    ? {
-                                                        meetingId: lesson.jitsi_meeting_id,
-                                                        meetingUrl: lesson.jitsi_meeting_url
-                                                    }
-                                                    : null
-                                            }
-                                            onMeetingCreated={async (meetingData) => {
-                                                const updates: Partial<Lesson> = {
-                                                    video_provider: 'jitsi',
-                                                    video_type: 'live',
-                                                    jitsi_meeting_id: meetingData.meetingId,
-                                                    jitsi_meeting_url: meetingData.meetingUrl,
-                                                    video_status: 'live',
-                                                    content_url: meetingData.meetingUrl
-                                                };
-
-                                                onUpdate(updates).then(() => {
-                                                    toast.success('Live class meeting created successfully!');
-                                                }).catch((error) => {
-                                                    console.error('Failed to save stream data:', error);
-                                                    toast.error('Stream created but save failed! Your work is preserved.', {
-                                                        duration: Infinity,
-                                                        action: {
-                                                            label: "Retry Save",
-                                                            onClick: () => {
-                                                                toast.info("Retrying save...");
-                                                                onUpdate(updates).then(() => toast.success("Retry successful!"))
-                                                                    .catch(() => toast.error("Retry failed again."));
-                                                            }
-                                                        }
-                                                    });
-                                                });
-                                            }}
-                                            onError={(error) => {
-                                                toast.error(error);
-                                            }}
-                                        />
                                     </TabsContent>
                                 </Tabs>
                             )}

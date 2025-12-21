@@ -20,21 +20,6 @@ export const DynamicReactPlayer = dynamic(() => import('react-player'), {
     )
 });
 
-/**
- * Jitsi Meet - Video conferencing component (~500KB)
- * Loaded dynamically with fullscreen skeleton
- */
-export const DynamicJitsi = dynamic(
-    () => import('@jitsi/react-sdk').then(mod => mod.JitsiMeeting),
-    {
-        ssr: false,
-        loading: () => (
-            <div className="h-screen bg-muted animate-pulse flex items-center justify-center">
-                <div className="text-muted-foreground">Loading video conference...</div>
-            </div>
-        )
-    }
-);
 
 /**
  * MathJax Context - Math rendering (~300KB)
