@@ -6,11 +6,19 @@ export const runtime = 'edge';
 
 
 export async function GET(request: NextRequest) {
-    const { searchParams, origin } = new URL(request.url);
+    const { searchParams, origin, hash } = new URL(request.url);
     const code = searchParams.get("code");
     // if "next" is in param, use it as the redirect URL
     const next = searchParams.get("next") ?? "/student/dashboard";
-    const type = searchParams.get("type"); // Supabase adds type parameter for different flows
+
+    // Supabase can send type in query params OR in hash fragment
+    let type = searchParams.get("type");
+
+    // If not in query params, check hash fragment
+    if (!type && hash) {
+        const hashParams = new URLSearchParams(hash.substring(1)); // Remove the # and parse
+        type = hashParams.get("type");
+    }
 
     if (code) {
         const supabase = await createClient();
@@ -21,6 +29,12 @@ export async function GET(request: NextRequest) {
             // Supabase adds type=recovery in the URL for password reset
             if (type === 'recovery') {
                 console.log('[Callback] Password recovery detected, redirecting to reset-password page');
+                return NextResponse.redirect(`${origin}/auth/reset-password`);
+            }
+
+            // Check if this is an invitation flow
+            if (type === 'invite') {
+                console.log('[Callback] Invitation detected, redirecting to set password page');
                 return NextResponse.redirect(`${origin}/auth/reset-password`);
             }
 

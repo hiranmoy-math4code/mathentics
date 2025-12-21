@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 
 /**
@@ -29,7 +30,7 @@ export async function addStudent(data: {
     }
 
     try {
-        // Check if student already exists
+        // Check if student already exists in profiles
         const { data: existing } = await supabase
             .from('profiles')
             .select('id, email, full_name')
@@ -44,23 +45,64 @@ export async function addStudent(data: {
             };
         }
 
-        // For new students, we can't create profiles directly due to RLS
-        // Instead, return success and let them sign up normally
-        // You can implement email invitation here if needed
-
-        // TODO: Send invite email via your email service
+        // Send invitation email using Supabase Admin
         if (data.sendInvite) {
-            // Send email invitation here
-            console.log(`Sending invite to ${data.email}`);
+            const adminClient = createAdminClient();
+
+            // Invite user via Supabase Auth
+            const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
+                data.email,
+                {
+                    data: {
+                        full_name: data.fullName,
+                        role: 'student'
+                    },
+                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`
+                }
+            );
+
+            if (inviteError) {
+                console.error('Invitation error:', inviteError);
+                throw new Error(`Failed to send invitation: ${inviteError.message}`);
+            }
+
+            console.log(`✅ Invitation sent to ${data.email}`, inviteData);
+
+            // Create profile entry for the invited user
+            if (inviteData.user) {
+                const { error: profileError } = await adminClient
+                    .from('profiles')
+                    .insert({
+                        id: inviteData.user.id,
+                        email: data.email,
+                        full_name: data.fullName,
+                        role: 'student'
+                    });
+
+                if (profileError) {
+                    console.error('Profile creation error:', profileError);
+                    // Don't fail the whole operation if profile creation fails
+                    // The profile will be created on first login via callback
+                }
+            }
+
+            revalidatePath('/admin/students');
+            return {
+                success: true,
+                data: { email: data.email, full_name: data.fullName },
+                message: 'Invitation sent successfully! Student will receive an email to join.'
+            };
         }
 
+        // If not sending invite, just return success
         revalidatePath('/admin/students');
         return {
             success: true,
             data: { email: data.email, full_name: data.fullName },
-            message: 'Invitation ready. Student will be added when they sign up.'
+            message: 'Student information saved. They can sign up normally.'
         };
     } catch (error: any) {
+        console.error('Add student error:', error);
         return { error: error.message };
     }
 }
