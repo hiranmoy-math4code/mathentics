@@ -10,12 +10,20 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get("code");
     // if "next" is in param, use it as the redirect URL
     const next = searchParams.get("next") ?? "/student/dashboard";
+    const type = searchParams.get("type"); // Supabase adds type parameter for different flows
 
     if (code) {
         const supabase = await createClient();
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        const { error, data } = await supabase.auth.exchangeCodeForSession(code);
 
         if (!error) {
+            // Check if this is a password recovery flow
+            // Supabase adds type=recovery in the URL for password reset
+            if (type === 'recovery') {
+                console.log('[Callback] Password recovery detected, redirecting to reset-password page');
+                return NextResponse.redirect(`${origin}/auth/reset-password`);
+            }
+
             // Successful login
             const { data: { user } } = await supabase.auth.getUser();
 

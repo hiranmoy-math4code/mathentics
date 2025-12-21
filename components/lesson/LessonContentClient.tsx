@@ -60,12 +60,19 @@ export default function LessonContentClient({
     const { lesson, exam, attempts, questionsCount, author } = fullData;
     const isQuiz = lesson.content_type === "quiz";
     const isVideo = lesson.content_type === "video";
+    const isPdf = lesson.content_type === "pdf";
+    const isText = lesson.content_type === "text";
 
-    // ⚡ INSTANT EXAM TRANSITIONS: Detect stale quiz data from keepPreviousData
-    // When navigating from Exam 1 → Exam 2, fullData still contains Exam 1 briefly
-    // Show skeleton instead of wrong exam for instant, correct state display
-    if (isQuiz && lesson.id !== lessonId) {
-        return <QuizSkeleton />;
+    // ⚡ INSTANT TRANSITIONS: Detect stale data from keepPreviousData
+    // When navigating Lesson 1 → Lesson 2, fullData still contains Lesson 1 briefly
+    // Show skeleton instead of wrong content for instant, correct display
+
+    // Check for stale data for ALL lesson types
+    if (lesson.id !== lessonId) {
+        if (isQuiz) return <QuizSkeleton />;
+        if (isVideo) return <VideoSkeleton />;
+        // PDF and text both use TextSkeleton
+        if (isPdf || isText) return <TextSkeleton />;
     }
 
     if (isVideo) {

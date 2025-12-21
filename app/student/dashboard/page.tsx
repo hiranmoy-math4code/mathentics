@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -25,9 +25,11 @@ import { useLastAttempt } from "@/hooks/student/useLastAttempt";
 import { useStudentCourses } from "@/hooks/student/useStudentCourses";
 import { useAllCourses } from "@/hooks/student/useAllCourses";
 import { usePrefetchCourse } from "@/hooks/usePrefetchCourse";
+import { useEnrollmentsWithExpiry } from "@/hooks/useEnrollmentsWithExpiry";
 import { Button } from "@/components/ui/button";
 import { CourseThumbnail } from "@/components/ui/CourseThumbnail";
 import { useEnrollCourse } from "@/hooks";
+import { DashboardExpiryBadge } from "@/components/student/ExpiryComponents";
 
 export default function StudentDashboard() {
   const router = useRouter();
@@ -49,6 +51,20 @@ export default function StudentDashboard() {
   const { data: lastAttempt } = useLastAttempt(user?.id);
   const { data: myCourses, isLoading: myCoursesLoading } = useStudentCourses(user?.id);
   const { data: allCourses, isLoading: allCoursesLoading } = useAllCourses(user?.id);
+  const { data: enrollmentsWithExpiry } = useEnrollmentsWithExpiry();
+
+  // Create a map of course ID to expiry info for quick lookup
+  const expiryMap = useMemo(() => {
+    const map = new Map();
+    enrollmentsWithExpiry?.forEach((enrollment: any) => {
+      map.set(enrollment.course_id, {
+        daysRemaining: enrollment.daysRemaining,
+        isExpired: enrollment.isExpired,
+        urgencyLevel: enrollment.urgencyLevel
+      });
+    });
+    return map;
+  }, [enrollmentsWithExpiry]);
 
   // ⚡ INSTANT NAVIGATION: Prefetch course data on hover
   const { prefetchCourse } = usePrefetchCourse();
@@ -309,7 +325,16 @@ export default function StudentDashboard() {
                     onMouseEnter={() => prefetchCourse(course.id)}
                     className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md cursor-pointer"
                   >
-                    <h4 className="font-semibold text-slate-800 dark:text-white mb-2">{course.title}</h4>
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-semibold text-slate-800 dark:text-white flex-1">{course.title}</h4>
+                      {expiryMap.has(course.id) && (
+                        <DashboardExpiryBadge
+                          daysRemaining={expiryMap.get(course.id).daysRemaining}
+                          isExpired={expiryMap.get(course.id).isExpired}
+                          urgencyLevel={expiryMap.get(course.id).urgencyLevel}
+                        />
+                      )}
+                    </div>
                     <div className="flex justify-between text-xs mb-2 text-slate-500 dark:text-slate-400">
                       <span>Progress</span>
                       <span>{course.progress_percentage.toFixed(0)}%</span>
@@ -348,8 +373,9 @@ export default function StudentDashboard() {
                 <motion.div
                   key={course.id}
                   whileHover={{ scale: 1.02 }}
+                  onClick={() => handleContinueCourse(course.id)}
                   onMouseEnter={() => prefetchCourse(course.id)}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md"
+                  className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md cursor-pointer"
                 >
                   <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">
                     <CourseThumbnail
@@ -359,7 +385,16 @@ export default function StudentDashboard() {
                       className="w-full h-full"
                     />
                   </div>
-                  <h4 className="font-semibold text-slate-800 dark:text-white mb-2">{course.title}</h4>
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-semibold text-slate-800 dark:text-white flex-1">{course.title}</h4>
+                    {expiryMap.has(course.id) && (
+                      <DashboardExpiryBadge
+                        daysRemaining={expiryMap.get(course.id).daysRemaining}
+                        isExpired={expiryMap.get(course.id).isExpired}
+                        urgencyLevel={expiryMap.get(course.id).urgencyLevel}
+                      />
+                    )}
+                  </div>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{course.description}</p>
                   <div className="flex justify-between text-xs mb-2 text-slate-500 dark:text-slate-400">
                     <span>{course.completed_lessons}/{course.total_lessons} lessons</span>
@@ -372,8 +407,11 @@ export default function StudentDashboard() {
                     />
                   </div>
                   <Button
-                    onClick={() => handleContinueCourse(course.id)}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleContinueCourse(course.id);
+                    }}
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
                   >
                     Continue Learning
                   </Button>
