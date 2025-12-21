@@ -24,6 +24,7 @@ import { useStudentTestSeries } from "@/hooks/student/useStudentTestSeries";
 import { useLastAttempt } from "@/hooks/student/useLastAttempt";
 import { useStudentCourses } from "@/hooks/student/useStudentCourses";
 import { useAllCourses } from "@/hooks/student/useAllCourses";
+import { usePrefetchCourse } from "@/hooks/usePrefetchCourse";
 import { Button } from "@/components/ui/button";
 import { CourseThumbnail } from "@/components/ui/CourseThumbnail";
 import { useEnrollCourse } from "@/hooks";
@@ -48,6 +49,9 @@ export default function StudentDashboard() {
   const { data: lastAttempt } = useLastAttempt(user?.id);
   const { data: myCourses, isLoading: myCoursesLoading } = useStudentCourses(user?.id);
   const { data: allCourses, isLoading: allCoursesLoading } = useAllCourses(user?.id);
+
+  // ⚡ INSTANT NAVIGATION: Prefetch course data on hover
+  const { prefetchCourse } = usePrefetchCourse();
 
   // Enrollment mutation
   const enrollMutation = useEnrollCourse();
@@ -302,6 +306,7 @@ export default function StudentDashboard() {
                     key={course.id}
                     whileHover={{ scale: 1.02 }}
                     onClick={() => handleContinueCourse(course.id)}
+                    onMouseEnter={() => prefetchCourse(course.id)}
                     className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md cursor-pointer"
                   >
                     <h4 className="font-semibold text-slate-800 dark:text-white mb-2">{course.title}</h4>
@@ -343,6 +348,7 @@ export default function StudentDashboard() {
                 <motion.div
                   key={course.id}
                   whileHover={{ scale: 1.02 }}
+                  onMouseEnter={() => prefetchCourse(course.id)}
                   className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md"
                 >
                   <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">
@@ -410,6 +416,7 @@ export default function StudentDashboard() {
                 <motion.div
                   key={course.id}
                   whileHover={{ scale: 1.02 }}
+                  onMouseEnter={() => prefetchCourse(course.id)}
                   className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md"
                 >
                   <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">

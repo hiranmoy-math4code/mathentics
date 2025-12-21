@@ -23,6 +23,14 @@ export default function LessonContentClient({
     user: any;
     contentType?: 'video' | 'quiz' | 'text' | 'pdf';
 }) {
+    // ⚡ GUARD: Prevent query with invalid lessonId
+    // Show skeleton while parent component determines the correct lesson
+    if (!lessonId) {
+        if (contentType === 'video') return <VideoSkeleton />;
+        if (contentType === 'quiz') return <QuizSkeleton />;
+        return <TextSkeleton />;
+    }
+
     // ⚡ CRITICAL: Use isPending AND check for data existence
     // isPending = true only on FIRST load (no data at all)
     // isLoading = true even when showing placeholder data
@@ -52,6 +60,13 @@ export default function LessonContentClient({
     const { lesson, exam, attempts, questionsCount, author } = fullData;
     const isQuiz = lesson.content_type === "quiz";
     const isVideo = lesson.content_type === "video";
+
+    // ⚡ INSTANT EXAM TRANSITIONS: Detect stale quiz data from keepPreviousData
+    // When navigating from Exam 1 → Exam 2, fullData still contains Exam 1 briefly
+    // Show skeleton instead of wrong exam for instant, correct state display
+    if (isQuiz && lesson.id !== lessonId) {
+        return <QuizSkeleton />;
+    }
 
     if (isVideo) {
         return (
@@ -174,6 +189,7 @@ export default function LessonContentClient({
                             {/* Quiz Player Container - Premium Card Design */}
                             <div className="bg-white/90 dark:bg-card/90 backdrop-blur-sm rounded-3xl shadow-xl shadow-slate-200/60 dark:shadow-none border border-slate-200/80 dark:border-border overflow-hidden">
                                 <QuizPlayer
+                                    key={exam.id}
                                     exam={exam}
                                     attempts={attempts || []}
                                     userId={user.id}

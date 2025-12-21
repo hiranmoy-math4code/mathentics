@@ -42,7 +42,7 @@ export function LessonAppContainer({
     );
 
     // Get modules/lessons from cache (loaded by layout)
-    const { data: modules } = useLessons(courseId);
+    const { data: modules, isPending: isLoadingModules } = useLessons(courseId);
 
     // Flatten lessons
     const allLessons = useMemo(() => {
@@ -123,6 +123,14 @@ export function LessonAppContainer({
             });
         }
     }, [currentLesson, allLessons, courseId, queryClient]);
+
+    // ⚡ LOADING STATE: Show skeleton while course structure loads
+    // This prevents "Failed to Load Content" error when navigating without lessonId
+    // Once loaded, navigation between lessons is instant (0ms) via keepPreviousData
+    if (isLoadingModules && !currentLesson) {
+        // Determine skeleton type - default to text if unknown
+        return <TextSkeleton />;
+    }
 
     if (!currentLesson) {
         return (

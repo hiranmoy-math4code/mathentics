@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Clock, FileQuestion, ListChecks, Trophy, Play, RotateCcw, ChevronRight, History } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
-import { checkExamAccess } from "@/lib/examAccess"
-import { ExamAccessChecker, ExamAccessStatus } from "@/components/ExamAccessChecker"
+import { useExamAccess } from "@/hooks/useExamAccess"
+import { ExamAccessChecker } from "@/components/ExamAccessChecker"
 import { Loader2 } from "lucide-react"
 
 interface QuizPlayerProps {
@@ -30,39 +30,11 @@ interface QuizPlayerProps {
 export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts = 1 }: QuizPlayerProps) {
     const [view, setView] = useState<"landing" | "exam" | "result">("landing")
     const [selectedAttempt, setSelectedAttempt] = useState<any>(null)
-    const [accessStatus, setAccessStatus] = useState<ExamAccessStatus | null>(null)
 
-    // Check exam access on mount and when exam changes
-    useEffect(() => {
-        let cancelled = false
-
-        // Reset state when exam changes
-        setAccessStatus(null)
-
-        async function checkAccess() {
-            try {
-                const status = await checkExamAccess(exam.id, userId)
-
-                // Only update if not cancelled (component still mounted with same exam)
-                if (!cancelled) {
-                    setAccessStatus(status)
-                }
-            } catch (error) {
-                console.error("Failed to check exam access:", error)
-                if (!cancelled) {
-                    // Fail open - allow access on error
-                    setAccessStatus({ accessible: true, reason: "accessible" })
-                }
-            }
-        }
-
-        checkAccess()
-
-        // Cleanup function to prevent state updates if exam changes
-        return () => {
-            cancelled = true
-        }
-    }, [exam.id, userId]) // Re-run when exam ID changes
+    // ⚡ INSTANT CACHED ACCESS: Use React Query for access check
+    // First visit: Checks access (~50ms), caches result
+    // Return visits: Uses cached result (0ms instant!)
+    const { data: accessStatus, isPending: isCheckingAccess } = useExamAccess(exam.id, userId)
 
     // Fetch attempts with React Query
     const { data: attemptsData, refetch } = useQuery({
@@ -104,12 +76,22 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
         }
     }, [view, refetch])
 
+    // ⚡ INSTANT STATE: Show skeleton ONLY while checking access for first time
+    // Cached access status returns instantly (0ms), no spinner!
+    if (isCheckingAccess && !accessStatus) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        )
+    }
+
     // Access denied / locked state
     if (accessStatus && !accessStatus.accessible) {
         return (
-            <div className="max-w-4xl mx-auto py-8 px-4">
-                <ExamAccessChecker status={accessStatus} />
-            </div>
+
+            <ExamAccessChecker status={accessStatus} />
+
         )
     }
 
