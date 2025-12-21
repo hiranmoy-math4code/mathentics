@@ -13,7 +13,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        console.log(`💸 Processing Refund Request:`, { transactionId, amount, userId });
+
 
         // 1. Verify Admin (Or rely on protected route middleware if present, but double check here)
         // Accessing session from cookie for authentication check
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
         const { error: paymentError } = await updateQuery;
 
         if (paymentError) {
-            console.error("Failed to update payment status:", paymentError);
+
             // Even if DB update fails, refund was initiated.
         }
 
@@ -105,7 +105,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, message: "Refund initiated and access revoked" });
 
     } catch (error: any) {
-        console.error("Refund API Error:", error);
+
         return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
     }
 }

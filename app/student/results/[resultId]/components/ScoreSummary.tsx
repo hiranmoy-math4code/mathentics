@@ -49,7 +49,7 @@ export function ScoreSummary({
       {cards.map((card, i) => (
         <Card
           key={i}
-          className={`bg-gradient-to-br ${card.gradient} rounded-2xl border-0 shadow-md hover:shadow-lg transition-all`}
+          className={`bg-linear-to-br ${card.gradient} rounded-2xl border-0 shadow-md hover:shadow-lg transition-all`}
         >
           <CardContent className="flex items-center justify-between p-5">
             <div>

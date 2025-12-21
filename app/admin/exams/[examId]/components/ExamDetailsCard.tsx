@@ -173,7 +173,7 @@ export default function ExamDetailsCard() {
 
       <Card className="border-none shadow-xl bg-white dark:bg-slate-800 overflow-hidden">
         {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white">
+        <div className="bg-linear-to-r from-indigo-500 to-purple-600 p-6 text-white">
           <div className="flex justify-between items-start">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">

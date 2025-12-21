@@ -19,7 +19,7 @@ export async function generateLessonSummary(videoUrl: string) {
         // For now, keeping as user requested or the latest valid one.
         // Note: 2.5-flash is likely invalid, but user insisted. 
         // I will use gemini-2.0-flash-exp as it is the actual latest flash model.
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         let prompt = "";
 

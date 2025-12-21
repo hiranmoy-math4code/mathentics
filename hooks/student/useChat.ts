@@ -82,7 +82,16 @@ export const useCreateSession = () => {
                 .select()
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                console.error("Session Creation Detailed Error:", {
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code,
+                    data: { title, user_id: userId }
+                });
+                throw error;
+            }
             return data as ChatSession;
         },
         onSuccess: () => {
@@ -103,7 +112,16 @@ export const useSaveMessage = () => {
                 .select()
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                console.error("Message Save Detailed Error:", {
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code,
+                    data: { session_id: sessionId, role, content }
+                });
+                throw error;
+            }
             return data;
         },
         onSuccess: (_, variables) => {

@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 
 export const CTA: React.FC = () => (
-    <section className="py-16 bg-gradient-to-b from-indigo-600 to-violet-600 text-white">
+    <section className="py-16 bg-linear-to-b from-indigo-600 to-violet-600 text-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
             <h3 className="text-3xl font-bold">Ready to level up your math game?</h3>
             <p className="mt-2 text-indigo-100">Join thousands of students practicing smarter — not harder.</p>

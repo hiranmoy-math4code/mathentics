@@ -111,7 +111,7 @@ export default function ExamResultPage() {
   const isPassed = stats.percentage >= 40
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
       {/* Header */}
       <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
@@ -146,7 +146,7 @@ export default function ExamResultPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-8 text-white shadow-2xl"
+          className="bg-linear-to-br from-indigo-500 to-purple-600 rounded-3xl p-8 text-white shadow-2xl"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Main Score */}

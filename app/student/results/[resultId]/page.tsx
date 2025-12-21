@@ -10,8 +10,7 @@ export default async function ResultDetailPage({ params, searchParams }: { param
   const { resultId } = await params;
   const { attemptId } = await searchParams
 
-  console.log("Result ID:", resultId)
-  console.log("Attempt ID:", attemptId)
+
 
   const { data: result } = await supabase
     .from("results")
@@ -54,7 +53,7 @@ export default async function ResultDetailPage({ params, searchParams }: { param
   return (
     <>
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 md:py-10 
-      bg-gradient-to-b from-white via-slate-50 to-slate-100 
+      bg-linear-to-b from-white via-slate-50 to-slate-100 
       dark:from-slate-900 dark:via-slate-950 dark:to-black 
       rounded-2xl md:rounded-3xl shadow-lg overflow-x-hidden">
 

@@ -126,12 +126,12 @@ export function GrantAccessDialog({ open, onOpenChange, onSuccess, courses = [],
         <Dialog open={open} onOpenChange={(open) => { onOpenChange(open); if (!open) resetForm(); }}>
             <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 p-0 gap-0">
                 {/* Decorative gradient header */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-t-lg" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-t-lg" />
 
                 {/* Fixed Header */}
                 <DialogHeader className="space-y-3 pt-6 px-6 pb-4 shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-200 dark:shadow-none">
+                        <div className="p-2.5 rounded-xl bg-linear-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-200 dark:shadow-none">
                             <Gift className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -324,7 +324,7 @@ export function GrantAccessDialog({ open, onOpenChange, onSuccess, courses = [],
                             type="submit"
                             form="grantAccessForm"
                             disabled={loading || !formData.selectedStudent}
-                            className="flex-1 h-11 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-200 dark:shadow-none transition-all"
+                            className="flex-1 h-11 bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-200 dark:shadow-none transition-all"
                         >
                             {loading ? (
                                 <>

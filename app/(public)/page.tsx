@@ -82,7 +82,7 @@ const Hero = () => {
   return (
     <section className="relative pt-6 pb-20 lg:pt-8 lg:pb-32 overflow-hidden bg-[#FBFBFD]">
       {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-bl from-indigo-50 to-transparent opacity-50 -z-10" />
+      <div className="absolute top-0 right-0 w-1/2 h-full bg-linear-to-bl from-indigo-50 to-transparent opacity-50 -z-10" />
       <div className="absolute top-20 left-10 w-64 h-64 bg-teal-50 rounded-full blur-3xl -z-10" />
 
       <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
@@ -98,7 +98,7 @@ const Hero = () => {
           </div>
           <h1 className="text-5xl lg:text-7xl font-extrabold text-[#1F2A6B] leading-[1.1] mb-6 tracking-tight">
             Master Math. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#14B8A6] to-blue-500">
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-[#14B8A6] to-blue-500">
               Code Confidently.
             </span>
           </h1>
@@ -542,7 +542,7 @@ const Testimonials = () => {
 const CTA = () => {
   return (
     <div className="py-20 px-6">
-      <div className="max-w-5xl mx-auto bg-gradient-to-r from-[#14B8A6] to-teal-600 rounded-3xl p-10 md:p-16 text-center shadow-2xl relative overflow-hidden">
+      <div className="max-w-5xl mx-auto bg-linear-to-r from-[#14B8A6] to-teal-600 rounded-3xl p-10 md:p-16 text-center shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
         <h2 className="relative z-10 text-3xl md:text-5xl font-extrabold text-white mb-6">Ready to top the leaderboard?</h2>
         <p className="relative z-10 text-teal-50 text-lg mb-8 max-w-2xl mx-auto">Join the community of problem solvers. No credit card required for the trial.</p>

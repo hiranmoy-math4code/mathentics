@@ -68,7 +68,7 @@ export default function ManageSectionQuestionsPage() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 p-8 text-white shadow-2xl"
+        className="relative overflow-hidden rounded-2xl bg-linear-to-br from-blue-500 via-indigo-500 to-purple-600 p-8 text-white shadow-2xl"
       >
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-3">

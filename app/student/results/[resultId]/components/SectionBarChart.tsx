@@ -19,7 +19,7 @@ export function SectionBarChart({ data }: { data: any[] }) {
   const GRADIENT_ID_TOTAL = "colorTotal"
 
   return (
-    <Card className="bg-gradient-to-br from-indigo-50 via-sky-50 to-blue-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 border-0 shadow-md rounded-3xl">
+    <Card className="bg-linear-to-br from-indigo-50 via-sky-50 to-blue-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 border-0 shadow-md rounded-3xl">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
           📘 Section-wise Performance

@@ -50,11 +50,11 @@ export default async function MarketplacePage({
             {/* Hero Section */}
             <div className="pt-28 pb-12 bg-[#0f172a] text-white relative overflow-hidden">
                 <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20"></div>
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-violet-500/10"></div>
+                <div className="absolute inset-0 bg-linear-to-br from-indigo-500/10 via-transparent to-violet-500/10"></div>
 
                 <div className="container max-w-[1200px] mx-auto px-4 md:px-6 relative z-10">
                     <div className="max-w-3xl">
-                        <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400">
+                        <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-linear-to-r from-indigo-400 to-violet-400">
                             Explore Our Courses
                         </h1>
                         <p className="text-lg text-slate-400 mb-8">

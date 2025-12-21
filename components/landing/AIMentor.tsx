@@ -10,6 +10,7 @@ import {
 import { useChatHistory, useChatMessages, useCreateSession, useSaveMessage } from "@/hooks/student/useChat";
 import { usePublicCourses } from "@/hooks/usePublicCourses";
 import { usePublicTestSeries } from "@/hooks/usePublicTestSeries";
+import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 // --- TYPES ---
@@ -37,6 +38,9 @@ export const chatKeys = {
 
 export const callGemini = async (prompt: string, systemInstruction: string = "") => {
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    if (!apiKey) {
+        throw new Error("Gemini API key is missing. Please check NEXT_PUBLIC_GEMINI_API_KEY in your environment variables.");
+    }
 
     let delay = 1000;
     for (let i = 0; i < 3; i++) {
@@ -52,10 +56,15 @@ export const callGemini = async (prompt: string, systemInstruction: string = "")
                     })
                 }
             );
-            if (!response.ok) throw new Error(response.statusText);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                const apiErrorMessage = errorData.error?.message || response.statusText || `HTTP ${response.status}`;
+                throw new Error(`Gemini API Error: ${apiErrorMessage}`);
+            }
+
             const data = await response.json();
             return data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate a response.";
-        } catch (error) {
+        } catch (error: any) {
             if (i === 2) throw error;
             await new Promise(r => setTimeout(r, delay));
             delay *= 2;
@@ -94,24 +103,69 @@ function AIMentorContent() {
     const [query, setQuery] = useState("");
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
+    const [isGuest, setIsGuest] = useState(true);
+    const supabaseClient = createClient();
+
+    // Local Storage Helpers for Guest Mode
+    const getLocalSessions = (): ChatSession[] => {
+        if (typeof window === 'undefined') return [];
+        return JSON.parse(localStorage.getItem('guest_chat_sessions') || '[]');
+    };
+    const saveLocalSession = (session: ChatSession) => {
+        const sessions = getLocalSessions();
+        localStorage.setItem('guest_chat_sessions', JSON.stringify([session, ...sessions]));
+    };
+    const getLocalMessages = (sessionId: string): Message[] => {
+        if (typeof window === 'undefined') return [];
+        return JSON.parse(localStorage.getItem(`guest_chat_messages_${sessionId}`) || '[]');
+    };
+    const saveLocalMessage = (sessionId: string, message: Message) => {
+        const messages = getLocalMessages(sessionId);
+        localStorage.setItem(`guest_chat_messages_${sessionId}`, JSON.stringify([...messages, message]));
+    };
 
     // Initialize Unique User ID for Browser-wise History
     useEffect(() => {
-        const initUserId = () => {
+        const initUserId = async () => {
+            // 1. Try to get logged in user first
+            const { data: { user } } = await supabaseClient.auth.getUser();
+
+            if (user) {
+                setUserId(user.id);
+                setIsGuest(false);
+                return;
+            }
+
+            // 2. Fallback to browser ID for anonymous chat
             let id = localStorage.getItem('chat_browser_id');
             if (!id) {
-                // Fallback for browsers without crypto.randomUUID
-                id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+                // Generate a valid UUID v4 format even if crypto.randomUUID is missing
+                if (crypto.randomUUID) {
+                    id = crypto.randomUUID();
+                } else {
+                    // Simple UUID-v4-like string generator
+                    id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                        const r = Math.random() * 16 | 0;
+                        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    });
+                }
                 localStorage.setItem('chat_browser_id', id);
             }
             setUserId(id);
+            setIsGuest(true);
         };
         initUserId();
     }, []);
 
-    // React Query Hooks (Now using userId)
-    const { data: chatHistory, isLoading: isHistoryLoading } = useChatHistory(userId);
-    const { data: serverMessages, isLoading: isMessagesLoading } = useChatMessages(currentSessionId);
+    // React Query Hooks
+    const { data: serverHistory, isLoading: isHistoryLoading } = useChatHistory(isGuest ? null : userId);
+    const chatHistory = useMemo(() => {
+        if (isGuest) return getLocalSessions();
+        return serverHistory;
+    }, [isGuest, serverHistory]);
+
+    const { data: serverMessages, isLoading: isMessagesLoading } = useChatMessages(!isGuest ? currentSessionId : null);
 
     // FETCH REAL CATALOG DATA
     const { data: courses, isLoading: coursesLoading } = usePublicCourses();
@@ -125,6 +179,7 @@ function AIMentorContent() {
     const [messages, setMessages] = useState<Message[] | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
 
     // Construct Dynamic Knowledge Base from Real Data
     const knowledgeBase = useMemo(() => {
@@ -147,14 +202,16 @@ function AIMentorContent() {
         });
     }, [courses, testSeries, coursesLoading, testsLoading]);
 
-    // Sync Server Messages
+    // Sync Messages (Local or Server)
     useEffect(() => {
-        if (serverMessages) {
+        if (isGuest && currentSessionId) {
+            setMessages(getLocalMessages(currentSessionId));
+        } else if (serverMessages) {
             setMessages(serverMessages);
         } else if (currentSessionId === null) {
             setMessages(null);
         }
-    }, [serverMessages, currentSessionId]);
+    }, [serverMessages, currentSessionId, isGuest]);
 
     const scrollToBottom = () => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); };
     useEffect(() => { if (isOpen && messages) scrollToBottom(); }, [messages, isOpen]);
@@ -185,12 +242,26 @@ function AIMentorContent() {
             if (!activeSessionId) {
                 if (!userId) throw new Error("User ID not initialized");
 
-                const newSession = await createSessionMutation.mutateAsync({ firstMessage: userText, userId });
-                activeSessionId = newSession.id;
+                if (isGuest) {
+                    const newSession: ChatSession = {
+                        id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15),
+                        title: userText.length > 40 ? userText.substring(0, 40) + "..." : userText,
+                        created_at: new Date().toISOString()
+                    };
+                    saveLocalSession(newSession);
+                    activeSessionId = newSession.id;
+                } else {
+                    const newSession = await createSessionMutation.mutateAsync({ firstMessage: userText, userId });
+                    activeSessionId = newSession.id;
+                }
                 setCurrentSessionId(activeSessionId);
             }
 
-            saveMessageMutation.mutate({ sessionId: activeSessionId, role: 'user', content: userText });
+            if (isGuest) {
+                saveLocalMessage(activeSessionId!, optimisticUserMsg);
+            } else {
+                saveMessageMutation.mutate({ sessionId: activeSessionId!, role: 'user', content: userText });
+            }
 
             const systemPrompt = `
                 You are Hiranmoy, an expert AI tutor for Math4Code.
@@ -210,10 +281,21 @@ function AIMentorContent() {
             const aiMsg: Message = { role: 'ai', content: aiResponseText, created_at: new Date().toISOString() };
             setMessages(prev => prev ? [...prev, aiMsg] : [aiMsg]);
 
-            saveMessageMutation.mutate({ sessionId: activeSessionId, role: 'ai', content: aiResponseText });
+            if (isGuest) {
+                saveLocalMessage(activeSessionId!, aiMsg);
+            } else {
+                saveMessageMutation.mutate({ sessionId: activeSessionId!, role: 'ai', content: aiResponseText });
+            }
 
-        } catch (e) {
-            console.error("Chat Error:", e);
+        } catch (e: any) {
+            console.error("Chat Error Detailed:", {
+                message: e.message || "Unknown error",
+                details: e.details,
+                hint: e.hint,
+                code: e.code,
+                stack: e.stack,
+                error: e
+            });
             const errorMsg: Message = { role: 'ai', content: "Sorry, I'm having trouble connecting to the server.", created_at: new Date().toISOString() };
             setMessages(prev => prev ? [...prev, errorMsg] : [errorMsg]);
         } finally {
@@ -223,7 +305,7 @@ function AIMentorContent() {
 
     const handleBuy = (productId: string) => {
         setIsOpen(false);
-        // router.push(`/courses/${productId}`); // Uncomment for real navigation
+        router.push(`/courses/${productId}`); // Uncomment for real navigation
     };
 
     const parseFormattedText = (text: string) => {
@@ -284,7 +366,7 @@ function AIMentorContent() {
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-200">
+                                        <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-indigo-50 to-purple-50 text-indigo-200">
                                             <Bot size={40} />
                                         </div>
                                     )}
@@ -341,7 +423,7 @@ function AIMentorContent() {
                             </button>
 
                             <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-pink-500 to-orange-400 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                                <div className="w-6 h-6 rounded-full bg-linear-to-tr from-pink-500 to-orange-400 flex items-center justify-center text-white text-xs font-bold shadow-sm">
                                     <Bot size={14} />
                                 </div>
                                 <span className="font-semibold text-gray-800 text-sm">Hiranmoy Mandal</span>
@@ -417,7 +499,7 @@ function AIMentorContent() {
                                     {/* Empty State */}
                                     {!messages && !isMessagesLoading && (
                                         <div className="h-full flex flex-col items-center justify-center text-center opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]">
-                                            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 to-orange-400 flex items-center justify-center mb-6 shadow-lg shadow-pink-200">
+                                            <div className="w-16 h-16 rounded-full bg-linear-to-tr from-pink-500 to-orange-400 flex items-center justify-center mb-6 shadow-lg shadow-pink-200">
                                                 <Bot size={32} className="text-white" />
                                             </div>
                                             <h2 className="text-xl font-medium text-gray-800">Hello! How can I assist you today?</h2>
@@ -438,7 +520,7 @@ function AIMentorContent() {
                                     {messages && messages.map((msg, idx) => (
                                         <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                             {msg.role === 'ai' && (
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-500 to-orange-400 flex items-center justify-center mr-2 shrink-0 mt-1 shadow-sm">
+                                                <div className="w-8 h-8 rounded-full bg-linear-to-tr from-pink-500 to-orange-400 flex items-center justify-center mr-2 shrink-0 mt-1 shadow-sm">
                                                     <Bot size={16} className="text-white" />
                                                 </div>
                                             )}
@@ -456,7 +538,7 @@ function AIMentorContent() {
 
                                     {isGenerating && (
                                         <div className="flex items-center gap-2 pl-2 animate-pulse">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-500 to-orange-400 flex items-center justify-center shadow-sm">
+                                            <div className="w-8 h-8 rounded-full bg-linear-to-tr from-pink-500 to-orange-400 flex items-center justify-center shadow-sm">
                                                 <Bot size={16} className="text-white" />
                                             </div>
                                             <div className="bg-gray-100 rounded-full px-4 py-2 text-xs text-gray-500 flex items-center gap-2">
@@ -470,7 +552,7 @@ function AIMentorContent() {
                                 {/* --- FOOTER INPUT --- */}
                                 <div className="p-4 bg-white z-10 border-t border-gray-50">
                                     <div className="relative group">
-                                        <div className={`absolute -inset-[1px] rounded-[24px] bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-30 transition-opacity duration-300 ${query ? 'opacity-100' : 'group-hover:opacity-60 opacity-0'}`} />
+                                        <div className={`absolute -inset-[1px] rounded-[24px] bg-linear-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-30 transition-opacity duration-300 ${query ? 'opacity-100' : 'group-hover:opacity-60 opacity-0'}`} />
 
                                         <div className="relative flex items-center bg-white border border-gray-200 rounded-[22px] px-4 py-2 shadow-sm focus-within:border-transparent">
                                             <button className="text-gray-400 hover:text-gray-600 transition-colors p-1" title="Attach file (Demo)">

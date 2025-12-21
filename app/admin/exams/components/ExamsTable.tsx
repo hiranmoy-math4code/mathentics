@@ -64,7 +64,7 @@ export default function ExamsTable() {
     <>
       <Card className="border-none shadow-xl bg-white dark:bg-slate-800 overflow-hidden">
         {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-b border-slate-200 dark:border-slate-700">
+        <div className="bg-linear-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 border-b border-slate-200 dark:border-slate-700">
           <CardHeader>
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">

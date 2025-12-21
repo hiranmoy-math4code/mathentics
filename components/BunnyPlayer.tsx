@@ -70,7 +70,7 @@ export function BunnyPlayer({
 
     if (videoType === 'live' && videoStatus !== 'live') {
         return (
-            <div className={`flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 text-white ${className}`}>
+            <div className={`flex items-center justify-center bg-linear-to-br from-gray-900 to-gray-800 text-white ${className}`}>
                 <div className="text-center p-8">
                     <div className="relative inline-block mb-4">
                         <svg className="w-20 h-20 text-gray-600" fill="currentColor" viewBox="0 0 20 20">

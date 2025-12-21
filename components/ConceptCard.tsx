@@ -83,7 +83,7 @@ export default function ConceptCard({
 
     return (
         <div
-            className={`relative group overflow-hidden rounded-2xl border bg-gradient-to-br ${style.wrapper} p-6 transition-all duration-300 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:-translate-y-0.5 ${className}`}
+            className={`relative group overflow-hidden rounded-2xl border bg-linear-to-br ${style.wrapper} p-6 transition-all duration-300 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:-translate-y-0.5 ${className}`}
             role="region"
             aria-label={ariaLabel ?? `${title} card`}
         >

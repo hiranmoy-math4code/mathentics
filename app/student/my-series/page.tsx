@@ -71,7 +71,7 @@ export default function MyTestSeries() {
   // ✅ Loading Skeleton View
   if (isLoading) {
     return (
-      <div className="p-4 sm:p-6 md:p-10 space-y-8 bg-gradient-to-br from-sky-50 via-white to-green-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen">
+      <div className="p-4 sm:p-6 md:p-10 space-y-8 bg-linear-to-br from-sky-50 via-white to-green-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen">
         <SkeletonHeader />
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -83,7 +83,7 @@ export default function MyTestSeries() {
   }
 
   return (
-    <div className="p-4 sm:p-6 md:p-10 space-y-8 bg-gradient-to-br from-sky-50 via-white to-green-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen transition-colors duration-700 overflow-x-hidden">
+    <div className="p-4 sm:p-6 md:p-10 space-y-8 bg-linear-to-br from-sky-50 via-white to-green-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen transition-colors duration-700 overflow-x-hidden">
       {/* Header */}
       <motion.div
         variants={fadeIn}
@@ -147,7 +147,7 @@ export default function MyTestSeries() {
   </Button>
 
   <Link href="/student/test-series">
-    <Button className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold shadow-md flex-shrink-0">
+    <Button className="bg-linear-to-r from-green-500 to-emerald-600 text-white font-semibold shadow-md flex-shrink-0">
       + Buy New
     </Button>
   </Link>
@@ -213,7 +213,7 @@ export default function MyTestSeries() {
                         initial={{ width: 0 }}
                         animate={{ width: `${series.progress}%` }}
                         transition={{ duration: 0.8 }}
-                        className={`h-2 rounded-full bg-gradient-to-r bg-gradient-to-r from-green-500 to-emerald-600`}
+                        className={`h-2 rounded-full bg-linear-to-r bg-linear-to-r from-green-500 to-emerald-600`}
                       />
                     </div>
                   </div>
@@ -239,7 +239,7 @@ export default function MyTestSeries() {
 
                 <div className="mt-5 sm:mt-0 flex sm:flex-col justify-between sm:justify-center gap-3 sm:gap-2 sm:ml-6">
                   <Link href={`/student/my-series/${series.id}`}>
-                    <Button className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm shadow-md w-full sm:w-auto">
+                    <Button className="flex items-center gap-2 bg-linear-to-r from-green-500 to-emerald-600 text-white text-sm shadow-md w-full sm:w-auto">
                       <PlayCircle className="w-4 h-4" />
                       {series.progress < 100 ? "Start" : "Review"}
                     </Button>
@@ -265,7 +265,7 @@ export default function MyTestSeries() {
             You haven’t enrolled in any test series yet.
           </p>
           <Link href="/student/test-series">
-            <Button className="bg-gradient-to-r from-green-500 to-purple-500 text-white font-semibold shadow-md">
+            <Button className="bg-linear-to-r from-green-500 to-purple-500 text-white font-semibold shadow-md">
               Browse Available Series
             </Button>
           </Link>
@@ -278,7 +278,7 @@ export default function MyTestSeries() {
           initial="hidden"
           animate="visible"
           custom={seriesData.length + 1}
-          className="rounded-3xl mt-10 bg-gradient-to-br from-green-500 to-purple-600 text-white p-6 text-center shadow-xl"
+          className="rounded-3xl mt-10 bg-linear-to-br from-green-500 to-purple-600 text-white p-6 text-center shadow-xl"
         >
           <h4 className="text-lg font-semibold">
             Keep it up! <CheckCircle2 className="inline-block w-5 h-5 ml-1" />

@@ -24,28 +24,28 @@ export function ExpiryWarningBanner({
 
     const urgencyConfig = {
         CRITICAL: {
-            bg: 'bg-gradient-to-r from-red-500 via-orange-500 to-red-600',
+            bg: 'bg-linear-to-r from-red-500 via-orange-500 to-red-600',
             text: 'text-white',
             icon: AlertTriangle,
             message: '⚡ URGENT: Your access expires TODAY!',
             animate: 'animate-pulse'
         },
         HIGH: {
-            bg: 'bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600',
+            bg: 'bg-linear-to-r from-orange-500 via-amber-500 to-orange-600',
             text: 'text-white',
             icon: AlertTriangle,
             message: '⏰ Access expiring in ' + daysRemaining + ' days',
             animate: 'animate-bounce'
         },
         MEDIUM: {
-            bg: 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600',
+            bg: 'bg-linear-to-r from-amber-500 via-yellow-500 to-amber-600',
             text: 'text-white',
             icon: Calendar,
             message: 'Renew soon! Access expires in ' + daysRemaining + ' days',
             animate: ''
         },
         LOW: {
-            bg: 'bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600',
+            bg: 'bg-linear-to-r from-blue-500 via-indigo-500 to-blue-600',
             text: 'text-white',
             icon: Calendar,
             message: daysRemaining + ' days of access remaining',
@@ -127,12 +127,12 @@ export function ExpiredAccessBlocker({
     const expiredDate = new Date(expiredAt);
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+        <div className="min-h-screen flex items-center justify-center p-6 bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
             <div className="max-w-2xl w-full">
                 <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
                     {/* Header with course thumbnail */}
                     {courseThumbnail && (
-                        <div className="relative h-48 bg-gradient-to-br from-red-500 to-orange-600">
+                        <div className="relative h-48 bg-linear-to-br from-red-500 to-orange-600">
                             <img
                                 src={courseThumbnail}
                                 alt={courseTitle}
@@ -174,7 +174,7 @@ export function ExpiredAccessBlocker({
                             })}
                         </p>
 
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/10 dark:to-indigo-500/10 rounded-xl p-6 mb-8 border border-blue-200 dark:border-blue-500/20">
+                        <div className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-500/10 dark:to-indigo-500/10 rounded-xl p-6 mb-8 border border-blue-200 dark:border-blue-500/20">
                             <Zap className="w-8 h-8 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
                             <h3 className="font-bold text-slate-900 dark:text-white mb-2">
                                 Want to continue learning?
@@ -187,7 +187,7 @@ export function ExpiredAccessBlocker({
                         {/* Action buttons */}
                         <div className="flex gap-4 justify-center flex-wrap">
                             <Link href={`/courses/${courseId}`}>
-                                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl">
+                                <Button size="lg" className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold shadow-xl">
                                     <RefreshCw className="w-5 h-5 mr-2" />
                                     Re-Enroll Now
                                     {coursePrice && <span className="ml-2">• ₹{coursePrice}</span>}

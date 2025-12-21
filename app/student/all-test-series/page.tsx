@@ -69,7 +69,7 @@ export default function AllTestSeriesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen p-4 md:p-10 bg-gradient-to-br from-white via-sky-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-black transition">
+      <div className="min-h-screen p-4 md:p-10 bg-linear-to-br from-white via-sky-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-black transition">
         <div className="max-w-7xl mx-auto">
           {/* Header Skeleton */}
           <div className="text-center mb-10 animate-pulse">
@@ -112,7 +112,7 @@ export default function AllTestSeriesPage() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-10 bg-gradient-to-br from-white via-sky-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-black transition">
+    <div className="min-h-screen p-4 md:p-10 bg-linear-to-br from-white via-sky-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-black transition">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -120,7 +120,7 @@ export default function AllTestSeriesPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10"
         >
-          <h1 className="text-3xl md:text-5xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl md:text-5xl font-extrabold bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
             Explore Premium Test Series
           </h1>
           <p className="text-slate-600 dark:text-slate-300 mt-3 text-sm md:text-base max-w-2xl mx-auto">
@@ -176,13 +176,13 @@ export default function AllTestSeriesPage() {
                     }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     whileHover={{ scale: 1.02 }}
-                    className="relative group rounded-3xl p-6 bg-gradient-to-br from-white/90 via-indigo-50/50 to-purple-50/50 
+                    className="relative group rounded-3xl p-6 bg-linear-to-br from-white/90 via-indigo-50/50 to-purple-50/50 
                                dark:from-slate-900/70 dark:via-slate-900 dark:to-slate-800 
                                border border-slate-200 dark:border-slate-700 
                                shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden"
                   >
                     {/* Animated gradient background */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 blur-xl"></div>
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-linear-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 blur-xl"></div>
 
                     {/* Content */}
                     <div className="relative z-10">
@@ -248,7 +248,7 @@ export default function AllTestSeriesPage() {
                             <Button
                               size="sm"
                               onClick={() => router.push(`/student/my-series/${series.id}`)}
-                              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-md"
+                              className="bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-md"
                             >
                               <Eye className="w-4 h-4 mr-1" />
                               Enrolled
@@ -258,7 +258,7 @@ export default function AllTestSeriesPage() {
                               size="sm"
                               onClick={() => handleBuy(series)}
                               disabled={isPaymentPending || isEnrolling || enrollmentLoading}
-                              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
+                              className="bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md"
                             >
                               {isPaymentPending || isEnrolling ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />

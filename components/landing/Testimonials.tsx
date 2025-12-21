@@ -18,7 +18,7 @@ export const Testimonials: React.FC = () => {
 
                 <div className="mt-8">
                     <motion.div key={idx} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-                        <div className="rounded-xl p-8 bg-gradient-to-br from-indigo-50 to-white border">
+                        <div className="rounded-xl p-8 bg-linear-to-br from-indigo-50 to-white border">
                             <div className="text-slate-700 text-lg">“{t[idx].note}”</div>
                             <div className="mt-4 flex items-center justify-center gap-3">
                                 <div className="w-12 h-12 rounded-full bg-indigo-600/10 flex items-center justify-center text-indigo-600 font-semibold">{t[idx].name.split(" ").map(n => n[0]).join("")}</div>

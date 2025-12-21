@@ -37,7 +37,7 @@ export async function POST(req: Request) {
             supabase = createAdminClient();
             // supabase = await createClient();
         } catch (e) {
-            console.warn("⚠️ SUPABASE_SERVICE_ROLE_KEY missing. Falling back to standard client.");
+
             supabase = await createClient();
         }
 
@@ -69,11 +69,11 @@ export async function POST(req: Request) {
             status = "failed";
         }
 
-        console.log(`📝 Status for ${transactionId}: ${status} (State: ${state})`);
+
 
         // 3. Update Database
         // Try updating course_payments first
-        console.log(transactionId)
+
         let { data: payments, error: updateError } = await supabase
             .from("course_payments")
             .update({
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
             .select();
 
         let payment = payments?.[0] || null;
-        console.log("payment", payment)
+
         let isTestSeries = false;
 
         // If not found in course_payments, try payments (test series)
@@ -102,14 +102,12 @@ export async function POST(req: Request) {
                 isTestSeries = true;
                 updateError = null;
             } else if (tsError) {
-                console.error("❌ Transaction not found in DB:", transactionId);
+
             }
         }
 
         if (updateError || !payment) {
-            console.error("❌ Payment record not found in database:", transactionId);
-            console.error("Update error:", updateError);
-            console.error("Payment found:", payment);
+
 
             // Return more helpful error message
             return NextResponse.json({
@@ -162,7 +160,7 @@ export async function POST(req: Request) {
                     });
 
                     if (enrollError) {
-                        console.error("❌ Enrollment Insertion Failed:", enrollError);
+
                         // Don't throw here to ensure we still return the payment success status
                         // but we should probably alert or return a warning in the response
                     }
@@ -174,7 +172,7 @@ export async function POST(req: Request) {
                     }).eq("id", existingEnrollment.id);
 
                     if (updateError) {
-                        console.error("❌ Enrollment Activation Failed:", updateError);
+
                     }
                 }
             }
@@ -187,7 +185,7 @@ export async function POST(req: Request) {
         }, { headers: corsHeaders });
 
     } catch (error: any) {
-        console.error("Check status error:", error);
+
         return NextResponse.json(
             { error: error.message || "Internal server error" },
             { status: 500, headers: corsHeaders }

@@ -114,7 +114,7 @@ export const MessageCard = ({ message, isOwnMessage, isPinned = false, onDelete,
             <div className="flex gap-3">
                 <Avatar className="h-10 w-10 shrink-0 border-2 border-white dark:border-slate-800 shadow-sm">
                     <AvatarImage src={message.profiles?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-blue-600 text-white font-semibold">
+                    <AvatarFallback className="bg-linear-to-br from-emerald-500 to-blue-600 text-white font-semibold">
                         {message.profiles?.full_name?.substring(0, 2).toUpperCase() || "U"}
                     </AvatarFallback>
                 </Avatar>

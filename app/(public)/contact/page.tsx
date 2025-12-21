@@ -15,7 +15,7 @@ export default function ContactPage() {
             <div className="pt-32 pb-20 px-6">
                 <div className="max-w-7xl mx-auto">
                     <div className="text-center mb-16">
-                        <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">
+                        <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-violet-600">
                             Get in Touch
                         </h1>
                         <p className="text-xl text-slate-600 max-w-2xl mx-auto">
@@ -81,7 +81,7 @@ export default function ContactPage() {
                                     <label className="text-sm font-medium text-slate-700">Message</label>
                                     <Textarea placeholder="How can we help you?" className="min-h-[150px]" />
                                 </div>
-                                <Button className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500">
+                                <Button className="w-full bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500">
                                     Send Message <Send className="w-4 h-4 ml-2" />
                                 </Button>
                             </form>

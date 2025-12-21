@@ -33,7 +33,7 @@ export function RewardModal({ isOpen, onClose, userRewards, userProfile }: Rewar
                 <DialogTitle className="sr-only">Rewards & Leaderboard</DialogTitle>
                 <div className="grid md:grid-cols-2 h-[600px] md:h-[500px]">
                     {/* Left: User Summary */}
-                    <div className="bg-gradient-to-br from-indigo-600 to-violet-700 p-6 text-white flex flex-col items-center justify-center relative overflow-hidden">
+                    <div className="bg-linear-to-br from-indigo-600 to-violet-700 p-6 text-white flex flex-col items-center justify-center relative overflow-hidden">
                         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-3xl -ml-16 -mb-16"></div>

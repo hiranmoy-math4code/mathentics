@@ -77,10 +77,9 @@ export default function TestSeriesPremiumListingPremium() {
         .eq('test_series_id', seriesId)
         .order('exam_order', { ascending: true })
 
-        console.log("seriesExams",seriesExams)
+
 
       if (error) {
-        console.error('Error fetching exams:', error)
         setLoading(false)
         return
       }
@@ -127,7 +126,7 @@ export default function TestSeriesPremiumListingPremium() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-white via-sky-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-black">
+    <div className="min-h-screen p-4 md:p-8 bg-linear-to-br from-white via-sky-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-black">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: header + list */}
         <div className="lg:col-span-2 space-y-6">
@@ -163,7 +162,7 @@ export default function TestSeriesPremiumListingPremium() {
           <motion.div
             initial={{ scale: 0.98, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="rounded-3xl p-5 bg-gradient-to-br from-indigo-700/10 via-white/60 to-indigo-50/10 dark:from-indigo-900/30 dark:to-slate-900/50 border border-slate-100 dark:border-slate-800 shadow-2xl"
+            className="rounded-3xl p-5 bg-linear-to-br from-indigo-700/10 via-white/60 to-indigo-50/10 dark:from-indigo-900/30 dark:to-slate-900/50 border border-slate-100 dark:border-slate-800 shadow-2xl"
           >
             <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
               Premium access
@@ -176,7 +175,7 @@ export default function TestSeriesPremiumListingPremium() {
             </div>
             <button
               onClick={onBuySeries}
-              className="mt-4 w-full px-4 py-3 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white font-semibold shadow-xl"
+              className="mt-4 w-full px-4 py-3 rounded-2xl bg-linear-to-br from-indigo-600 to-purple-600 text-white font-semibold shadow-xl"
             >
               Buy Full Series — ₹{price}
             </button>
@@ -194,7 +193,7 @@ function Hero({ title, subtitle, price, onBuy }: { title: string; subtitle: stri
     <motion.div
       initial={{ y: 8, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="rounded-3xl p-6 bg-gradient-to-br from-white via-indigo-50 to-sky-50 dark:from-slate-900/60 dark:via-slate-800/30 border border-slate-100 dark:border-slate-800 shadow-2xl"
+      className="rounded-3xl p-6 bg-linear-to-br from-white via-indigo-50 to-sky-50 dark:from-slate-900/60 dark:via-slate-800/30 border border-slate-100 dark:border-slate-800 shadow-2xl"
     >
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -212,7 +211,7 @@ function Hero({ title, subtitle, price, onBuy }: { title: string; subtitle: stri
           </div>
           <button
             onClick={onBuy}
-            className="mt-2 px-4 py-2 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white font-semibold shadow-lg"
+            className="mt-2 px-4 py-2 rounded-2xl bg-linear-to-br from-indigo-600 to-purple-600 text-white font-semibold shadow-lg"
           >
             Buy Now
           </button>

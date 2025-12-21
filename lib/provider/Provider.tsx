@@ -14,9 +14,19 @@ function handleQueryError(error: unknown) {
 }
 
 // Global error handler for mutations
-function handleMutationError(error: unknown) {
-  const message = error instanceof Error ? error.message : "Operation failed";
-  console.error("Mutation Error:", error);
+function handleMutationError(error: any) {
+  let message = "Operation failed";
+  if (error instanceof Error) {
+    message = error.message;
+  } else if (typeof error === "object" && error !== null) {
+    message = error.message || error.error_description || error.details || JSON.stringify(error);
+  }
+
+  console.error("Mutation Error Detailed:", {
+    error,
+    message,
+    type: typeof error
+  });
   toast.error(message);
 }
 

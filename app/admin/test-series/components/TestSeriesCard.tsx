@@ -13,7 +13,7 @@ export default function TestSeriesCard({ series, handleDelete }: any) {
   return (
     <Card className="group relative overflow-hidden hover:shadow-xl transition-all duration-300 border-slate-200 dark:border-slate-700">
       {/* Decorative gradient on hover */}
-      <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-linear-to-r from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
       <div className="relative p-6 space-y-4">
         {/* Header */}

@@ -12,7 +12,7 @@ export default function AboutPage() {
             {/* Hero Section */}
             <div className="pt-32 pb-20 px-6 bg-slate-50">
                 <div className="max-w-4xl mx-auto text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">
+                    <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-violet-600">
                         Empowering the Next Generation of Developers
                     </h1>
                     <p className="text-xl text-slate-600">

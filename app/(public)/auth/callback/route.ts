@@ -28,13 +28,13 @@ export async function GET(request: NextRequest) {
             // Check if this is a password recovery flow
             // Supabase adds type=recovery in the URL for password reset
             if (type === 'recovery') {
-                console.log('[Callback] Password recovery detected, redirecting to reset-password page');
+
                 return NextResponse.redirect(`${origin}/auth/reset-password`);
             }
 
             // Check if this is an invitation flow
             if (type === 'invite') {
-                console.log('[Callback] Invitation detected, redirecting to set password page');
+
                 return NextResponse.redirect(`${origin}/auth/reset-password`);
             }
 
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
                     });
 
                     if (insertError) {
-                        console.error("Callback Profile Creation Error:", insertError);
+
                         // We continue anyway, as the user is authenticated. 
                         // The dashboard might handle the error or retry.
                     } else {

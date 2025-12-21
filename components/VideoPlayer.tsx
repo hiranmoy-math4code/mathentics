@@ -337,7 +337,7 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
             {/* BRANDING */}
             {usingYouTube && !showCover && (
                 <>
-                    <div className={`absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/90 via-black/40 to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'} `} />
+                    <div className={`absolute top-0 left-0 right-0 h-24 bg-linear-to-b from-black/90 via-black/40 to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'} `} />
                     <div className={`absolute top-4 left-4 z-30 pointer-events-none flex items-center gap-2 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'} `}>
                         <div className="bg-blue-600 w-2 h-6 rounded-full"></div>
                         <span className="text-white font-bold tracking-wider text-sm shadow-black drop-shadow-md">MATH4CODE</span>
@@ -368,7 +368,7 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
             {errorMsg && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-900/90 text-white px-4 py-2 rounded-lg z-50 backdrop-blur-md">{errorMsg}</div>}
 
             {/* === CONTROLS === */}
-            <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/80 to-transparent pt-12 pb-4 px-3 sm:px-5 z-50 transition-all duration-300 pointer-events-auto ${showControls || !isPlayingState ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"} `}
+            <div className={`absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/90 via-black/80 to-transparent pt-12 pb-4 px-3 sm:px-5 z-50 transition-all duration-300 pointer-events-auto ${showControls || !isPlayingState ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"} `}
                 onMouseEnter={() => { if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current); setShowControls(true); }}
                 onMouseLeave={startHideControlsTimer}
             >

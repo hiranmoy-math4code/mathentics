@@ -10,8 +10,8 @@ type ResultHeaderProps = {
 
 export function ResultHeader({ title, attemptId }: ResultHeaderProps) {
   return (
-    <div className="flex flex-col md:flex-row items-start md:items-center overflow-hidden justify-between gap-4 bg-gradient-to-r from-indigo-50 via-white to-sky-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 p-6 md:p-8 rounded-3xl shadow-md border border-slate-100 dark:border-slate-700 transition-all">
-      
+    <div className="flex flex-col md:flex-row items-start md:items-center overflow-hidden justify-between gap-4 bg-linear-to-r from-indigo-50 via-white to-sky-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 p-6 md:p-8 rounded-3xl shadow-md border border-slate-100 dark:border-slate-700 transition-all">
+
       {/* Left side: Title & Subtitle */}
       <div className="flex flex-col">
         <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-white">
@@ -37,7 +37,7 @@ export function ResultHeader({ title, attemptId }: ResultHeaderProps) {
 
         {/* Back to Results Button */}
         <Link href="/student/results">
-          <Button className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:brightness-110 text-white font-medium px-5 py-2 rounded-xl shadow-md transition-all">
+          <Button className="flex items-center gap-2 bg-linear-to-r from-green-500 to-emerald-600 hover:brightness-110 text-white font-medium px-5 py-2 rounded-xl shadow-md transition-all">
             <ArrowLeft className="w-4 h-4" />
             Back to Results
           </Button>

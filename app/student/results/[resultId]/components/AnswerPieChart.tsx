@@ -6,7 +6,7 @@ const COLORS = ["#22c55e", "#ef4444", "#94a3b8"]
 
 export function AnswerPieChart({ data }: { data: any[] }) {
   return (
-    <Card className="bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 border-0 shadow-md rounded-3xl">
+    <Card className="bg-linear-to-br from-sky-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 border-0 shadow-md rounded-3xl">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
           🧠 Answer Distribution

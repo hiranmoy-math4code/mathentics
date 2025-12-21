@@ -80,7 +80,7 @@ export async function POST(req: Request) {
             );
         }
 
-        console.log("Course found:", course.title, "Price:", course.price);
+
 
         // Check if already enrolled
         const { data: existingEnrollment } = await supabase
@@ -113,7 +113,7 @@ export async function POST(req: Request) {
                     .single();
 
                 if (error) {
-                    console.error("Free enrollment creation error:", error);
+
                     throw error;
                 }
                 enrollmentId = newEnrollment.id;
@@ -124,12 +124,12 @@ export async function POST(req: Request) {
                     .eq("id", enrollmentId);
 
                 if (error) {
-                    console.error("Free enrollment activation error:", error);
+
                     throw error;
                 }
             }
 
-            console.log("Free course enrolled successfully");
+
             return NextResponse.json(
                 { success: true },
                 { headers: corsHeaders }
@@ -137,14 +137,14 @@ export async function POST(req: Request) {
         }
 
         // For Paid Courses - Initiate Payment FIRST, then create enrollment
-        console.log("Initiating PhonePe payment for amount:", course.price);
+
 
         // Create a unique Merchant Transaction ID
         // Format: MT_{timestamp}_{random} to ensure uniqueness and no special chars
         // We use the same format as the initiate API for consistency
         const merchantTransactionId = `MT${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
-        console.log(`Creating Payment Record for User: ${user.id}, Course: ${courseId}, TxnID: ${merchantTransactionId}`);
+
 
         // Create payment record in course_payments table
         const { error: paymentError } = await supabase
@@ -159,7 +159,7 @@ export async function POST(req: Request) {
             });
 
         if (paymentError) {
-            console.error("Payment record creation error:", paymentError);
+
             return NextResponse.json({
                 error: "Failed to initialize payment record",
                 details: paymentError
@@ -170,10 +170,10 @@ export async function POST(req: Request) {
         // Pass the EXACT merchantTransactionId we just stored AND the userId
         const paymentResponse = await createPayment(merchantTransactionId, course.price, user.id);
 
-        console.log("PhonePe response:", JSON.stringify(paymentResponse, null, 2));
+
 
         if (!paymentResponse.success || !paymentResponse.data?.redirectUrl) {
-            console.error("Payment initiation failed:", paymentResponse);
+
 
             // Update payment status to failed
             await supabase
@@ -196,7 +196,7 @@ export async function POST(req: Request) {
         );
 
     } catch (error: any) {
-        console.error("Buy Course Error:", error);
+
         return NextResponse.json({
             error: error.message || "Internal Server Error",
             details: error.toString()

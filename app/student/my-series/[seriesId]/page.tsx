@@ -55,7 +55,7 @@ export default function TestSeriesDetails({
 
   if (isLoading) {
     return (
-      <div className="p-6 md:p-10 space-y-6 bg-gradient-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen">
+      <div className="p-6 md:p-10 space-y-6 bg-linear-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen">
         <SkeletonHeader />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -77,7 +77,7 @@ export default function TestSeriesDetails({
   const { seriesInfo, tests } = data as any
 
   return (
-    <div className="p-6 md:p-10 space-y-8 bg-gradient-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen transition-colors duration-700">
+    <div className="p-6 md:p-10 space-y-8 bg-linear-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen transition-colors duration-700">
       {/* Header */}
       <motion.div
         variants={fadeIn}
@@ -180,7 +180,7 @@ export default function TestSeriesDetails({
                   <Link href={`/student/results`}>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-semibold shadow-md"
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r from-green-500 to-emerald-600 text-white text-sm font-semibold shadow-md"
                     >
                       <BarChart2 className="w-4 h-4" /> View Result
                     </motion.button>
@@ -189,7 +189,7 @@ export default function TestSeriesDetails({
                     <Link href={`/student/exams/${test.id}?retake=true`}>
                       <motion.button
                         whileHover={{ scale: 1.05 }}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold shadow-md"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r from-blue-500 to-indigo-600 text-white text-sm font-semibold shadow-md"
                       >
                         <RefreshCw className="w-4 h-4" /> Retake Exam
                       </motion.button>
@@ -201,7 +201,7 @@ export default function TestSeriesDetails({
                 <Link href={`/student/exams/${test.id}`}>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-sm font-semibold shadow-md"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r from-yellow-500 to-orange-500 text-white text-sm font-semibold shadow-md"
                   >
                     <PlayCircle className="w-4 h-4" /> Resume Test
                   </motion.button>
@@ -211,7 +211,7 @@ export default function TestSeriesDetails({
                 <Link href={`/student/exams/${test.id}`}>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-sm font-semibold shadow-md"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r from-yellow-500 to-orange-500 text-white text-sm font-semibold shadow-md"
                   >
                     <PlayCircle className="w-4 h-4" /> Start Test
                   </motion.button>
@@ -235,7 +235,7 @@ export default function TestSeriesDetails({
         variants={fadeIn}
         initial="hidden"
         animate="visible"
-        className="rounded-3xl mt-8 bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 flex flex-col md:flex-row items-center justify-between shadow-xl"
+        className="rounded-3xl mt-8 bg-linear-to-br from-indigo-500 to-purple-600 text-white p-6 flex flex-col md:flex-row items-center justify-between shadow-xl"
       >
         <div>
           <h4 className="text-lg font-semibold">Keep Going 💪</h4>

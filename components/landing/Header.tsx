@@ -100,10 +100,10 @@ export const Header = () => {
                 <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 group">
-                        <div className="w-auto px-2 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:shadow-indigo-500/30 transition-all">
+                        <div className="w-auto px-2 h-8 rounded-lg bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:shadow-indigo-500/30 transition-all">
                             Σ✨{'}'}
                         </div>
-                        <span className={`text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 ${!isScrolled && pathname === "/" ? "text-slate-900" : ""}`}>
+                        <span className={`text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-slate-900 to-slate-700 ${!isScrolled && pathname === "/" ? "text-slate-900" : ""}`}>
                             Math4Code
                         </span>
                     </Link>
@@ -131,7 +131,7 @@ export const Header = () => {
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="flex items-center gap-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50">
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white text-sm font-medium">
+                                        <div className="w-8 h-8 rounded-full bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white text-sm font-medium">
                                             {user.email?.[0].toUpperCase()}
                                         </div>
                                         <span className="text-sm font-medium">{user.email?.split('@')[0]}</span>
@@ -159,7 +159,7 @@ export const Header = () => {
                                     </Button>
                                 </Link>
                                 <Link href="/auth/sign-up">
-                                    <Button className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/20 rounded-full px-6">
+                                    <Button className="bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/20 rounded-full px-6">
                                         Sign up
                                     </Button>
                                 </Link>
@@ -220,7 +220,7 @@ export const Header = () => {
                                             </Button>
                                         </Link>
                                         <Link href="/auth/sign-up" onClick={() => setIsMobileMenuOpen(false)}>
-                                            <Button className="w-full justify-center bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20">
+                                            <Button className="w-full justify-center bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20">
                                                 Sign up
                                             </Button>
                                         </Link>

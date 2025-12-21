@@ -258,7 +258,7 @@ export default function ImportExam() {
   return (
     <>
       <Card className="border-none shadow-xl bg-white dark:bg-slate-800 overflow-hidden">
-        <div className="bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 border-b border-emerald-200 dark:border-emerald-800">
+        <div className="bg-linear-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 border-b border-emerald-200 dark:border-emerald-800">
           <CardHeader>
             <div className="flex items-center gap-3">
               <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
@@ -353,7 +353,7 @@ export default function ImportExam() {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-emerald-600 to-green-600 p-6 text-white">
+              <div className="bg-linear-to-r from-emerald-600 to-green-600 p-6 text-white">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h2 className="text-2xl font-bold mb-2">{preview.title}</h2>
@@ -554,7 +554,7 @@ export default function ImportExam() {
                   <Button
                     onClick={handleConfirmImport}
                     disabled={loading || !adminId}
-                    className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
+                    className="bg-linear-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
                   >
                     {loading ? (
                       <>

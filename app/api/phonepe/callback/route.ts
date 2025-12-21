@@ -12,18 +12,18 @@ export async function POST(req: Request) {
 
         // 1. Decode Response
         const decodedResponse = JSON.parse(Buffer.from(response, "base64").toString("utf-8"));
-        // console.log("🔔 PhonePe Callback Received:", JSON.stringify(decodedResponse, null, 2));
+
 
         const { code, merchantTransactionId, merchantOrderId, data } = decodedResponse;
         const transactionId = merchantOrderId || merchantTransactionId;
 
         if (!transactionId) {
-            console.error("❌ Callback received without Transaction ID");
+
             return NextResponse.json({ success: true }); // Acknowledge to stop retries
         }
 
         if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-            console.error("❌ CRITICAL: Missing SUPABASE_SERVICE_ROLE_KEY in callback.");
+
             return NextResponse.json({ error: "Configuration Error" }, { status: 500 });
         }
 
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
         if (code === "PAYMENT_SUCCESS") status = "success";
         else if (code === "PAYMENT_ERROR" || code === "PAYMENT_DECLINED") status = "failed";
 
-        // console.log(`📝 Callback Status for ${transactionId}: ${status}`);
+
 
         // Update course_payments table
         let { data: payment, error: updateError } = await supabase
@@ -68,12 +68,12 @@ export async function POST(req: Request) {
             if (tsPayment) {
                 updateError = null;
             } else if (tsError) {
-                // console.log("❌ Transaction not found in payments either:", transactionId);
+
             }
         }
 
         if (updateError || !payment) {
-            console.error("Payment update error:", updateError);
+
             return NextResponse.json({ success: true });
         }
 
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
                         test_series_id: payment.series_id,
                         enrolled_at: new Date().toISOString()
                     });
-                    // console.log("✅ Test Series Enrollment Created (Callback)");
+
                 }
             } else {
                 // Course Enrollment
@@ -113,8 +113,8 @@ export async function POST(req: Request) {
                         status: "active",
                         payment_id: payment.id
                     });
-                    if (enrollError) console.error("❌ Callback Enrollment Insert Failed:", enrollError);
-                    // else console.log("✅ Course Enrollment Created (Callback)");
+
+
                 } else {
                     // Update existing enrollment
                     await supabase
@@ -124,7 +124,7 @@ export async function POST(req: Request) {
                             payment_id: payment.id
                         })
                         .eq("id", existingEnrollment.id);
-                    // console.log("✅ Course Enrollment Updated (Callback)");
+
                 }
             }
         }
@@ -132,7 +132,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true });
 
     } catch (error: any) {
-        console.error("Callback Error:", error);
+
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

@@ -52,12 +52,12 @@ const MiniDemo: React.FC = () => {
 
 export const Hero: React.FC = () => {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-slate-900 via-[#0f172a] to-[#050816] text-white pt-20 pb-28">
+    <section className="relative overflow-hidden bg-linear-to-b from-slate-900 via-[#0f172a] to-[#050816] text-white pt-20 pb-28">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-2 items-center">
           <motion.div initial="hidden" animate="show" variants={fadeUp}>
             <div className="max-w-xl">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight bg-clip-text text-transparent bg-linear-to-r from-indigo-400 to-violet-400">
                 Math4Code — Learn. Compete. Conquer.
               </h1>
               <p className="mt-6 text-slate-300 text-lg">
@@ -79,7 +79,7 @@ export const Hero: React.FC = () => {
 
               <div className="mt-6 flex items-center gap-4 text-sm text-slate-400">
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-emerald-400 to-emerald-600 flex items-center justify-center shadow">
+                  <div className="w-9 h-9 rounded-lg bg-linear-to-tr from-emerald-400 to-emerald-600 flex items-center justify-center shadow">
                     <FaUsers className="text-white" />
                   </div>
                   <div>
@@ -91,7 +91,7 @@ export const Hero: React.FC = () => {
                 <div className="h-6 w-px bg-white/10" />
 
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-orange-400 to-rose-500 flex items-center justify-center shadow">
+                  <div className="w-9 h-9 rounded-lg bg-linear-to-tr from-orange-400 to-rose-500 flex items-center justify-center shadow">
                     <AiOutlineTrophy className="text-white" />
                   </div>
                   <div>
@@ -105,7 +105,7 @@ export const Hero: React.FC = () => {
 
           <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
             <div className="relative w-full max-w-2xl mx-auto">
-              <div className="rounded-3xl border border-white/6 bg-gradient-to-br from-white/4 to-white/2 p-6 shadow-2xl">
+              <div className="rounded-3xl border border-white/6 bg-linear-to-br from-white/4 to-white/2 p-6 shadow-2xl">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-sm text-slate-300">Live Demo</div>
@@ -127,7 +127,7 @@ export const Hero: React.FC = () => {
                 </div>
               </div>
 
-              <div className="absolute -bottom-6 -right-6 w-40 h-40 rounded-full bg-gradient-to-tr from-violet-500 to-indigo-400 opacity-30 blur-3xl" />
+              <div className="absolute -bottom-6 -right-6 w-40 h-40 rounded-full bg-linear-to-tr from-violet-500 to-indigo-400 opacity-30 blur-3xl" />
             </div>
           </motion.div>
         </div>

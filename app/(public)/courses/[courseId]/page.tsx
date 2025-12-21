@@ -41,7 +41,6 @@ export default async function CourseLandingPage({
         .rpc('get_course_structure', { target_course_id: courseId });
 
     if (modulesError) {
-        console.warn("RPC fetch failed, falling back to standard query:", modulesError);
         const { data: fallbackData } = await supabase
             .from("modules")
             .select(`
@@ -86,7 +85,7 @@ export default async function CourseLandingPage({
                 {/* Hero Section */}
                 <div className="relative bg-[#FBFBFD] overflow-hidden">
                     {/* Background Decor */}
-                    <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-bl from-indigo-50 to-transparent opacity-50 -z-10" />
+                    <div className="absolute top-0 right-0 w-1/2 h-full bg-linear-to-bl from-indigo-50 to-transparent opacity-50 -z-10" />
                     <div className="absolute top-20 left-10 w-64 h-64 bg-teal-50 rounded-full blur-3xl -z-10" />
 
                     <div className="container mx-auto px-4 md:px-6 pt-24 pb-24 md:pt-32 md:pb-48 relative z-10">

@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
         // Format: MT_{timestamp}_{random} to ensure uniqueness and no special chars
         const merchantTransactionId = `MT${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
-        console.log(`Creating Payment Record for User: ${userId}, Series: ${seriesId}, TxnID: ${merchantTransactionId}`);
+
 
         // Create payment record in DB first
         const { data: payment, error: paymentError } = await supabase
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (paymentError) {
-            console.error("Payment creation error:", paymentError);
+
             return NextResponse.json(
                 { success: false, error: "Failed to create payment record" },
                 { status: 500 }
@@ -100,14 +100,14 @@ export async function POST(request: NextRequest) {
                 .update({ status: "failed" })
                 .eq("id", payment.id);
 
-            console.error("PhonePe error:", paymentResponse);
+
             return NextResponse.json(
                 { success: false, error: paymentResponse.error || "PhonePe payment initiation failed" },
                 { status: 500 }
             );
         }
     } catch (error: any) {
-        console.error("Payment initiation error:", error);
+
         return NextResponse.json(
             { success: false, error: error.message || "Internal server error" },
             { status: 500 }

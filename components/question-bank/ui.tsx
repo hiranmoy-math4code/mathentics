@@ -27,6 +27,6 @@ export function Pill({
 }
 
 export const pageBg =
-  "bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-950 dark:to-black"
+  "bg-linear-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-950 dark:to-black"
 export const cardGlass =
   "rounded-3xl border shadow-sm backdrop-blur bg-white/90 dark:bg-slate-900/60"

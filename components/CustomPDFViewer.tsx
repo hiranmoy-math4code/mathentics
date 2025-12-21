@@ -189,7 +189,7 @@ export default function CustomPDFViewer({
                 </div>
 
                 {/* Bottom subtle bar */}
-                <div className="absolute bottom-0 inset-x-0 h-8 bg-gradient-to-t from-slate-950/40 to-transparent pointer-events-none" />
+                <div className="absolute bottom-0 inset-x-0 h-8 bg-linear-to-t from-slate-950/40 to-transparent pointer-events-none" />
             </div>
         </div>
     );

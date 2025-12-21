@@ -50,11 +50,11 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px] bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
                 {/* Decorative gradient header */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
 
                 <DialogHeader className="space-y-3 pt-2">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-200 dark:shadow-none">
+                        <div className="p-2.5 rounded-xl bg-linear-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-200 dark:shadow-none">
                             <UserPlus className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -139,7 +139,7 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 h-11 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg shadow-violet-200 dark:shadow-none transition-all"
+                            className="flex-1 h-11 bg-linear-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg shadow-violet-200 dark:shadow-none transition-all"
                         >
                             {loading ? (
                                 <>

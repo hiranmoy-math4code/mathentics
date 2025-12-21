@@ -14,7 +14,7 @@ export default function CreateExamPage() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-8 text-white shadow-2xl"
+        className="relative overflow-hidden rounded-2xl bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500 p-8 text-white shadow-2xl"
       >
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-3">

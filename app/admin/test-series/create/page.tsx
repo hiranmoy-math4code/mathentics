@@ -100,7 +100,7 @@ export default function CreateTestSeriesPage() {
         </div>
 
         <Card className="border-slate-200 dark:border-slate-800 shadow-lg overflow-hidden">
-          <div className="h-2 bg-gradient-to-r from-indigo-500 to-purple-600" />
+          <div className="h-2 bg-linear-to-r from-indigo-500 to-purple-600" />
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">

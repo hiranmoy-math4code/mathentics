@@ -69,11 +69,11 @@ export function EditExpiryDialog({ open, onOpenChange, onSuccess, enrollment }: 
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px] bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
                 {/* Decorative gradient header */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-amber-500 via-orange-500 to-red-500" />
 
                 <DialogHeader className="space-y-3 pt-2">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-200 dark:shadow-none">
+                        <div className="p-2.5 rounded-xl bg-linear-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-200 dark:shadow-none">
                             <Calendar className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -166,7 +166,7 @@ export function EditExpiryDialog({ open, onOpenChange, onSuccess, enrollment }: 
                             <Button
                                 type="submit"
                                 disabled={loading}
-                                className="flex-1 h-11 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg shadow-amber-200 dark:shadow-none transition-all"
+                                className="flex-1 h-11 bg-linear-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg shadow-amber-200 dark:shadow-none transition-all"
                             >
                                 {loading ? (
                                     <>

@@ -295,7 +295,7 @@ export function PreviousResultView({
 
     return (
         <div className="bg-background rounded-xl border border-border overflow-hidden shadow-sm">
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 text-center">
+            <div className="bg-linear-to-r from-indigo-600 to-purple-600 text-white p-6 text-center">
                 <Award className="w-16 h-16 mx-auto mb-4" />
                 <h2 className="text-2xl font-bold mb-2">Quiz Result</h2>
                 <p className="text-indigo-100">
@@ -316,7 +316,7 @@ export function PreviousResultView({
                         <div className="text-xl md:text-2xl font-bold text-purple-700 dark:text-purple-300">{result.percentage?.toFixed(1) || 0}%</div>
                         <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">Percentage</div>
                     </div>
-                    <div className={`bg-gradient-to-br p-3 md:p-4 rounded-xl border text-center col-span-2 md:col-span-1 ${passed ? 'from-emerald-500/20 to-emerald-600/20 border-emerald-500/50' : 'from-amber-500/20 to-amber-600/20 border-amber-500/50'}`}>
+                    <div className={`bg-linear-to-br p-3 md:p-4 rounded-xl border text-center col-span-2 md:col-span-1 ${passed ? 'from-emerald-500/20 to-emerald-600/20 border-emerald-500/50' : 'from-amber-500/20 to-amber-600/20 border-amber-500/50'}`}>
                         {passed ? (
                             <>
                                 <CheckCircle2 className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 text-emerald-500" />

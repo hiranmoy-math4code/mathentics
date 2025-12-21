@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload as UploadIcon, CheckCircle2, XCircle, Loader2, Video } from 'lucide-react';
-import * as tus from 'tus-js-client';
 
 interface BunnyUploaderProps {
     lessonTitle: string;
@@ -28,7 +27,6 @@ export function BunnyUploader({ lessonTitle, courseId, courseTitle, onUploadComp
     const [videoData, setVideoData] = useState<any>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const uploadRef = useRef<tus.Upload | null>(null);
 
     const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -64,7 +62,6 @@ export function BunnyUploader({ lessonTitle, courseId, courseTitle, onUploadComp
 
         try {
             // 1. Get or create collection for this course
-            console.log('📁 Initializing collection for course:', courseTitle);
             const collectionResponse = await fetch('/api/admin/bunny-collections', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -74,16 +71,8 @@ export function BunnyUploader({ lessonTitle, courseId, courseTitle, onUploadComp
                 })
             });
 
-            if (!collectionResponse.ok) {
-                console.warn('Failed to initialize collection, continuing without it');
-            }
-
             const collectionData = await collectionResponse.json();
             const collectionId = collectionData?.collectionId;
-
-            if (collectionId) {
-                console.log('✅ Collection ready:', collectionId, collectionData.created ? '(new)' : '(existing)');
-            }
 
             // 2. Get upload signature from backend
             const signResponse = await fetch('/api/bunny/sign', {
@@ -102,8 +91,6 @@ export function BunnyUploader({ lessonTitle, courseId, courseTitle, onUploadComp
             const signData = await signResponse.json();
             const { videoId, guid, libraryId, apiKey } = signData;
 
-            console.log('Starting upload with:', { videoId, libraryId });
-
             // 2. Upload directly to Bunny.net using their API
             // Use XMLHttpRequest for progress tracking
             const xhr = new XMLHttpRequest();
@@ -117,7 +104,6 @@ export function BunnyUploader({ lessonTitle, courseId, courseTitle, onUploadComp
 
             xhr.addEventListener('load', async () => {
                 if (xhr.status === 200 || xhr.status === 201) {
-                    console.log('Upload completed successfully');
                     setUploadStatus('processing');
 
                     // Store video data
@@ -130,7 +116,6 @@ export function BunnyUploader({ lessonTitle, courseId, courseTitle, onUploadComp
                     // Check video status
                     await checkVideoStatus(videoId, data);
                 } else {
-                    console.error('Upload failed:', xhr.status, xhr.responseText);
                     setErrorMessage(`Upload failed: ${xhr.status} ${xhr.statusText}`);
                     setUploadStatus('error');
                     setUploading(false);
@@ -139,7 +124,6 @@ export function BunnyUploader({ lessonTitle, courseId, courseTitle, onUploadComp
             });
 
             xhr.addEventListener('error', () => {
-                console.error('Upload error');
                 setErrorMessage('Network error during upload');
                 setUploadStatus('error');
                 setUploading(false);
@@ -153,7 +137,6 @@ export function BunnyUploader({ lessonTitle, courseId, courseTitle, onUploadComp
             xhr.send(selectedFile);
 
         } catch (error: any) {
-            console.error('Upload initialization error:', error);
             setErrorMessage(error.message || 'Failed to initialize upload');
             setUploadStatus('error');
             setUploading(false);
@@ -184,7 +167,7 @@ export function BunnyUploader({ lessonTitle, courseId, courseTitle, onUploadComp
                 setTimeout(() => checkVideoStatus(videoId, data), 3000);
             }
         } catch (error) {
-            console.error('Status check error:', error);
+
             // Assume success if we can't check status
             setUploadStatus('success');
             setUploading(false);
@@ -193,10 +176,6 @@ export function BunnyUploader({ lessonTitle, courseId, courseTitle, onUploadComp
     };
 
     const cancelUpload = useCallback(() => {
-        if (uploadRef.current) {
-            uploadRef.current.abort();
-            uploadRef.current = null;
-        }
         setUploading(false);
         setUploadStatus('idle');
         setUploadProgress(0);

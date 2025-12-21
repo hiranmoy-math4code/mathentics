@@ -15,7 +15,7 @@ async function processRedirect(req: Request, transactionId: string) {
       // Try to use Admin Client for RLS bypass
       supabase = createAdminClient();
     } catch (e) {
-      console.warn("⚠️ SUPABASE_SERVICE_ROLE_KEY missing. Falling back to standard client (Enrollment may fail due to RLS).");
+
       supabase = await createClient();
     }
     // Check payment status from PhonePe
@@ -72,13 +72,13 @@ async function processRedirect(req: Request, transactionId: string) {
             enrolled_at: new Date().toISOString(),
             progress: 0
           });
-          if (enrollError) console.error("❌ Redirect Enrollment Insert Failed:", enrollError);
+
         } else {
           const { error: updateError } = await supabase.from("enrollments").update({
             status: "active",
             payment_id: payment?.id
           }).eq("id", existingEnrollment.id);
-          if (updateError) console.error("❌ Redirect Enrollment Update Failed:", updateError);
+
         }
       } else if (seriesId) {
         // Test Series Enrollment
@@ -107,7 +107,7 @@ async function processRedirect(req: Request, transactionId: string) {
     }
 
   } catch (error: any) {
-    console.error("Redirect Error:", error);
+
     return NextResponse.redirect(new URL(`/student/dashboard?error=payment_error`, req.url), 303);
   }
 }
@@ -115,7 +115,7 @@ async function processRedirect(req: Request, transactionId: string) {
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
-    // console.log("Redirect POST FormData:", Object.fromEntries(formData));
+
     const transactionId = (formData.get("transactionId") || formData.get("merchantOrderId") || formData.get("merchantTransactionId") || formData.get("code")) as string;
 
     // PhonePe sometimes sends 'code' and 'merchantId' but maybe 'transactionId' is named differently or missing?
@@ -124,24 +124,24 @@ export async function POST(req: Request) {
     if (transactionId) {
       return processRedirect(req, transactionId);
     }
-    console.error("Missing transactionId in POST");
+
     return NextResponse.redirect(new URL(`/student/dashboard?error=invalid_redirect_post_missing_id`, req.url), 303);
   } catch (e) {
-    console.error("Error parsing POST formData:", e);
+
     return NextResponse.redirect(new URL(`/student/dashboard?error=invalid_redirect_post_error`, req.url), 303);
   }
 }
 
 export async function GET(req: Request) {
-  console.log("Redirect GET received");
+
   const { searchParams } = new URL(req.url);
-  console.log("Redirect GET Params:", Object.fromEntries(searchParams));
+
 
   const transactionId = searchParams.get("transactionId") || searchParams.get("merchantTransactionId") || searchParams.get("merchantOrderId");
 
   if (transactionId) {
     return processRedirect(req, transactionId);
   }
-  console.error("Missing transactionId in GET");
+
   return NextResponse.redirect(new URL(`/student/dashboard?error=invalid_redirect`, req.url), 303);
 }

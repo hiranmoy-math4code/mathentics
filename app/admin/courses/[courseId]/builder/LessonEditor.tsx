@@ -98,7 +98,7 @@ export function LessonEditor({ lesson, course, onUpdate, onDelete }: LessonEdito
 
             // Optimistic Update: Don't await the result
             onUpdate(updates).catch((error) => {
-                console.error("Save lesson failed:", error);
+
                 toast.error("Background save failed! Your work is preserved.", {
                     duration: Infinity,
                     action: {
@@ -114,7 +114,7 @@ export function LessonEditor({ lesson, course, onUpdate, onDelete }: LessonEdito
 
             toast.success("Saved");
         } catch (error: any) {
-            console.error(error);
+
             toast.error(error.message || "Failed to update lesson");
         } finally {
             setIsSaving(false);
@@ -290,8 +290,7 @@ export function LessonEditor({ lesson, course, onUpdate, onDelete }: LessonEdito
                                             courseId={course.id}
                                             courseTitle={course.title}
                                             onUploadComplete={async (videoData) => {
-                                                console.log('✅ Upload complete! Video data:', videoData);
-                                                console.log('📝 Lesson ID:', lesson.id);
+
                                                 const updates: Partial<Lesson> = {
                                                     video_provider: 'bunny',
                                                     video_type: 'vod',
@@ -305,7 +304,7 @@ export function LessonEditor({ lesson, course, onUpdate, onDelete }: LessonEdito
                                                 onUpdate(updates).then(() => {
                                                     toast.success('Video uploaded and saved successfully!');
                                                 }).catch((error) => {
-                                                    console.error('Failed to save video data:', error);
+
                                                     toast.error('Video uploaded but save failed! Your work is preserved.', {
                                                         duration: Infinity,
                                                         action: {

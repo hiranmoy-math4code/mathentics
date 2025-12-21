@@ -19,7 +19,7 @@ export const FeaturesGrid: React.FC = () => {
         { icon: <AiOutlineFundProjectionScreen className="text-2xl" />, title: "Topic Mastery Tracker", desc: "Visualize your strengths and weaknesses per topic." },
     ];
     return (
-        <section id="features" className="py-20 bg-gradient-to-b from-slate-50 to-white">
+        <section id="features" className="py-20 bg-linear-to-b from-slate-50 to-white">
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
                 <motion.h2 initial="hidden" animate="show" variants={fadeUp} className="text-3xl font-bold text-slate-900">
                     Why students choose Math4Code
@@ -29,7 +29,7 @@ export const FeaturesGrid: React.FC = () => {
                 <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {items.map((it, i) => (
                         <motion.div key={i} className="p-6 rounded-2xl bg-white shadow-sm border border-slate-100" whileHover={{ y: -6 }}>
-                            <div className="w-12 h-12 rounded-lg bg-gradient-to-tr from-indigo-500 to-violet-500 text-white flex items-center justify-center shadow">{it.icon}</div>
+                            <div className="w-12 h-12 rounded-lg bg-linear-to-tr from-indigo-500 to-violet-500 text-white flex items-center justify-center shadow">{it.icon}</div>
                             <div className="mt-4 text-lg font-semibold text-slate-900">{it.title}</div>
                             <div className="mt-2 text-slate-600 text-sm">{it.desc}</div>
                             <div className="mt-4 flex items-center gap-2 text-indigo-600 font-medium">Learn more <FiChevronRight /></div>

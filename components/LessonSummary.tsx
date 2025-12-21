@@ -38,7 +38,7 @@ export function LessonSummary({ videoUrl }: VideoSummaryProps) {
             {!summary && !loading && (
                 <Button
                     onClick={handleSummarize}
-                    className="w-full sm:w-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 group"
+                    className="w-full sm:w-auto bg-linear-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg transition-all duration-300 group"
                 >
                     <Sparkles className="mr-2 h-4 w-4 group-hover:animate-pulse" />
                     Summarize this video
@@ -66,7 +66,7 @@ export function LessonSummary({ videoUrl }: VideoSummaryProps) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                     >
-                        <Card className="border-indigo-100 dark:border-indigo-900/50 bg-gradient-to-br from-white to-indigo-50/30 dark:from-slate-950 dark:to-indigo-950/10 shadow-sm">
+                        <Card className="border-indigo-100 dark:border-indigo-900/50 bg-linear-to-br from-white to-indigo-50/30 dark:from-slate-950 dark:to-indigo-950/10 shadow-sm">
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-lg flex items-center gap-2 text-indigo-700 dark:text-indigo-300">
                                     <Sparkles className="h-5 w-5" />

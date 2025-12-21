@@ -70,7 +70,7 @@ export function CourseThumbnail({
     return (
         <div
             className={cn(
-                "relative overflow-hidden bg-gradient-to-br",
+                "relative overflow-hidden bg-linear-to-br",
                 selectedGradient,
                 isCard ? "w-full h-full" : "w-full aspect-video rounded-2xl shadow-lg transition-all duration-300 hover:shadow-2xl hover:-translate-y-1",
                 className
