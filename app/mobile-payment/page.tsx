@@ -1,8 +1,8 @@
 'use client';
-
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+export const runtime = 'edge';
 
 function MobilePaymentContent() {
     const searchParams = useSearchParams();
