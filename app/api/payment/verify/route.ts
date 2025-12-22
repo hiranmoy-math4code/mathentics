@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { checkPaymentStatus } from "@/lib/phonepe";
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 export const runtime = 'edge';
 
@@ -36,7 +37,6 @@ export async function POST(req: Request) {
         if (authHeader && authHeader.startsWith('Bearer ')) {
             // Mobile app request with Bearer token
             const token = authHeader.split(' ')[1];
-            const { createClient: createSupabaseClient } = require('@supabase/supabase-js');
 
             supabase = createSupabaseClient(
                 process.env.NEXT_PUBLIC_SUPABASE_URL!,
