@@ -126,6 +126,7 @@ export async function createPayment(
         success: false,
         error: data?.message || "Payment initiation failed",
         details: data
+
       };
     }
 
