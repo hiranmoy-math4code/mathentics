@@ -147,7 +147,8 @@ function QuestionDisplayComponent({
                             </button>
                             <button
                                 onClick={onClear}
-                                className="px-3 md:px-4 py-1.5 md:py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors text-xs md:text-sm"
+                                disabled={!response || (Array.isArray(response) && response.length === 0)}
+                                className="px-3 md:px-4 py-1.5 md:py-2 border border-border text-foreground rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs md:text-sm"
                             >
                                 Clear
                             </button>

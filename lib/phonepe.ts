@@ -68,7 +68,8 @@ async function getOAuthToken(): Promise<string | null> {
 export async function createPayment(
   merchantTransactionId: string,
   amount: number,
-  userId: string
+  userId: string,
+  isMobile: boolean = false
 ) {
   try {
     // Get OAuth Token
@@ -77,7 +78,7 @@ export async function createPayment(
       throw new Error("Failed to generate OAuth token");
     }
 
-    const redirectUrl = `${DOMAIN}/api/phonepe/redirect?transactionId=${merchantTransactionId}`;
+    const redirectUrl = `${DOMAIN}/api/phonepe/redirect?transactionId=${merchantTransactionId}${isMobile ? '&source=mobile' : ''}`;
     const callbackUrl = `${DOMAIN}/api/phonepe/callback`;
 
     // Build Payment Request for Standard Checkout v2

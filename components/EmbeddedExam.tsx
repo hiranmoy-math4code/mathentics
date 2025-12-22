@@ -576,9 +576,13 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
         // Max Attempts Enforcement
         if (currentSection?.max_questions_to_attempt) {
             const wasAnswered = isAnswered(responses[qid])
+            // Check if this is a "clearing" action (empty string or explicit null/undefined)
+            const isClearing = ans === "" || ans === null || ans === undefined || (Array.isArray(ans) && ans.length === 0);
             const willBeAnswered = isAnswered(ans)
 
-            if (!wasAnswered && willBeAnswered) {
+            // Only block if we are ADDING an answer (was not answered, and will be answered)
+            // If we are clearing (willBeAnswered is false), we should ALWAYS allow it.
+            if (!wasAnswered && willBeAnswered && !isClearing) {
                 const currentCount = getSectionAttemptCount(currentSection.id)
                 if (currentCount >= currentSection.max_questions_to_attempt) {
                     toast.error(`Maximum attempts (${currentSection.max_questions_to_attempt}) reached for this section. Clear an existing answer to change.`)
@@ -866,7 +870,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
                     onPrev={() => {
                         if (activeQuestionIdx > 0) setActiveQuestionIdx(i => i - 1)
                     }}
-                    onClear={() => handleSaveResponse(currentQuestion.id, null)}
+                    onClear={() => handleSaveResponse(currentQuestion.id, "")}
                     isFirst={activeQuestionIdx === 0}
                     isLast={activeQuestionIdx === allQuestions.length - 1}
                 />

@@ -100,6 +100,16 @@ async function processRedirect(req: Request, transactionId: string) {
     }
 
     // Redirect based on determined status
+    const url = new URL(req.url);
+    const source = url.searchParams.get("source");
+
+    // 1. Mobile App Redirect (Deep Link)
+    if (source === "mobile") {
+      const deepLink = `math4code://payment/verify?txnId=${transactionId}&status=${status}`;
+      return NextResponse.redirect(deepLink, 303);
+    }
+
+    // 2. Website Redirect (Default)
     if (status === "success" || status === "pending") {
       return NextResponse.redirect(new URL(`/student/payment/verify?txnId=${transactionId}`, req.url), 303);
     } else {

@@ -20,7 +20,7 @@ export async function OPTIONS(req: Request) {
 
 export async function POST(req: Request) {
     try {
-        const { courseId } = await req.json();
+        const { courseId, isMobile = false } = await req.json();
 
         // Check for Authorization header (for mobile app)
         const authHeader = req.headers.get('Authorization');
@@ -168,7 +168,7 @@ export async function POST(req: Request) {
 
         // Initiate Payment using shared utility
         // Pass the EXACT merchantTransactionId we just stored AND the userId
-        const paymentResponse = await createPayment(merchantTransactionId, course.price, user.id);
+        const paymentResponse = await createPayment(merchantTransactionId, course.price, user.id, isMobile);
 
 
 
