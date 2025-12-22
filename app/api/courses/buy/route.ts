@@ -187,9 +187,17 @@ export async function POST(req: Request) {
             }, { status: 500, headers: corsHeaders });
         }
 
+        let finalUrl = paymentResponse.data.redirectUrl;
+
+        // If Mobile, wrap in Bridge URL to ensure Referer header is sent (Fixes INTERNAL_SECURITY_BLOCK_1)
+        if (isMobile) {
+            const domain = process.env.NEXT_PUBLIC_DOMAIN || 'https://www.math4code.com';
+            finalUrl = `${domain}/mobile-payment?target=${encodeURIComponent(finalUrl)}`;
+        }
+
         return NextResponse.json(
             {
-                url: paymentResponse.data.redirectUrl,
+                url: finalUrl,
                 transactionId: merchantTransactionId
             },
             { headers: corsHeaders }
