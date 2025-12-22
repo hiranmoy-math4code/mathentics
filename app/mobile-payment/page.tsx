@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
-export default function MobilePaymentBridge() {
+function MobilePaymentContent() {
     const searchParams = useSearchParams();
     const target = searchParams.get('target');
     const [error, setError] = useState<string | null>(null);
@@ -46,5 +46,17 @@ export default function MobilePaymentBridge() {
                 </p>
             </div>
         </div>
+    );
+}
+
+export default function MobilePaymentBridge() {
+    return (
+        <Suspense fallback={
+            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+                <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+            </div>
+        }>
+            <MobilePaymentContent />
+        </Suspense>
     );
 }
