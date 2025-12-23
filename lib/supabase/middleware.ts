@@ -33,6 +33,11 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname !== "/" &&
     !request.nextUrl.pathname.startsWith("/courses") &&
     !request.nextUrl.pathname.startsWith("/api") &&
+    !request.nextUrl.pathname.startsWith("/about") && // Allow access to /about
+    !request.nextUrl.pathname.startsWith("/contact") && // Allow access to /contact
+    !request.nextUrl.pathname.startsWith("/privacy-policy") && // Allow access to /privacy-policy
+    !request.nextUrl.pathname.startsWith("/terms-of-use") && // Allow access to /terms-of-use
+    !request.nextUrl.pathname.startsWith("/refund-policy") && // Allow access to /refund-policy
     !user &&
     !request.nextUrl.pathname.startsWith("/auth")
   ) {

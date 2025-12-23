@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function RefundPolicyPage() {
     return (
-        <div className="container mx-auto px-4 py-12 max-w-4xl">
+        <div className="container mx-auto px-4 py-12 pt-32 max-w-4xl">
             <h1 className="text-3xl font-bold mb-8 text-neutral-900 dark:text-neutral-100">Refund Policy</h1>
 
             <div className="prose prose-neutral dark:prose-invert max-w-none space-y-6">
@@ -24,8 +24,8 @@ export default function RefundPolicyPage() {
                         If you have any questions about our Returns and Refunds Policy, please contact us at:
                     </p>
                     <p className="mt-2">
-                        <a href="mailto:deepak43545566@mailinator.com" className="text-blue-600 hover:underline">
-                            deepak43545566@mailinator.com
+                        <a href="mailto:hiranmoymandalucb@gmail.com" className="text-blue-600 hover:underline">
+                            hiranmoymandalucb@gmail.com
                         </a>
                     </p>
                 </section>

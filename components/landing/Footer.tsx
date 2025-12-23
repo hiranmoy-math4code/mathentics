@@ -18,19 +18,18 @@ export const Footer: React.FC = () => (
             <div>
                 <h4 className="font-bold text-white mb-4">Platform</h4>
                 <ul className="space-y-2 text-sm">
-                    <li><a href="#" className="hover:text-[#14B8A6]">Courses</a></li>
-                    <li><a href="#" className="hover:text-[#14B8A6]">Live Mentoring</a></li>
-                    <li><a href="#" className="hover:text-[#14B8A6]">Exam Series</a></li>
-                    <li><a href="#" className="hover:text-[#14B8A6]">Pricing</a></li>
+                    <li><Link href="/courses" className="hover:text-[#14B8A6]">Courses</Link></li>
+                    <li><Link href="/contact" className="hover:text-[#14B8A6]">Contact Us</Link></li>
+                    <li><Link href="/about" className="hover:text-[#14B8A6]">About Us</Link></li>
                 </ul>
             </div>
 
             <div>
                 <h4 className="font-bold text-white mb-4">Legal</h4>
                 <ul className="space-y-2 text-sm">
-                    <li><a href="/privacy-policy" className="hover:text-[#14B8A6]">Privacy Policy</a></li>
-                    <li><a href="/terms-of-use" className="hover:text-[#14B8A6]">Terms of Use</a></li>
-                    <li><a href="/refund-policy" className="hover:text-[#14B8A6]">Refund Policy</a></li>
+                    <li><Link href="/privacy-policy" className="hover:text-[#14B8A6]">Privacy Policy</Link></li>
+                    <li><Link href="/terms-of-use" className="hover:text-[#14B8A6]">Terms of Use</Link></li>
+                    <li><Link href="/refund-policy" className="hover:text-[#14B8A6]">Refund Policy</Link></li>
                 </ul>
             </div>
         </div>

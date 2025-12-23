@@ -2,6 +2,7 @@
 export const runtime = 'edge';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import {
   Menu, X, ChevronRight, Check, Star, Play,
   BookOpen, Code, Shield, Trophy, ArrowRight,
@@ -15,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { Header } from '@/components/landing/Header';
 import { callGemini } from '@/components/landing/AIMentor';
 import { CourseThumbnail } from "@/components/ui/CourseThumbnail";
+import VideoPlayer from '@/components/VideoPlayer';
 
 // --- 1. Supabase Interfaces (As provided) ---
 
@@ -79,6 +81,20 @@ const Logo = () => (
 
 
 const Hero = () => {
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+
+  const mcqOptions = [
+    { text: "O(n)", correct: false },
+    { text: "O(log n)", correct: true },
+    { text: "O(n²)", correct: false },
+    { text: "O(1)", correct: false }
+  ];
+
+  const handleOptionClick = (index: number) => {
+    setSelectedOption(index);
+  };
+
   return (
     <section className="relative pt-6 pb-20 lg:pt-8 lg:pb-32 overflow-hidden bg-[#FBFBFD]">
       {/* Background Decor */}
@@ -108,15 +124,49 @@ const Hero = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="bg-[#1F2A6B] hover:bg-[#161e4d] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-indigo-200 transition-transform hover:-translate-y-1 flex items-center justify-center gap-2 group">
-              Start Free Trial
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button className="bg-white border border-gray-200 text-slate-600 hover:border-[#1F2A6B] hover:text-[#1F2A6B] px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2">
+            <Link href="/auth/login">
+              <button className="bg-[#1F2A6B] hover:bg-[#161e4d] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-indigo-200 transition-transform hover:-translate-y-1 flex items-center justify-center gap-2 group">
+                Start Free Trial
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </Link>
+            <button
+              onClick={() => setIsDemoOpen(true)}
+              className="bg-white border border-gray-200 text-slate-600 hover:border-[#1F2A6B] hover:text-[#1F2A6B] px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2"
+            >
               <Play className="w-5 h-5 fill-current" />
               Watch Demo
             </button>
           </div>
+
+          {/* Video Modal */}
+          <AnimatePresence>
+            {isDemoOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+                onClick={() => setIsDemoOpen(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    onClick={() => setIsDemoOpen(false)}
+                    className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                  >
+                    <X size={24} />
+                  </button>
+                  <VideoPlayer url="https://www.youtube.com/watch?v=WfgaS4GynwE" />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="mt-10 flex items-center gap-4 text-sm text-slate-500 font-medium">
             <div className="flex -space-x-2">
@@ -135,34 +185,74 @@ const Hero = () => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative hidden lg:block"
+          className="relative block mt-12 lg:mt-0"
         >
           {/* Main Card */}
-          <div className="relative z-10 bg-white rounded-3xl shadow-2xl p-6 border border-gray-100 max-w-md mx-auto transform rotate-[-2deg] hover:rotate-0 transition-transform duration-500">
-            <div className="flex justify-between items-center mb-6">
+          <div className="relative z-10 bg-white rounded-3xl shadow-2xl p-5 border border-gray-100 max-w-md mx-auto transform rotate-[-2deg] hover:rotate-0 transition-transform duration-500">
+            <div className="flex justify-between items-center mb-4">
               <div className="flex gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-400" />
                 <div className="w-3 h-3 rounded-full bg-yellow-400" />
                 <div className="w-3 h-3 rounded-full bg-green-400" />
               </div>
-              <div className="text-xs font-mono text-gray-400">algorithm.py</div>
+              <div className="text-xs font-mono text-gray-400">quiz.ts</div>
             </div>
 
-            <div className="space-y-3 font-mono text-sm">
-              <div className="text-purple-600">def <span className="text-blue-600">calculate_limit</span>(f, x):</div>
-              <div className="pl-4 text-gray-500"># Approaching infinity</div>
-              <div className="pl-4 text-slate-700">epsilon = <span className="text-orange-500">1e-10</span></div>
-              <div className="pl-4 text-slate-700">delta = f(x + epsilon) - f(x)</div>
-              <div className="pl-4 text-slate-700">return delta / epsilon</div>
+            <div className="space-y-4">
+              <p className="font-bold text-gray-800 text-lg">What is the Time Complexity of Binary Search?</p>
+
+              <div className="space-y-3">
+                {mcqOptions.map((option, idx) => {
+                  const isSelected = selectedOption === idx;
+                  const isCorrect = option.correct;
+
+                  let buttonClass = "w-full text-left p-3 rounded-lg border-2 font-bold transition-all duration-200 flex justify-between items-center text-sm ";
+
+                  if (isSelected) {
+                    if (isCorrect) {
+                      buttonClass += "bg-green-50 border-green-500 text-green-700 shadow-sm";
+                    } else {
+                      buttonClass += "bg-red-50 border-red-500 text-red-700 shadow-sm";
+                    }
+                  } else {
+                    buttonClass += "bg-white border-slate-100 text-slate-600 hover:border-indigo-200 hover:bg-slate-50";
+                  }
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleOptionClick(idx)}
+                      className={buttonClass}
+                    >
+                      <span className="flex items-center gap-3">
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${isSelected ? (isCorrect ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800') : 'bg-slate-100 text-slate-500'}`}>
+                          {String.fromCharCode(65 + idx)}
+                        </span>
+                        {option.text}
+                      </span>
+
+                      {isSelected && (
+                        <span className="animate-in fade-in zoom-in">
+                          {isCorrect ? (
+                            <Check className="w-5 h-5 text-green-600" />
+                          ) : (
+                            <X className="w-5 h-5 text-red-600" />
+                          )}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="mt-8 bg-indigo-50 rounded-xl p-4 flex items-center gap-4">
+            <div className="mt-6 bg-indigo-50 rounded-xl p-3 flex items-center gap-4">
               <div className="bg-white p-2 rounded-lg shadow-sm">
-                <Check className="text-green-500" />
+                <Trophy className="text-[#F6C85F] w-5 h-5" />
               </div>
               <div>
-                <div className="text-xs text-gray-500 uppercase font-bold tracking-wider">Result</div>
-                <div className="font-bold text-[#1F2A6B]">Tests Passed: 12/12</div>
+                <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Leaderboard</div>
+                <div className="font-bold text-[#1F2A6B] text-sm">You're in the top 5%</div>
               </div>
             </div>
           </div>
@@ -197,26 +287,50 @@ const Hero = () => {
 
 const FeaturesStrip = () => {
   const features = [
-    { icon: <Calculator className="w-6 h-6" />, title: "Adaptive Math", desc: "Problems that get harder as you get smarter." },
-    { icon: <Terminal className="w-6 h-6" />, title: "Live Coding", desc: "Run Python and JS directly in the browser." },
-    { icon: <Shield className="w-6 h-6" />, title: "Secure Exams", desc: "Anti-cheat proctoring for serious mock tests." },
-    { icon: <Users className="w-6 h-6" />, title: "Live Mentoring", desc: "Instant doubt resolution from top tutors." },
+    {
+      icon: <GraduationCap className="w-5 h-5 md:w-6 md:h-6" />,
+      title: "Guided Learning",
+      desc: "Structured paths from 11th-12th Math to Advanced Algorithms."
+    },
+    {
+      icon: <Terminal className="w-5 h-5 md:w-6 md:h-6" />,
+      title: "Interactive Code",
+      desc: "Execute Python & Math scripts directly within our logic-first IDE."
+    },
+    {
+      icon: <Trophy className="w-5 h-5 md:w-6 md:h-6" />,
+      title: "Gamified Progress",
+      desc: "Earn logic coins, track streaks, and climb global leaderboards."
+    },
+    {
+      icon: <Sparkles className="w-5 h-5 md:w-6 md:h-6" />,
+      title: "AI Math Mentor",
+      desc: "Instant 24/7 help with complex derivations and coding bugs."
+    },
   ];
 
   return (
-    <div className="bg-white py-12 border-y border-gray-100">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div className="bg-white py-16 border-y border-gray-100 flex items-center">
+      <div className="max-w-7xl mx-auto px-6 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
           {features.map((feature, idx) => (
-            <div key={idx} className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors group">
-              <div className="p-3 bg-indigo-50 text-[#1F2A6B] rounded-lg group-hover:bg-[#1F2A6B] group-hover:text-white transition-colors">
+            <motion.div
+              key={idx}
+              whileHover={{ y: -5 }}
+              className="flex items-start gap-5 p-2 rounded-2xl transition-all group"
+            >
+              <div className="shrink-0 p-3.5 bg-indigo-50 text-[#1F2A6B] rounded-xl group-hover:bg-[#1F2A6B] group-hover:text-white group-hover:shadow-lg group-hover:shadow-indigo-100 transition-all duration-300">
                 {feature.icon}
               </div>
               <div>
-                <h3 className="font-bold text-gray-900">{feature.title}</h3>
-                <p className="text-sm text-gray-500 mt-1">{feature.desc}</p>
+                <h3 className="font-extrabold text-[#1F2A6B] text-base mb-1.5 group-hover:text-[#14B8A6] transition-colors">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-slate-500 leading-relaxed font-medium">
+                  {feature.desc}
+                </p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -307,9 +421,11 @@ const CoursesSection = () => {
             <h2 className="text-3xl lg:text-4xl font-extrabold text-[#1F2A6B] mb-4">Popular Curriculum</h2>
             <p className="text-slate-500 max-w-md">Comprehensive courses fetched directly from our catalog.</p>
           </div>
-          <button className="hidden md:flex text-[#14B8A6] font-bold items-center hover:gap-2 transition-all">
-            View All Courses <ChevronRight />
-          </button>
+          <Link href="/courses">
+            <button className="hidden md:flex text-[#14B8A6] font-bold items-center hover:gap-2 transition-all">
+              View All Courses <ChevronRight />
+            </button>
+          </Link>
         </div>
 
         {isLoading ? (
@@ -386,7 +502,7 @@ y = np.sin(x)
   };
 
   return (
-    <section className="py-24 bg-[#1F2A6B] text-white overflow-hidden">
+    <section id="demo" className="py-24 bg-[#1F2A6B] text-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
         <div>
           <h2 className="text-3xl lg:text-4xl font-extrabold mb-6">Interactive Learning Environment</h2>
@@ -403,9 +519,11 @@ y = np.sin(x)
               </li>
             ))}
           </ul>
-          <button className="bg-white text-[#1F2A6B] px-8 py-3 rounded-lg font-bold hover:bg-indigo-50 transition-colors">
-            Try the Demo Lesson
-          </button>
+          <Link href="/courses">
+            <button className="bg-white text-[#1F2A6B] px-8 py-3 rounded-lg font-bold hover:bg-indigo-50 transition-colors">
+              Try the Demo Lesson
+            </button>
+          </Link>
         </div>
 
         {/* Browser Mockup */}
@@ -546,9 +664,11 @@ const CTA = () => {
         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
         <h2 className="relative z-10 text-3xl md:text-5xl font-extrabold text-white mb-6">Ready to top the leaderboard?</h2>
         <p className="relative z-10 text-teal-50 text-lg mb-8 max-w-2xl mx-auto">Join the community of problem solvers. No credit card required for the trial.</p>
-        <button className="relative z-10 bg-white text-teal-700 px-10 py-4 rounded-full font-bold text-lg hover:shadow-xl transition-all hover:scale-105">
-          Start Learning Now
-        </button>
+        <Link href="/auth/sign-up">
+          <button className="relative z-10 bg-white text-teal-700 px-10 py-4 rounded-full font-bold text-lg hover:shadow-xl transition-all hover:scale-105">
+            Start Learning Now
+          </button>
+        </Link>
       </div>
     </div>
   );

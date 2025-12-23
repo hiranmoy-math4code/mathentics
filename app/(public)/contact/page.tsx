@@ -35,7 +35,7 @@ export default function ContactPage() {
                                         </div>
                                         <div>
                                             <p className="font-medium text-slate-900">Email</p>
-                                            <p className="text-slate-600">admin@math4code.com</p>
+                                            <p className="text-slate-600">hiranmoymandalucb@gmail.com</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-4">
@@ -44,7 +44,7 @@ export default function ContactPage() {
                                         </div>
                                         <div>
                                             <p className="font-medium text-slate-900">Phone</p>
-                                            <p className="text-slate-600">+91 6297534924</p>
+                                            <p className="text-slate-600">6297534924</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-4">
