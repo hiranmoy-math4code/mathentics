@@ -61,7 +61,7 @@ export default function MobileNav({
   // That's too many for a bottom bar.
   // I should filter for the main ones that match the app.
 
-  const appTabs = ["Dashboard", "My Courses", "Community", "Settings"];
+  const appTabs = ["Dashboard", "My Courses", "All Series", "Community", "Settings"];
 
   // Dynamic filtering:
   const navItems = links?.filter(link => appTabs.includes(link.label)) || [];
@@ -105,8 +105,8 @@ export default function MobileNav({
               </div>
               <span
                 className={`text-[10px] font-medium transition-colors duration-300 ${isActive
-                    ? "text-indigo-600 dark:text-indigo-400"
-                    : "text-slate-500 dark:text-slate-400"
+                  ? "text-indigo-600 dark:text-indigo-400"
+                  : "text-slate-500 dark:text-slate-400"
                   }`}
               >
                 {item.label === "My Courses" ? "Library" : item.label === "Dashboard" ? "Home" : item.label === "Settings" ? "Account" : item.label}
@@ -124,6 +124,27 @@ export default function MobileNav({
                 {content}
               </button>
             )
+          }
+
+          // Use SPA navigation for student routes
+          const isStudentRoute = item.href.startsWith('/student');
+
+          if (isStudentRoute) {
+            return (
+              <button
+                key={item.label}
+                onClick={() => {
+                  if (typeof window !== 'undefined' && (window as any).__studentNavigate) {
+                    (window as any).__studentNavigate(item.href);
+                  } else {
+                    window.location.href = item.href;
+                  }
+                }}
+                className="flex-1 h-full flex"
+              >
+                {content}
+              </button>
+            );
           }
 
           return (

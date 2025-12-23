@@ -21,11 +21,10 @@ export function useAllCourses(userId: string | undefined) {
             const supabase = createClient()
 
             // Call Optimized RPC
-            // Currently fetching first 20. Can add pagination params later if needed.
             const { data, error } = await supabase
                 .rpc('get_published_courses_with_meta', {
                     target_user_id: userId || null,
-                    p_limit: 50, // Fetch 50 initially, usually enough for dashboard
+                    p_limit: 50,
                     p_offset: 0
                 });
 
@@ -33,8 +32,11 @@ export function useAllCourses(userId: string | undefined) {
                 throw error;
             }
 
-            return data as Course[];
+            // Filter to show only courses (not test series)
+            const courses = (data || []).filter((course: any) => course.course_type === 'course');
+
+            return courses as Course[];
         },
-        enabled: userId !== undefined, // Wait for auth check to complete (it can be null for public, but not undefined)
+        enabled: userId !== undefined,
     })
 }

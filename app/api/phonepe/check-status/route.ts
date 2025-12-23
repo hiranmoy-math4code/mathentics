@@ -71,9 +71,7 @@ export async function POST(req: Request) {
 
 
 
-        // 3. Update Database
-        // Try updating course_payments first
-
+        // 3. Update Database - Use course_payments for all payments
         let { data: payments, error: updateError } = await supabase
             .from("course_payments")
             .update({
@@ -83,32 +81,9 @@ export async function POST(req: Request) {
             .eq("transaction_id", transactionId)
             .select();
 
-        let payment = payments?.[0] || null;
-
-        let isTestSeries = false;
-
-        // If not found in course_payments, try payments (test series)
-        if (!payment) {
-            const { data: tsPayments, error: tsError } = await supabase
-                .from("payments")
-                .update({ status: status })
-                .eq("phonepe_transaction_id", transactionId)
-                .select();
-
-            const tsPayment = tsPayments?.[0] || null;
-
-            if (tsPayment) {
-                payment = tsPayment;
-                isTestSeries = true;
-                updateError = null;
-            } else if (tsError) {
-
-            }
-        }
+        const payment = payments?.[0] || null;
 
         if (updateError || !payment) {
-
-
             // Return more helpful error message
             return NextResponse.json({
                 error: "Transaction not found in database",
@@ -123,57 +98,37 @@ export async function POST(req: Request) {
 
         // 4. If Success, Activate Enrollment
         if (status === "success") {
-            if (isTestSeries) {
-                // Test Series Enrollment
-                const { data: existingEnrollment } = await supabase
-                    .from("test_series_enrollments")
-                    .select("id")
-                    .eq("student_id", payment.user_id)
-                    .eq("test_series_id", payment.series_id)
-                    .single();
+            // Course Enrollment (works for both courses and test series)
+            const { data: existingEnrollment } = await supabase
+                .from("enrollments")
+                .select("id")
+                .eq("user_id", payment.user_id)
+                .eq("course_id", payment.course_id)
+                .single();
 
-                if (!existingEnrollment) {
-                    await supabase.from("test_series_enrollments").insert({
-                        student_id: payment.user_id,
-                        test_series_id: payment.series_id,
-                        enrolled_at: new Date().toISOString(),
-                        status: 'active'
-                    });
+            if (!existingEnrollment) {
+                const { error: enrollError } = await supabase.from("enrollments").insert({
+                    user_id: payment.user_id,
+                    course_id: payment.course_id,
+                    status: "active",
+                    payment_id: payment.id,
+                    enrolled_at: new Date().toISOString(),
+                    progress: 0
+                });
+
+                if (enrollError) {
+                    // Don't throw here to ensure we still return the payment success status
+                    // but we should probably alert or return a warning in the response
                 }
             } else {
-                // Course Enrollment
-                const { data: existingEnrollment } = await supabase
-                    .from("enrollments")
-                    .select("id")
-                    .eq("user_id", payment.user_id)
-                    .eq("course_id", payment.course_id)
-                    .single();
+                // Update existing enrollment to active
+                const { error: updateError } = await supabase.from("enrollments").update({
+                    status: "active",
+                    payment_id: payment.id
+                }).eq("id", existingEnrollment.id);
 
-                if (!existingEnrollment) {
-                    const { error: enrollError } = await supabase.from("enrollments").insert({
-                        user_id: payment.user_id,
-                        course_id: payment.course_id,
-                        status: "active",
-                        payment_id: payment.id,
-                        enrolled_at: new Date().toISOString(),
-                        progress: 0
-                    });
-
-                    if (enrollError) {
-
-                        // Don't throw here to ensure we still return the payment success status
-                        // but we should probably alert or return a warning in the response
-                    }
-                } else {
-                    // Update existing enrollment to active
-                    const { error: updateError } = await supabase.from("enrollments").update({
-                        status: "active",
-                        payment_id: payment.id
-                    }).eq("id", existingEnrollment.id);
-
-                    if (updateError) {
-
-                    }
+                if (updateError) {
+                    // Log error but don't fail the request
                 }
             }
         }

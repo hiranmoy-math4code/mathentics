@@ -12,6 +12,7 @@ async function fetchCourses(userId: string) {
         .from("courses")
         .select("*")
         .eq("creator_id", userId)
+        .eq("course_type", "course")
         .order("created_at", { ascending: false });
     return data || [];
 }

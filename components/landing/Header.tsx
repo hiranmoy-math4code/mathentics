@@ -82,7 +82,7 @@ export const Header = () => {
 
     const navLinks = [
         { name: "Courses", href: "/courses" },
-        { name: "Test Series", href: "/student/all-test-series" },
+        { name: "Test Series", href: "/test-series" },
         { name: "About Us", href: "/about" },
         { name: "Contact", href: "/contact" },
     ];

@@ -32,6 +32,7 @@ export async function updateSession(request: NextRequest) {
   if (
     request.nextUrl.pathname !== "/" &&
     !request.nextUrl.pathname.startsWith("/courses") &&
+    !request.nextUrl.pathname.startsWith("/test-series") &&
     !request.nextUrl.pathname.startsWith("/api") &&
     !request.nextUrl.pathname.startsWith("/about") && // Allow access to /about
     !request.nextUrl.pathname.startsWith("/contact") && // Allow access to /contact

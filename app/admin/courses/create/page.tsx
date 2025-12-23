@@ -41,6 +41,7 @@ const formSchema = z.object({
         message: "Please select a category.",
     }),
     level: z.enum(["beginner", "intermediate", "advanced", "all"]),
+    course_type: z.enum(["course", "test_series"]),
     thumbnail_url: z.string().optional(),
 });
 
@@ -57,6 +58,7 @@ export default function CreateCoursePage() {
             price: 0,
             category: "",
             level: "all",
+            course_type: "course",
             thumbnail_url: "",
         },
     });
@@ -83,6 +85,7 @@ export default function CreateCoursePage() {
                         price: values.price,
                         category: values.category,
                         level: values.level,
+                        course_type: values.course_type,
                         thumbnail_url: values.thumbnail_url,
                         is_published: false,
                     },
@@ -240,6 +243,34 @@ export default function CreateCoursePage() {
                                         <SelectItem value="all">All Levels</SelectItem>
                                     </SelectContent>
                                 </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="course_type"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Type</FormLabel>
+                                <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                >
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select type" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="course">Course</SelectItem>
+                                        <SelectItem value="test_series">Test Series</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormDescription>
+                                    Courses appear in the courses section, test series appear in the test series section.
+                                </FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}

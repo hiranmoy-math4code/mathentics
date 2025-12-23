@@ -16,7 +16,6 @@ const DashboardPage = dynamic(() => import('@/app/admin/dashboard/page'), { ssr:
 const CoursesPage = dynamic(() => import('@/app/admin/courses/page'), { ssr: false });
 const QuestionBankPage = dynamic(() => import('@/app/admin/question-bank/page'), { ssr: false });
 const ExamsPage = dynamic(() => import('@/app/admin/exams/page'), { ssr: false });
-const TestSeriesPage = dynamic(() => import('@/app/admin/test-series/page'), { ssr: false });
 const PaymentsPage = dynamic(() => import('@/app/admin/payments/page'), { ssr: false });
 const StudentsPage = dynamic(() => import('@/app/admin/students/page'), { ssr: false });
 const SettingsPage = dynamic(() => import('@/app/admin/settings/page'), { ssr: false });
@@ -66,7 +65,6 @@ export function AdminAppContainer({ initialRoute, children }: AdminAppContainerP
         if (currentRoute === '/admin/courses') return <CoursesPage />;
         if (currentRoute === '/admin/question-bank') return <QuestionBankPage />;
         if (currentRoute === '/admin/exams') return <ExamsPage />;
-        if (currentRoute === '/admin/test-series') return <TestSeriesPage />;
         if (currentRoute === '/admin/payments') return <PaymentsPage />;
         if (currentRoute === '/admin/students') return <StudentsPage />;
         if (currentRoute === '/admin/settings') return <SettingsPage />;

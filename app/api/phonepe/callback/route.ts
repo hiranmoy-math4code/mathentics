@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
 
 
-        // Update course_payments table
+        // Update course_payments table (works for both courses and test series)
         let { data: payment, error: updateError } = await supabase
             .from("course_payments")
             .update({
@@ -54,78 +54,36 @@ export async function POST(req: Request) {
             .select()
             .single();
 
-        let isTestSeries = false;
-
-        // If not found in course_payments, try payments (test series)
-        if (!payment) {
-            const { data: tsPayment, error: tsError } = await supabase
-                .from("payments")
-                .update({ status: status })
-                .eq("phonepe_transaction_id", transactionId)
-                .select()
-                .single();
-
-            if (tsPayment) {
-                updateError = null;
-            } else if (tsError) {
-
-            }
-        }
-
         if (updateError || !payment) {
-
             return NextResponse.json({ success: true });
         }
 
-        // 3. If Success, Activate Enrollment
+        // 3. If Success, Activate Enrollment (works for both courses and test series)
         if (status === "success") {
-            if (isTestSeries) {
-                // Test Series Enrollment
-                const { data: existingEnrollment } = await supabase
-                    .from("test_series_enrollments")
-                    .select("id")
-                    .eq("student_id", payment.user_id)
-                    .eq("test_series_id", payment.series_id)
-                    .single();
+            const { data: existingEnrollment } = await supabase
+                .from("enrollments")
+                .select("id")
+                .eq("user_id", payment.user_id)
+                .eq("course_id", payment.course_id)
+                .single();
 
-                if (!existingEnrollment) {
-                    await supabase.from("test_series_enrollments").insert({
-                        student_id: payment.user_id,
-                        test_series_id: payment.series_id,
-                        enrolled_at: new Date().toISOString()
-                    });
-
-                }
+            if (!existingEnrollment) {
+                // Create new enrollment
+                const { error: enrollError } = await supabase.from("enrollments").insert({
+                    user_id: payment.user_id,
+                    course_id: payment.course_id,
+                    status: "active",
+                    payment_id: payment.id
+                });
             } else {
-                // Course Enrollment
-                const { data: existingEnrollment } = await supabase
+                // Update existing enrollment
+                await supabase
                     .from("enrollments")
-                    .select("id")
-                    .eq("user_id", payment.user_id)
-                    .eq("course_id", payment.course_id)
-                    .single();
-
-                if (!existingEnrollment) {
-                    // Create new enrollment
-                    const { error: enrollError } = await supabase.from("enrollments").insert({
-                        user_id: payment.user_id,
-                        course_id: payment.course_id,
+                    .update({
                         status: "active",
                         payment_id: payment.id
-                    });
-
-
-                } else {
-                    // Update existing enrollment
-                    await supabase
-                        .from("enrollments")
-                        .update({
-                            status: "active",
-                            payment_id: payment.id
-                        })
-                        .eq("id", existingEnrollment.id);
-
-                }
+                    })
+                    .eq("id", existingEnrollment.id);
             }
         }
 

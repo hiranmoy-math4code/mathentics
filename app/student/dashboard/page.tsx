@@ -26,6 +26,7 @@ import { useStudentCourses } from "@/hooks/student/useStudentCourses";
 import { useAllCourses } from "@/hooks/student/useAllCourses";
 import { usePrefetchCourse } from "@/hooks/usePrefetchCourse";
 import { useEnrollmentsWithExpiry } from "@/hooks/useEnrollmentsWithExpiry";
+import { useAllTestSeries } from "@/hooks/student/useAllTestSeries";
 import { Button } from "@/components/ui/button";
 import { CourseThumbnail } from "@/components/ui/CourseThumbnail";
 import { useEnrollCourse } from "@/hooks";
@@ -35,11 +36,11 @@ export default function StudentDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState<"overview" | "my-courses" | "all-courses" | "test-series">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "my-courses" | "all-courses" | "test-series" | "all-test-series">("overview");
 
   // Set active tab from URL parameter
   useEffect(() => {
-    if (tabParam === "my-courses" || tabParam === "all-courses" || tabParam === "test-series") {
+    if (tabParam === "my-courses" || tabParam === "all-courses" || tabParam === "test-series" || tabParam === "all-test-series") {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
@@ -51,6 +52,7 @@ export default function StudentDashboard() {
   const { data: lastAttempt } = useLastAttempt(user?.id);
   const { data: myCourses, isLoading: myCoursesLoading } = useStudentCourses(user?.id);
   const { data: allCourses, isLoading: allCoursesLoading } = useAllCourses(user?.id);
+  const { data: allTestSeries, isLoading: allTestSeriesLoading } = useAllTestSeries();
   const { data: enrollmentsWithExpiry } = useEnrollmentsWithExpiry();
 
   // Create a map of course ID to expiry info for quick lookup
@@ -279,6 +281,7 @@ export default function StudentDashboard() {
           { id: "my-courses", label: "My Courses" },
           { id: "all-courses", label: "All Courses" },
           { id: "test-series", label: "Test Series" },
+          { id: "all-test-series", label: "All Test Series" },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -296,8 +299,8 @@ export default function StudentDashboard() {
       {/* Tab Content */}
       {activeTab === "overview" && (
         <div className="space-y-6">
-          {/* Recent Courses */}
-          {myCourses && myCourses.length > 0 && (
+          {/* Recent Courses & Test Series */}
+          {((myCourses && myCourses.length > 0) || (testSeries && testSeries.length > 0)) && (
             <motion.div
               variants={fadeIn}
               initial="hidden"
@@ -317,7 +320,8 @@ export default function StudentDashboard() {
                 </Button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {myCourses.slice(0, 3).map((course) => (
+                {/* Courses */}
+                {myCourses?.slice(0, 2).map((course) => (
                   <motion.div
                     key={course.id}
                     whileHover={{ scale: 1.02 }}
@@ -327,15 +331,18 @@ export default function StudentDashboard() {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-semibold text-slate-800 dark:text-white flex-1">{course.title}</h4>
-                      {expiryMap.has(course.id) && (
-                        <DashboardExpiryBadge
-                          daysRemaining={expiryMap.get(course.id).daysRemaining}
-                          isExpired={expiryMap.get(course.id).isExpired}
-                          urgencyLevel={expiryMap.get(course.id).urgencyLevel}
-                        />
-                      )}
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                        Course
+                      </span>
                     </div>
-                    <div className="flex justify-between text-xs mb-2 text-slate-500 dark:text-slate-400">
+                    {expiryMap.has(course.id) && (
+                      <DashboardExpiryBadge
+                        daysRemaining={expiryMap.get(course.id).daysRemaining}
+                        isExpired={expiryMap.get(course.id).isExpired}
+                        urgencyLevel={expiryMap.get(course.id).urgencyLevel}
+                      />
+                    )}
+                    <div className="flex justify-between text-xs mb-2 text-slate-500 dark:text-slate-400 mt-2">
                       <span>Progress</span>
                       <span>{course.progress_percentage.toFixed(0)}%</span>
                     </div>
@@ -343,6 +350,41 @@ export default function StudentDashboard() {
                       <div
                         className="h-2 rounded-full bg-linear-to-r from-indigo-500 to-purple-500"
                         style={{ width: `${course.progress_percentage}%` }}
+                      />
+                    </div>
+                  </motion.div>
+                ))}
+
+                {/* Test Series */}
+                {testSeries?.slice(0, 1).map((test) => (
+                  <motion.div
+                    key={test.id}
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => handleContinueCourse(test.id)}
+                    onMouseEnter={() => prefetchCourse(test.id)}
+                    className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-semibold text-slate-800 dark:text-white flex-1">{test.title}</h4>
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                        Test Series
+                      </span>
+                    </div>
+                    {expiryMap.has(test.id) && (
+                      <DashboardExpiryBadge
+                        daysRemaining={expiryMap.get(test.id).daysRemaining}
+                        isExpired={expiryMap.get(test.id).isExpired}
+                        urgencyLevel={expiryMap.get(test.id).urgencyLevel}
+                      />
+                    )}
+                    <div className="flex justify-between text-xs mb-2 text-slate-500 dark:text-slate-400 mt-2">
+                      <span>Progress</span>
+                      <span>{test.progress.toFixed(0)}%</span>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700">
+                      <div
+                        className="h-2 rounded-full bg-linear-to-r from-indigo-500 to-purple-500"
+                        style={{ width: `${test.progress}%` }}
                       />
                     </div>
                   </motion.div>
@@ -527,41 +569,53 @@ export default function StudentDashboard() {
               <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
             </div>
           ) : testSeries && testSeries.length > 0 ? (
-            <div className="space-y-4">
-              {testSeries.map((test, idx) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {testSeries.map((test) => (
                 <motion.div
                   key={test.id}
                   whileHover={{ scale: 1.02 }}
-                  onClick={() => handleViewSeries(test.id)}
-                  className="p-4 rounded-2xl border border-slate-100 dark:border-slate-700 bg-linear-to-br from-white to-indigo-50 dark:from-slate-800 dark:to-slate-900 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer"
+                  onClick={() => handleContinueCourse(test.id)}
+                  onMouseEnter={() => prefetchCourse(test.id)}
+                  className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md cursor-pointer"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-xl bg-indigo-100 dark:bg-slate-700">
-                      {getSeriesIcon(idx)}
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-slate-800 dark:text-white">{test.title}</h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Next Exam: {test.nextExamName || "No upcoming exams"}
-                        {test.nextExamDate && ` - ${formatDate(test.nextExamDate)}`}
-                      </p>
-                    </div>
+                  <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">
+                    <CourseThumbnail
+                      src={test.thumbnail_url}
+                      title={test.title}
+                      category="Test Series"
+                      className="w-full h-full"
+                    />
                   </div>
-
-                  <div className="w-full sm:w-56">
-                    <div className="flex justify-between text-xs mb-1 text-slate-500 dark:text-slate-400">
-                      <span>Progress ({test.completedExams}/{test.totalExams})</span>
-                      <span>{test.progress}%</span>
-                    </div>
-                    <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${test.progress}%` }}
-                        transition={{ duration: 1 }}
-                        className="h-2 rounded-full bg-linear-to-r from-indigo-500 to-purple-500"
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-semibold text-slate-800 dark:text-white flex-1">{test.title}</h4>
+                    {expiryMap.has(test.id) && (
+                      <DashboardExpiryBadge
+                        daysRemaining={expiryMap.get(test.id).daysRemaining}
+                        isExpired={expiryMap.get(test.id).isExpired}
+                        urgencyLevel={expiryMap.get(test.id).urgencyLevel}
                       />
-                    </div>
+                    )}
                   </div>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{test.description}</p>
+                  <div className="flex justify-between text-xs mb-2 text-slate-500 dark:text-slate-400">
+                    <span>{test.completedExams}/{test.totalExams} exams</span>
+                    <span>{test.progress.toFixed(0)}%</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 mb-3">
+                    <div
+                      className="h-2 rounded-full bg-linear-to-r from-indigo-500 to-purple-500"
+                      style={{ width: `${test.progress}%` }}
+                    />
+                  </div>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleContinueCourse(test.id);
+                    }}
+                    className="w-full bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                  >
+                    Continue Learning
+                  </Button>
                 </motion.div>
               ))}
             </div>
@@ -569,7 +623,90 @@ export default function StudentDashboard() {
             <div className="text-center py-8 text-slate-500 dark:text-slate-400">
               <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>No test series enrolled yet</p>
-              <p className="text-sm mt-1">Contact your admin to get enrolled in test series</p>
+              <p className="text-sm mt-1">Browse available test series to get started</p>
+              <Button
+                onClick={() => setActiveTab("all-test-series")}
+                className="mt-4 bg-indigo-600 hover:bg-indigo-700"
+              >
+                Browse Test Series
+              </Button>
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {activeTab === "all-test-series" && (
+        <motion.div
+          variants={fadeIn}
+          initial="hidden"
+          animate="visible"
+          custom={5}
+          className="rounded-3xl bg-white/70 dark:bg-slate-800/60 backdrop-blur-lg p-6 shadow-xl border border-slate-100 dark:border-slate-700"
+        >
+          <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">All Test Series</h3>
+
+          {allTestSeriesLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+            </div>
+          ) : allTestSeries && allTestSeries.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {allTestSeries.map((series: any) => (
+                <motion.div
+                  key={series.id}
+                  whileHover={{ scale: 1.02 }}
+                  onMouseEnter={() => prefetchCourse(series.id)}
+                  className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md"
+                >
+                  <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">
+                    <CourseThumbnail
+                      src={series.thumbnail_url}
+                      title={series.title}
+                      category="Test Series"
+                      className="w-full h-full"
+                    />
+                  </div>
+                  <h4 className="font-semibold text-slate-800 dark:text-white mb-2">{series.title}</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{series.description}</p>
+                  <div className="flex justify-between text-xs mb-3 text-slate-500 dark:text-slate-400">
+                    <span>{series.total_lessons || 0} exams</span>
+                    <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                      {series.price === 0 ? "Free" : `₹${series.price}`}
+                    </span>
+                  </div>
+                  {series.is_enrolled ? (
+                    <Button
+                      onClick={() => handleContinueCourse(series.id)}
+                      className="w-full bg-green-600 hover:bg-green-700"
+                    >
+                      Continue Learning
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => handleEnrollCourse(series.id, series.price)}
+                      disabled={enrollingCourseId === series.id}
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      {enrollingCourseId === series.id ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Enrolling...
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="w-4 h-4 mr-2" />
+                          {series.price === 0 ? "Enroll Free" : "View Details"}
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+              <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>No test series available yet</p>
             </div>
           )}
         </motion.div>

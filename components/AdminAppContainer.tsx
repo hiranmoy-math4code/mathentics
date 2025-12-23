@@ -27,9 +27,6 @@ const StudentsPage = dynamic(() => import('@/app/admin/students/page'), {
 const ExamsPage = dynamic(() => import('@/app/admin/exams/page'), {
     ssr: false,
 });
-const TestSeriesPage = dynamic(() => import('@/app/admin/test-series/page'), {
-    ssr: false,
-});
 const SettingsPage = dynamic(() => import('@/app/admin/settings/page'), {
     ssr: false,
 });
@@ -81,9 +78,6 @@ export function AdminAppContainer({ initialRoute }: AdminAppContainerProps) {
         }
         if (currentRoute.startsWith('/admin/exams')) {
             return <ExamsPage />;
-        }
-        if (currentRoute.startsWith('/admin/test-series')) {
-            return <TestSeriesPage />;
         }
         if (currentRoute.startsWith('/admin/settings')) {
             return <SettingsPage />;

@@ -7,6 +7,7 @@ interface TestSeriesProgress {
     id: string;
     title: string;
     description: string | null;
+    thumbnail_url: string | null;
     progress: number;
     completedExams: number;
     totalExams: number;
@@ -22,26 +23,29 @@ export function useStudentTestSeries(userId: string | undefined) {
 
             const supabase = createClient();
 
-            // Call Optimized RPC
+            // Use same RPC as courses - it returns ALL enrolled courses
             const { data, error } = await supabase
-                .rpc('get_student_test_series_progress', { target_user_id: userId });
+                .rpc('get_student_courses_progress', { target_user_id: userId });
 
             if (error) {
+                console.error('Error fetching student test series:', error);
                 throw error;
             }
 
-            // Map RPC result to interface (handling snake_case to camelCase mapping if needed, 
-            // though TS usually handles it if we match names. Here we need to map manually 
-            // because RPC returns snake_case by default for columns)
-            return (data || []).map((item: any) => ({
+            // Filter to show only test series
+            const testSeries = (data || []).filter((item: any) => item.course_type === 'test_series');
+
+            // Map to expected format
+            return testSeries.map((item: any) => ({
                 id: item.id,
                 title: item.title,
                 description: item.description,
-                progress: item.progress,
-                completedExams: item.completed_exams,
-                totalExams: item.total_exams,
-                nextExamDate: item.next_exam_date,
-                nextExamName: item.next_exam_name
+                thumbnail_url: item.thumbnail_url,
+                progress: item.progress_percentage || 0,
+                completedExams: item.completed_lessons || 0,
+                totalExams: item.total_lessons || 0,
+                nextExamDate: null,
+                nextExamName: null
             }));
         },
         enabled: !!userId,

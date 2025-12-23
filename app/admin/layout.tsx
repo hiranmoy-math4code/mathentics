@@ -12,7 +12,7 @@ import {
   IconUserBolt,
 } from "@tabler/icons-react";
 
-// export const runtime = 'edge';
+export const runtime = 'edge';
 
 export default async function AdminLayout({
   children,
@@ -43,7 +43,6 @@ export default async function AdminLayout({
     { icon: "book-open", label: "Courses", href: "/admin/courses" },
     { icon: "question", label: "Question Bank", href: "/admin/question-bank" },
     { icon: "grid", label: "Exam", href: "/admin/exams" },
-    { icon: "book", label: "Test Series", href: "/admin/test-series" },
     { icon: "payment", label: "Payments", href: "/admin/payments" },
     { icon: "user", label: "Students", href: "/admin/students" },
     { icon: "messagesquare", label: "Community", href: "#", onClick: "openCommunity" },

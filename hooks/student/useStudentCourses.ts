@@ -22,7 +22,7 @@ export function useStudentCourses(userId: string | undefined) {
 
             const supabase = createClient()
 
-            // Call the optimized RPC function
+            // Call optimized RPC function
             const { data, error } = await supabase
                 .rpc('get_student_courses_progress', { target_user_id: userId })
                 .abortSignal(signal);
@@ -32,10 +32,15 @@ export function useStudentCourses(userId: string | undefined) {
                 if (error.code === '20' || error.message.includes('AbortError') || error.message.includes('aborted')) {
                     return [];
                 }
+                console.error('Error fetching student courses:', error);
                 throw error
             }
 
-            return data as EnrolledCourse[]
+            // Filter to show only courses (not test series)
+            // RPC returns both courses and test series, we filter client-side
+            const courses = (data || []).filter((item: any) => item.course_type === 'course');
+
+            return courses as EnrolledCourse[]
         },
         enabled: !!userId,
         staleTime: 0, // Keeping 0 for now as per your request for immediate updates

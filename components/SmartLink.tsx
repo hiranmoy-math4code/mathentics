@@ -83,10 +83,11 @@ export function SmartLink({
         // List of routes that are handled by the SPA containers
         const spaRoutes = [
             '/admin/dashboard', '/admin/courses', '/admin/question-bank',
-            '/admin/exams', '/admin/test-series', '/admin/payments',
+            '/admin/exams', '/admin/payments',
             '/admin/students', '/admin/settings',
             '/student/dashboard', '/student/results', '/student/rewards',
-            '/student/settings', '/student/my-series'
+            '/student/settings', '/student/my-series', '/student/my-courses',
+            '/student/all-courses', '/student/all-test-series'
         ];
 
         const isExactSpaRoute = spaRoutes.includes(href);

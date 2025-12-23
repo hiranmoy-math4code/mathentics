@@ -27,31 +27,31 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Get series details
-        const { data: series, error: seriesError } = await supabase
-            .from("test_series")
+        // Get course details (works for both courses and test series)
+        const { data: course, error: courseError } = await supabase
+            .from("courses")
             .select("*")
             .eq("id", seriesId)
             .single();
 
-        if (seriesError || !series) {
+        if (courseError || !course) {
             return NextResponse.json(
-                { success: false, error: "Test series not found" },
+                { success: false, error: "Course not found" },
                 { status: 404 }
             );
         }
 
         // Check if already enrolled
         const { data: existingEnrollment } = await supabase
-            .from("test_series_enrollments")
+            .from("enrollments")
             .select("id")
-            .eq("test_series_id", seriesId)
-            .eq("student_id", userId)
+            .eq("course_id", seriesId)
+            .eq("user_id", userId)
             .single();
 
         if (existingEnrollment) {
             return NextResponse.json(
-                { success: false, error: "Already enrolled in this series" },
+                { success: false, error: "Already enrolled in this course" },
                 { status: 400 }
             );
         }

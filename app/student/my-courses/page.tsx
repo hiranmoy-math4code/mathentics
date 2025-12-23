@@ -1,0 +1,164 @@
+"use client";
+
+import React from "react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { BookOpen, Loader2, GraduationCap, PlayCircle } from "lucide-react";
+import { useCurrentUser } from "@/hooks/student/useCurrentUser";
+import { useStudentCourses } from "@/hooks/student/useStudentCourses";
+import { usePrefetchCourse } from "@/hooks/usePrefetchCourse";
+import { Button } from "@/components/ui/button";
+import { CourseThumbnail } from "@/components/ui/CourseThumbnail";
+import { DashboardExpiryBadge } from "@/components/student/ExpiryComponents";
+import { useEnrollmentsWithExpiry } from "@/hooks/useEnrollmentsWithExpiry";
+
+export default function MyCourses() {
+    const router = useRouter();
+    const { data: user, isLoading: userLoading } = useCurrentUser();
+    const { data: myCourses, isLoading: coursesLoading } = useStudentCourses(user?.id);
+    const { data: enrollmentsWithExpiry } = useEnrollmentsWithExpiry();
+    const { prefetchCourse } = usePrefetchCourse();
+
+    // Create expiry map
+    const expiryMap = new Map();
+    enrollmentsWithExpiry?.forEach((enrollment: any) => {
+        expiryMap.set(enrollment.course_id, {
+            daysRemaining: enrollment.daysRemaining,
+            isExpired: enrollment.isExpired,
+            urgencyLevel: enrollment.urgencyLevel
+        });
+    });
+
+    const fadeIn = {
+        hidden: { opacity: 0, y: 20 },
+        visible: (i: number) => ({
+            opacity: 1,
+            y: 0,
+            transition: { delay: i * 0.1, duration: 0.5 },
+        }),
+    };
+
+    const handleContinueCourse = (courseId: string) => {
+        router.push(`/learn/${courseId}`);
+    };
+
+    if (coursesLoading) {
+        return (
+            <div className="p-6 md:p-10 space-y-8 bg-linear-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen">
+                <div className="rounded-3xl p-6 md:p-8 bg-white/60 dark:bg-slate-800/60 backdrop-blur-lg shadow-xl border border-slate-100 dark:border-slate-700 animate-pulse">
+                    <div className="h-8 w-64 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
+                    <div className="h-4 w-96 bg-slate-100 dark:bg-slate-600 rounded" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="p-4 rounded-xl bg-white/70 dark:bg-slate-800/60 shadow-lg border border-slate-100 dark:border-slate-700 animate-pulse">
+                            <div className="h-40 bg-slate-200 dark:bg-slate-700 rounded-lg mb-3" />
+                            <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
+                            <div className="h-4 bg-slate-100 dark:bg-slate-600 rounded" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="p-6 md:p-10 space-y-8 bg-linear-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen">
+            {/* Header */}
+            <motion.div
+                variants={fadeIn}
+                initial="hidden"
+                animate="visible"
+                className="rounded-3xl p-6 md:p-8 bg-white/60 dark:bg-slate-800/60 backdrop-blur-lg shadow-xl border border-slate-100 dark:border-slate-700"
+            >
+                <h1 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white mb-2">
+                    My Courses
+                </h1>
+                <p className="text-slate-600 dark:text-slate-400">
+                    Track your enrolled courses and progress
+                </p>
+            </motion.div>
+
+            {/* Courses Cards */}
+            <motion.div
+                variants={fadeIn}
+                initial="hidden"
+                animate="visible"
+                custom={1}
+                className="rounded-3xl bg-white/70 dark:bg-slate-800/60 backdrop-blur-lg p-6 shadow-xl border border-slate-100 dark:border-slate-700"
+            >
+                <h3 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Your Courses</h3>
+
+                {coursesLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+                    </div>
+                ) : myCourses && myCourses.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {myCourses.map((course) => (
+                            <motion.div
+                                key={course.id}
+                                whileHover={{ scale: 1.02 }}
+                                onClick={() => handleContinueCourse(course.id)}
+                                onMouseEnter={() => prefetchCourse(course.id)}
+                                className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md cursor-pointer"
+                            >
+                                <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">
+                                    <CourseThumbnail
+                                        src={course.thumbnail_url}
+                                        title={course.title}
+                                        category="Enrolled"
+                                        className="w-full h-full"
+                                    />
+                                </div>
+                                <div className="flex items-start justify-between mb-2">
+                                    <h4 className="font-semibold text-slate-800 dark:text-white flex-1">{course.title}</h4>
+                                    {expiryMap.has(course.id) && (
+                                        <DashboardExpiryBadge
+                                            daysRemaining={expiryMap.get(course.id).daysRemaining}
+                                            isExpired={expiryMap.get(course.id).isExpired}
+                                            urgencyLevel={expiryMap.get(course.id).urgencyLevel}
+                                        />
+                                    )}
+                                </div>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{course.description}</p>
+                                <div className="flex justify-between text-xs mb-2 text-slate-500 dark:text-slate-400">
+                                    <span>{course.completed_lessons}/{course.total_lessons} lessons</span>
+                                    <span>{course.progress_percentage.toFixed(0)}%</span>
+                                </div>
+                                <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 mb-3">
+                                    <div
+                                        className="h-2 rounded-full bg-linear-to-r from-indigo-500 to-purple-500"
+                                        style={{ width: `${course.progress_percentage}%` }}
+                                    />
+                                </div>
+                                <Button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleContinueCourse(course.id);
+                                    }}
+                                    className="w-full bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                                >
+                                    <PlayCircle className="w-4 h-4 mr-2" />
+                                    Continue Learning
+                                </Button>
+                            </motion.div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                        <GraduationCap className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                        <p>No courses enrolled yet</p>
+                        <p className="text-sm mt-1">Browse available courses to get started</p>
+                        <Button
+                            onClick={() => router.push("/student/all-courses")}
+                            className="mt-4 bg-indigo-600 hover:bg-indigo-700"
+                        >
+                            Browse Courses
+                        </Button>
+                    </div>
+                )}
+            </motion.div>
+        </div>
+    );
+}

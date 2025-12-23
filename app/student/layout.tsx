@@ -29,8 +29,8 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
   const links = [
     { icon: "home", label: "Dashboard", href: "/student/dashboard" },
-    { icon: "bookopen", label: "My Courses", href: "/student/dashboard?tab=my-courses" },
-    { icon: "layers", label: "All Courses", href: "/student/dashboard?tab=all-courses" },
+    { icon: "bookopen", label: "My Courses", href: "/student/my-courses" },
+    { icon: "layers", label: "All Courses", href: "/student/all-courses" },
     { icon: "messagesquare", label: "Community", href: "#", onClick: "openCommunity" },
     { icon: "trendingup", label: "My Series", href: "/student/my-series" },
     {

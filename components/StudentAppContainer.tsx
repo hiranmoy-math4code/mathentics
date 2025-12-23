@@ -30,6 +30,15 @@ const SettingsPage = dynamic(() => import('@/app/student/settings/page'), {
 const MySeriesPage = dynamic(() => import('@/app/student/my-series/page'), {
     ssr: false,
 });
+const AllTestSeriesPage = dynamic(() => import('@/app/student/all-test-series/page'), {
+    ssr: false,
+});
+const MyCoursesPage = dynamic(() => import('@/app/student/my-courses/page'), {
+    ssr: false,
+});
+const AllCoursesPage = dynamic(() => import('@/app/student/all-courses/page'), {
+    ssr: false,
+});
 
 interface StudentAppContainerProps {
     initialRoute?: string;
@@ -63,6 +72,13 @@ export function StudentAppContainer({ initialRoute }: StudentAppContainerProps) 
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
+    // Sync with pathname changes (for when Next.js router changes the URL)
+    useEffect(() => {
+        if (pathname && pathname !== currentRoute) {
+            setCurrentRoute(pathname);
+        }
+    }, [pathname]);
+
     // Expose navigation function globally for SmartLink
     useEffect(() => {
         (window as any).__studentNavigate = navigateTo;
@@ -79,8 +95,17 @@ export function StudentAppContainer({ initialRoute }: StudentAppContainerProps) 
         if (currentRoute.startsWith('/student/settings')) {
             return <SettingsPage />;
         }
+        if (currentRoute.startsWith('/student/all-test-series')) {
+            return <AllTestSeriesPage />;
+        }
         if (currentRoute.startsWith('/student/my-series')) {
             return <MySeriesPage />;
+        }
+        if (currentRoute.startsWith('/student/my-courses')) {
+            return <MyCoursesPage />;
+        }
+        if (currentRoute.startsWith('/student/all-courses')) {
+            return <AllCoursesPage />;
         }
         // Default to dashboard
         return <DashboardPage />;
