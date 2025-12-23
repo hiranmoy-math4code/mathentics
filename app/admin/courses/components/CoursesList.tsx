@@ -329,7 +329,7 @@ function CourseCard({ course, index, onDelete, onToggle }: { course: Course; ind
                                     <MessageSquare className="h-4 w-4 mr-2" /> Community
                                 </Button>
                             )}
-                            <Link href={`/admin/courses/${course.id}/builder`}>
+                            <Link href={`/admin/courses/${course.id}`}>
                                 <Button variant="outline" size="sm" className="hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 border-slate-200 dark:border-slate-700">
                                     <Edit className="h-4 w-4 mr-2" /> Manage
                                 </Button>
@@ -341,6 +341,11 @@ function CourseCard({ course, index, onDelete, onToggle }: { course: Course; ind
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                    <Link href={`/admin/courses/${course.id}/analytics`}>
+                                        <DropdownMenuItem className="cursor-pointer">
+                                            <BarChart className="mr-2 h-4 w-4" /> Analytics
+                                        </DropdownMenuItem>
+                                    </Link>
                                     <DropdownMenuItem
                                         className="text-red-600 cursor-pointer focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"
                                         onClick={onDelete}
@@ -412,7 +417,7 @@ function CourseRow({ course, index, onDelete, onToggle }: { course: Course; inde
 
                 <div className="flex items-center gap-2">
                     <CourseLearnersDialog courseId={course.id} courseTitle={course.title} />
-                    <Link href={`/admin/courses/${course.id}/builder`}>
+                    <Link href={`/admin/courses/${course.id}`}>
                         <Button variant="outline" size="sm" className="hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400">
                             Manage
                         </Button>

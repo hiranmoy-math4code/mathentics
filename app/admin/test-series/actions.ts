@@ -67,3 +67,15 @@ export async function addExamToSeries(seriesId: string, examId: string, examOrde
   revalidatePath(`/admin/test-series/${seriesId}`)
   return { success: true }
 }
+export async function updateExamInSeries(seriesId: string, examId: string, updates: { max_attempts?: number, exam_order?: number }) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("test_series_exams")
+    .update(updates)
+    .eq("test_series_id", seriesId)
+    .eq("exam_id", examId)
+
+  if (error) throw error
+  revalidatePath(`/admin/test-series/${seriesId}`)
+  return { success: true }
+}

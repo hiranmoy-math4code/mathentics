@@ -80,14 +80,25 @@ export function SmartLink({
             onClick();
         }
 
-        // ⚡ INSTANT STUDENT NAVIGATION: Use StudentAppContainer if available
-        if (href.startsWith('/student/') && (window as any).__studentNavigate) {
+        // List of routes that are handled by the SPA containers
+        const spaRoutes = [
+            '/admin/dashboard', '/admin/courses', '/admin/question-bank',
+            '/admin/exams', '/admin/test-series', '/admin/payments',
+            '/admin/students', '/admin/settings',
+            '/student/dashboard', '/student/results', '/student/rewards',
+            '/student/settings', '/student/my-series'
+        ];
+
+        const isExactSpaRoute = spaRoutes.includes(href);
+
+        // ⚡ INSTANT STUDENT NAVIGATION: Use StudentAppContainer if available and route is SPA-able
+        if (href.startsWith('/student/') && (window as any).__studentNavigate && isExactSpaRoute) {
             (window as any).__studentNavigate(href);
             return;
         }
 
-        // ⚡ INSTANT ADMIN NAVIGATION: Use AdminAppContainer if available
-        if (href.startsWith('/admin/') && (window as any).__adminNavigate) {
+        // ⚡ INSTANT ADMIN NAVIGATION: Use AdminAppContainer if available and route is SPA-able
+        if (href.startsWith('/admin/') && (window as any).__adminNavigate && isExactSpaRoute) {
             (window as any).__adminNavigate(href);
             return;
         }

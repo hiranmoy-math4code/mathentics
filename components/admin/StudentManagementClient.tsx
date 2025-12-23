@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getStudentsWithEnrollments } from '@/actions/admin/students';
+import { useEffect, useState, useMemo } from 'react';
+import { useAdminStudents } from '@/hooks/admin/useAdminStudents';
 import { AddStudentDialog } from '@/components/admin/AddStudentDialog';
 import { GrantAccessDialog } from '@/components/admin/GrantAccessDialog';
 import { EditExpiryDialog } from '@/components/admin/EditExpiryDialog';
@@ -28,6 +28,7 @@ import {
     Calendar
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SmartLink } from '@/components/SmartLink';
 import Link from 'next/link';
 
 interface Student {
@@ -43,9 +44,6 @@ interface Student {
 }
 
 export default function StudentManagementClient({ courses, testSeries }: any) {
-    const [students, setStudents] = useState<Student[]>([]);
-    const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
-    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired'>('all');
 
@@ -54,30 +52,18 @@ export default function StudentManagementClient({ courses, testSeries }: any) {
     const [editExpiryOpen, setEditExpiryOpen] = useState(false);
     const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
 
-    const loadStudents = async () => {
-        setLoading(true);
-        const result = await getStudentsWithEnrollments({ status: statusFilter });
-        if (result.success) {
-            setStudents(result.data || []);
-            setFilteredStudents(result.data || []);
-        }
-        setLoading(false);
-    };
+    // ⚡ REACT QUERY: Managed fetching and caching
+    const { data: students = [], isLoading: loading, refetch } = useAdminStudents({
+        status: statusFilter
+    });
 
-    useEffect(() => {
-        loadStudents();
-    }, [statusFilter]);
-
-    useEffect(() => {
-        if (searchQuery) {
-            const filtered = students.filter(s =>
-                s.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                s.email?.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-            setFilteredStudents(filtered);
-        } else {
-            setFilteredStudents(students);
-        }
+    // Client-side filtering
+    const filteredStudents = useMemo(() => {
+        if (!searchQuery) return students;
+        return students.filter(s =>
+            s.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            s.email?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
     }, [searchQuery, students]);
 
     // Stats
@@ -302,12 +288,12 @@ export default function StudentManagementClient({ courses, testSeries }: any) {
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <Link href={`/admin/students/${student.id}`}>
+                                                <SmartLink href={`/admin/students/${student.id}`}>
                                                     <Button variant="ghost" size="sm" className="gap-2">
                                                         <Eye className="w-4 h-4" />
                                                         View
                                                     </Button>
-                                                </Link>
+                                                </SmartLink>
                                             </td>
                                         </tr>
                                     ))}
@@ -322,19 +308,19 @@ export default function StudentManagementClient({ courses, testSeries }: any) {
             <AddStudentDialog
                 open={addStudentOpen}
                 onOpenChange={setAddStudentOpen}
-                onSuccess={loadStudents}
+                onSuccess={() => refetch()}
             />
             <GrantAccessDialog
                 open={grantAccessOpen}
                 onOpenChange={setGrantAccessOpen}
-                onSuccess={loadStudents}
+                onSuccess={() => refetch()}
                 courses={courses}
                 testSeries={testSeries}
             />
             <EditExpiryDialog
                 open={editExpiryOpen}
                 onOpenChange={setEditExpiryOpen}
-                onSuccess={loadStudents}
+                onSuccess={() => refetch()}
                 enrollment={selectedEnrollment}
             />
         </div>

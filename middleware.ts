@@ -4,8 +4,29 @@ import { NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 
 export async function middleware(request: NextRequest) {
+  // Add the current URL to the request headers so it's accessible in Server Components
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set("x-url", request.nextUrl.pathname)
+
   // Update session and get response
-  const response = await updateSession(request)
+  let response = await updateSession(request)
+
+  // Attach our custom headers to the request so Server Components can see them
+  // We do this by creating a new response based on the old one but with modified request headers
+  if (response.status === 200) {
+    const nextResponse = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
+
+    // Copy cookies from updateSession response to the new response
+    response.cookies.getAll().forEach(cookie => {
+      nextResponse.cookies.set(cookie.name, cookie.value)
+    })
+
+    response = nextResponse
+  }
 
   // ⚡ EDGE AUTH: Check admin routes before rendering
   if (request.nextUrl.pathname.startsWith('/admin')) {

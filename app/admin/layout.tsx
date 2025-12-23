@@ -2,6 +2,8 @@ import type React from "react";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import AdminClientLayout from "./AdminClientLayout";
+import { AdminAppContainer } from "@/components/admin/AdminAppContainer";
+import { headers } from "next/headers";
 import { Home, Grid, BarChart2, User, Settings } from "lucide-react";
 import {
   IconArrowLeft,
@@ -10,7 +12,7 @@ import {
   IconUserBolt,
 } from "@tabler/icons-react";
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export default async function AdminLayout({
   children,
@@ -21,6 +23,9 @@ export default async function AdminLayout({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const headersList = await headers();
+  const pathname = headersList.get("x-url") || "/admin/dashboard";
 
   if (!user) redirect("/auth/login");
 
@@ -45,5 +50,11 @@ export default async function AdminLayout({
     { icon: "settings", label: "Settings", href: "/admin/settings" },
   ];
 
-  return <AdminClientLayout profile={profile} links={links}>{children}</AdminClientLayout>;
+  return (
+    <AdminClientLayout profile={profile} links={links}>
+      <AdminAppContainer initialRoute={pathname}>
+        {children}
+      </AdminAppContainer>
+    </AdminClientLayout>
+  );
 }

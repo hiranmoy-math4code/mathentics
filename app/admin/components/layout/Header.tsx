@@ -49,10 +49,13 @@ export default function Header({
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (!target) return;
+
+      if (profileRef.current && !profileRef.current.contains(target)) {
         setOpenProfile(false);
       }
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+      if (notifRef.current && !notifRef.current.contains(target)) {
         setOpenNotif(false);
       }
     };

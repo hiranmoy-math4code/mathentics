@@ -241,13 +241,45 @@ export async function getStudentsWithEnrollments(filters?: {
 }
 
 /**
- * Get detailed info for a single student
+ * Get exam attempts for a specific student
+ */
+export async function getStudentAttempts(userId: string) {
+    const supabase = createAdminClient();
+
+    try {
+        const { data: rawData, error } = await supabase
+            .from('exam_attempts')
+            .select(`
+                *,
+                exams (
+                    id,
+                    title,
+                    total_marks
+                ),
+                results (*)
+            `)
+            .eq('student_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Flatten results
+        const data = rawData?.map(att => ({
+            ...att,
+            results: Array.isArray(att.results) ? att.results[0] : att.results
+        })) || [];
+
+        return { success: true, data };
+    } catch (error: any) {
+        return { error: error.message };
+    }
+}
+
+/**
+ * Get detailed info for a single student with stats
  */
 export async function getStudentDetails(userId: string) {
-    const supabase = await createClient();
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: 'Unauthorized' };
+    const supabase = createAdminClient();
 
     try {
         // Get student profile
@@ -259,65 +291,159 @@ export async function getStudentDetails(userId: string) {
 
         if (studentError) throw studentError;
 
+        // Get active sessions count
+        // Note: Accessing auth schema may require special permissions
+        let activeSessions = 0;
+        try {
+            const { count, error: sessionsError } = await supabase
+                .schema('auth')
+                .from('sessions')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', userId);
+
+            if (sessionsError) {
+                console.error('Session count error:', sessionsError);
+            } else {
+                activeSessions = count || 0;
+            }
+        } catch (err) {
+            console.error('Failed to fetch session count:', err);
+            // Fallback: activeSessions remains 0
+        }
+
         // Get enrollments
         const { data: enrollments } = await supabase
             .from('enrollments')
             .select(`
-        *,
-        courses (
-          id,
-          title,
-          thumbnail_url,
-          price
-        ),
-        granted_by_profile:profiles!enrollments_granted_by_fkey (
-          id,
-          full_name
-        )
-      `)
+                *,
+                courses (
+                    id,
+                    title,
+                    thumbnail_url,
+                    price
+                ),
+                granted_by_profile:profiles!enrollments_granted_by_fkey (
+                    id,
+                    full_name
+                )
+            `)
             .eq('user_id', userId);
 
         // Get test series enrollments
         const { data: testSeriesEnrollments } = await supabase
             .from('test_series_enrollments')
             .select(`
-        *,
-        test_series (
-          id,
-          title,
-          price
-        ),
-        granted_by_profile:profiles!test_series_enrollments_granted_by_fkey (
-          id,
-          full_name
-        )
-      `)
+                *,
+                test_series (
+                    id,
+                    title,
+                    price
+                ),
+                granted_by_profile:profiles!test_series_enrollments_granted_by_fkey (
+                    id,
+                    full_name
+                )
+            `)
             .eq('student_id', userId);
 
-        // Get enrollment logs
-        const { data: logs } = await supabase
-            .from('enrollment_logs')
+        const { data: rawAttempts } = await supabase
+            .from('exam_attempts')
             .select(`
-        *,
-        performed_by_profile:profiles!enrollment_logs_performed_by_fkey (
-          id,
-          full_name
-        )
-      `)
-            .or(`enrollment_id.in.(${enrollments?.map(e => e.id).join(',')}),test_series_enrollment_id.in.(${testSeriesEnrollments?.map(e => e.id).join(',')})`)
-            .order('created_at', { ascending: false })
-            .limit(50);
+                *,
+                exams (id, title, total_marks),
+                results (percentage, obtained_marks)
+            `)
+            .eq('student_id', userId)
+            .order('created_at', { ascending: false });
+
+        // Transform attempts to handle singular results object
+        const attempts = rawAttempts?.map(att => ({
+            ...att,
+            results: Array.isArray(att.results) ? att.results[0] : att.results
+        })) || [];
+
+        // Get enrollment logs
+        const enrollmentIds = enrollments?.map(e => e.id) || [];
+        const testSeriesIds = testSeriesEnrollments?.map(e => e.id) || [];
+
+        let logs: any[] = [];
+        if (enrollmentIds.length > 0 || testSeriesIds.length > 0) {
+            const orConditions = [];
+            if (enrollmentIds.length > 0) orConditions.push(`enrollment_id.in.(${enrollmentIds.join(',')})`);
+            if (testSeriesIds.length > 0) orConditions.push(`test_series_enrollment_id.in.(${testSeriesIds.join(',')})`);
+
+            const { data: logData } = await supabase
+                .from('enrollment_logs')
+                .select(`
+                    *,
+                    performed_by_profile:profiles!enrollment_logs_performed_by_fkey (
+                        id,
+                        full_name
+                    )
+                `)
+                .or(orConditions.join(','))
+                .order('created_at', { ascending: false })
+                .limit(50);
+
+            logs = logData || [];
+        }
+
+        // Calculate Stats
+        const submittedAttempts = attempts.filter(a => a.status === 'submitted');
+        const avgPercentage = submittedAttempts.length > 0
+            ? submittedAttempts.reduce((acc, curr) => acc + (curr.results?.percentage || 0), 0) / submittedAttempts.length
+            : 0;
 
         return {
             success: true,
             data: {
                 student,
-                enrollments,
-                testSeriesEnrollments,
-                logs
+                enrollments: enrollments || [],
+                testSeriesEnrollments: testSeriesEnrollments || [],
+                attempts: attempts || [],
+                logs,
+                activeSessions,
+                stats: {
+                    totalEnrollments: (enrollments?.length || 0) + (testSeriesEnrollments?.length || 0),
+                    totalAttempts: attempts?.length || 0,
+                    avgPercentage: Math.round(avgPercentage * 10) / 10
+                }
             }
         };
     } catch (error: any) {
+        return { error: error.message };
+    }
+}
+
+/**
+ * Reset all active sessions for a student (admin only)
+ */
+export async function resetStudentSessions(userId: string) {
+    const supabase = createAdminClient();
+
+    try {
+        // Delete all sessions for this user
+        const { error: sessionError } = await supabase
+            .schema('auth')
+            .from('sessions')
+            .delete()
+            .eq('user_id', userId);
+
+        if (sessionError) throw sessionError;
+
+        // Also delete refresh tokens to ensure they can't get a new session
+        const { error: tokenError } = await supabase
+            .schema('auth')
+            .from('refresh_tokens')
+            .delete()
+            .eq('user_id', userId);
+
+        // Note: tokenError might happen if they have no tokens, we can be lenient or log it
+
+        revalidatePath(`/admin/students/${userId}`);
+        return { success: true, message: 'All active sessions have been reset' };
+    } catch (error: any) {
+        console.error('Reset sessions error:', error);
         return { error: error.message };
     }
 }

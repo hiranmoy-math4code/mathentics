@@ -1,38 +1,52 @@
-"use server";
+"use client";
 
+import { useEffect, useState } from "react";
 import { Suspense } from "react";
 import TestSeriesHeader from "./components/TestSeriesHeader";
 import TestSeriesList from "./components/TestSeriesList";
 import TestSeriesSkeleton from "./components/TestSeriesSkeleton";
 import SeriesListWrapper from "./components/SeriesListWrapper";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
-export default async function TestSeriesPage() {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+const supabase = createClient();
 
-    // Server‑side fetch of stats
-    const { data: series, error } = await supabase
+async function fetchSeriesStats(userId: string) {
+    const { data } = await supabase
         .from("test_series")
         .select("status")
-        .eq("admin_id", user?.id);
+        .eq("admin_id", userId);
 
-    const total = series?.length ?? 0;
-    const published = series?.filter((s: any) => s.status === "published").length ?? 0;
-    const draft = series?.filter((s: any) => s.status === "draft").length ?? 0;
+    const total = data?.length ?? 0;
+    const published = data?.filter((s: any) => s.status === "published").length ?? 0;
+    const draft = data?.filter((s: any) => s.status === "draft").length ?? 0;
+
+    return { total, published, draft };
+}
+
+export default function TestSeriesPage() {
+    const [userId, setUserId] = useState<string | null>(null);
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id || null));
+    }, []);
+
+    const { data: stats, isLoading, error } = useQuery({
+        queryKey: ["admin-series-stats", userId],
+        queryFn: () => fetchSeriesStats(userId!),
+        enabled: !!userId,
+    });
 
     return (
         <div className="space-y-8 p-2 md:p-1">
             <TestSeriesHeader
-                stats={{ total, published, draft }}
-                loading={false}
+                stats={stats || { total: 0, published: 0, draft: 0 }}
+                loading={isLoading}
                 error={error ? (error as any).message : null}
             />
 
             <SeriesListWrapper>
-                <Suspense fallback={<TestSeriesSkeleton count={3} />}>
-                    <TestSeriesList />
-                </Suspense>
+                <TestSeriesList />
             </SeriesListWrapper>
         </div>
     );

@@ -53,8 +53,9 @@ const nextConfig: NextConfig = {
 
     // Experimental features for better performance
     experimental: {
-        optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts'],
+        optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts', '@tabler/icons-react'],
     },
+    transpilePackages: ['lucide-react', 'framer-motion', '@tabler/icons-react'],
 
     // Headers for caching and security
     async headers() {

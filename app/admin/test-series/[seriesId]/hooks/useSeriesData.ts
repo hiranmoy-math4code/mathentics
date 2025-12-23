@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { addExamToSeries, removeExamFromSeries, publishTestSeries, reorderExamsInSeries } from "../../actions";
+import { addExamToSeries, removeExamFromSeries, publishTestSeries, reorderExamsInSeries, updateExamInSeries } from "../../actions";
 import { toast } from "sonner";
 
 export function useSeriesExams(seriesId: string) {
@@ -109,5 +109,18 @@ export function useSeriesMutations(seriesId: string) {
         },
     });
 
-    return { addExam, removeExam, publishSeries, reorderExams };
+    const updateExam = useMutation({
+        mutationFn: async ({ examId, updates }: { examId: string, updates: { max_attempts?: number, exam_order?: number } }) => {
+            await updateExamInSeries(seriesId, examId, updates);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["series-exams", seriesId] });
+            toast.success("Exam settings updated");
+        },
+        onError: (error) => {
+            toast.error("Failed to update exam: " + error.message);
+        },
+    });
+
+    return { addExam, removeExam, publishSeries, reorderExams, updateExam };
 }

@@ -1,19 +1,35 @@
-import { createClient } from "@/lib/supabase/server";
+"use client";
+
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import CoursesList from "./components/CoursesList";
+import { useQuery } from "@tanstack/react-query";
 
-export default async function CoursesPage() {
-    const supabase = await createClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+const supabase = createClient();
 
-    if (!user) return null;
-
-    const { data: courses } = await supabase
+async function fetchCourses(userId: string) {
+    const { data } = await supabase
         .from("courses")
         .select("*")
-        .eq("creator_id", user.id)
+        .eq("creator_id", userId)
         .order("created_at", { ascending: false });
+    return data || [];
+}
+
+export default function CoursesPage() {
+    const [userId, setUserId] = useState<string | null>(null);
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id || null));
+    }, []);
+
+    const { data: courses, isLoading } = useQuery({
+        queryKey: ["admin-courses", userId],
+        queryFn: () => fetchCourses(userId!),
+        enabled: !!userId,
+    });
+
+    if (!userId && !isLoading) return null;
 
     return (
         <div className="container mx-auto py-8 px-4">
@@ -24,7 +40,15 @@ export default async function CoursesPage() {
                 </p>
             </div>
 
-            <CoursesList initialCourses={courses || []} />
+            {isLoading ? (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {[...Array(4)].map((_, i) => (
+                        <div key={i} className="h-64 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl" />
+                    ))}
+                </div>
+            ) : (
+                <CoursesList initialCourses={courses || []} />
+            )}
         </div>
     );
 }
