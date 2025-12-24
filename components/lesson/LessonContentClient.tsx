@@ -63,6 +63,7 @@ export default function LessonContentClient({
     const isPdf = lesson.content_type === "pdf";
     const isText = lesson.content_type === "text";
 
+
     // ⚡ INSTANT TRANSITIONS: Detect stale data from keepPreviousData
     // When navigating Lesson 1 → Lesson 2, fullData still contains Lesson 1 briefly
     // Show skeleton instead of wrong content for instant, correct display
