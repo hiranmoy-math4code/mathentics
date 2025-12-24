@@ -9,10 +9,7 @@ export const useCourse = (courseId: string) => {
         queryFn: async ({ signal }) => {
             const { data, error } = await supabase
                 .from('courses')
-                .select(`
-                    *,
-                    creator:profiles!courses_user_id_fkey(full_name, avatar_url)
-                `)
+                .select('*')
                 .eq('id', courseId)
                 .abortSignal(signal)
                 .single();

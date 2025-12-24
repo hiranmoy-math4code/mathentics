@@ -53,8 +53,8 @@ export function CoursePlayerClient({
     const { openCommunity } = useCommunityModal()
 
     // LAYER 2 OPTIMIZATION: Use Hooks with Cached Data
-    const { data: course } = useCourse(courseId);
-    const { data: modules } = useLessons(courseId);
+    const { data: course, isLoading: courseLoading, error: courseError } = useCourse(courseId);
+    const { data: modules, isLoading: modulesLoading, error: modulesError } = useLessons(courseId);
 
     const searchParams = useSearchParams();
     const lessonIdParam = searchParams.get("lessonId");
@@ -117,9 +117,48 @@ export function CoursePlayerClient({
     // Mutation to mark lesson complete
     const { mutate: markComplete } = useMarkLessonComplete()
 
-    // Render loading or empty states if data isn't hydrated yet (should not happen with hydration)
+    // Show loading state
+    if (courseLoading || modulesLoading) {
+        return (
+            <div className="flex h-screen bg-background">
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center space-y-4">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                        <p className="text-muted-foreground">Loading course...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state
+    if (courseError || modulesError) {
+        return (
+            <div className="flex h-screen bg-background">
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center space-y-4">
+                        <p className="text-destructive">Failed to load course</p>
+                        <p className="text-sm text-muted-foreground">
+                            {courseError?.message || modulesError?.message || 'Unknown error'}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Render loading or empty states if data isn't hydrated yet
     if (!course || !modules) {
-        return null; // Or a loading spinner
+        return (
+            <div className="flex h-screen bg-background">
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center space-y-4">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                        <p className="text-muted-foreground">Loading course...</p>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
