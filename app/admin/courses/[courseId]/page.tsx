@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
     LayoutDashboard,
@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function CourseDashboardPage() {
+function CourseDashboardContent() {
     const { courseId } = useParams();
     const router = useRouter();
     const { data, isLoading } = useCourseAnalytics(courseId as string);
@@ -324,5 +324,13 @@ function DashboardSkeleton() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function CourseDashboardPageWrapper() {
+    return (
+        <Suspense fallback={<DashboardSkeleton />}>
+            <CourseDashboardContent />
+        </Suspense>
     );
 }
