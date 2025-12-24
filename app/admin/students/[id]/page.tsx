@@ -3,6 +3,8 @@
 import { use } from "react";
 import { StudentProfile } from "@/components/admin/StudentProfile";
 
+export const dynamic = 'force-dynamic';
+
 export default function StudentProfilePage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
     const userId = resolvedParams.id;
