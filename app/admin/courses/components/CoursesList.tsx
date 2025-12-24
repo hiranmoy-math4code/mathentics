@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { SmartLink } from "@/components/SmartLink";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     LayoutGrid,
@@ -59,6 +59,7 @@ interface Course {
     created_at: string;
     creator_id: string;
     community_enabled: boolean;
+    course_type: "course" | "test_series";
 }
 
 interface CoursesListProps {
@@ -145,11 +146,11 @@ export default function CoursesList({ initialCourses }: CoursesListProps) {
                         </button>
                     </div>
 
-                    <Link href="/admin/courses/create">
+                    <SmartLink href="/admin/courses/create">
                         <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20">
                             <Plus className="mr-2 h-4 w-4" /> Create Course
                         </Button>
-                    </Link>
+                    </SmartLink>
                 </div>
             </div>
 
@@ -254,7 +255,15 @@ function CourseCard({ course, index, onDelete, onToggle }: { course: Course; ind
                         className="w-full h-full"
                         variant="card"
                     />
-                    <div className="absolute top-3 right-3">
+                    <div className="absolute top-3 right-3 flex gap-2">
+                        <Badge
+                            variant="outline"
+                            className={course.course_type === "test_series"
+                                ? "bg-purple-500 hover:bg-purple-600 text-white border-purple-600 shadow-lg shadow-purple-500/20"
+                                : "bg-blue-500 hover:bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20"}
+                        >
+                            {course.course_type === "test_series" ? "Test Series" : "Course"}
+                        </Badge>
                         <Badge
                             variant={course.is_published ? "default" : "secondary"}
                             className={course.is_published
@@ -329,11 +338,11 @@ function CourseCard({ course, index, onDelete, onToggle }: { course: Course; ind
                                     <MessageSquare className="h-4 w-4 mr-2" /> Community
                                 </Button>
                             )}
-                            <Link href={`/admin/courses/${course.id}`}>
+                            <SmartLink href={`/admin/courses/${course.id}`}>
                                 <Button variant="outline" size="sm" className="hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 border-slate-200 dark:border-slate-700">
                                     <Edit className="h-4 w-4 mr-2" /> Manage
                                 </Button>
-                            </Link>
+                            </SmartLink>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -341,11 +350,11 @@ function CourseCard({ course, index, onDelete, onToggle }: { course: Course; ind
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <Link href={`/admin/courses/${course.id}/analytics`}>
+                                    <SmartLink href={`/admin/courses/${course.id}/analytics`}>
                                         <DropdownMenuItem className="cursor-pointer">
                                             <BarChart className="mr-2 h-4 w-4" /> Analytics
                                         </DropdownMenuItem>
-                                    </Link>
+                                    </SmartLink>
                                     <DropdownMenuItem
                                         className="text-red-600 cursor-pointer focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20"
                                         onClick={onDelete}
@@ -417,11 +426,11 @@ function CourseRow({ course, index, onDelete, onToggle }: { course: Course; inde
 
                 <div className="flex items-center gap-2">
                     <CourseLearnersDialog courseId={course.id} courseTitle={course.title} />
-                    <Link href={`/admin/courses/${course.id}`}>
+                    <SmartLink href={`/admin/courses/${course.id}`}>
                         <Button variant="outline" size="sm" className="hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400">
                             Manage
                         </Button>
-                    </Link>
+                    </SmartLink>
                     {course.community_enabled && (
                         <Button
                             variant="outline"

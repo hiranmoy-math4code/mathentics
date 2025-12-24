@@ -33,7 +33,7 @@ const nextConfig: NextConfig = {
         // ⚠️ Cloudflare Warning:
         // Cloudflare ফ্রি টিয়ারে ডিফল্ট Next.js Image Optimization (sharp) কাজ করে না।
         // যদি ডিপ্লয় করার পর দেখেন ইমেজ লোড হচ্ছে না, তবে নিচের লাইনটি আনকমেন্ট করবেন:
-        // unoptimized: true, 
+        unoptimized: true,
 
         formats: ['image/webp', 'image/avif'],
         deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
@@ -46,7 +46,8 @@ const nextConfig: NextConfig = {
             },
             {
                 protocol: 'https',
-                hostname: 'avgmafkynfbynzhlbbpk.supabase.co',
+                hostname: 'pgmooiaxbythmnjtdavs.supabase.co',
+                pathname: '/storage/v1/object/public/**',
             },
         ],
     },

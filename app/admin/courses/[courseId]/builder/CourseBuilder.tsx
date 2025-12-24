@@ -33,8 +33,11 @@ import { cn } from "@/lib/utils";
 import { DeleteModuleDialog } from "./DeleteModuleDialog";
 import { ModuleList } from "./ModuleList";
 import { LessonEditor } from "./LessonEditor";
+import { EditableTitle } from "@/components/admin/EditableTitle";
+import { ImageUpload } from "@/components/ui/image-upload";
 import { generateCourseOutline } from "@/app/actions/generateCourseOutline";
 import { useCourseModules, ModuleWithLessons } from "@/hooks/useCourseModules";
+import { useCourseMetadata } from "@/hooks/admin/useCourseMetadata";
 
 interface CourseBuilderProps {
     course: Course;
@@ -54,6 +57,10 @@ export default function CourseBuilder({ course, initialModules }: CourseBuilderP
         reorderLessons,
         isAddingModule
     } = useCourseModules(course.id, initialModules);
+
+    // Course metadata hooks
+    const { updateTitle, uploadThumbnail, deleteThumbnail } = useCourseMetadata();
+    const [localCourse, setLocalCourse] = useState(course);
 
     const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>(
         initialModules.reduce((acc, m) => ({ ...acc, [m.id]: true }), {})
@@ -82,6 +89,39 @@ export default function CourseBuilder({ course, initialModules }: CourseBuilderP
         } catch (error) {
             console.error(error);
             toast.error("Failed to update course status");
+        }
+    };
+
+    // Course metadata handlers
+    const handleTitleUpdate = (newTitle: string) => {
+        updateTitle.mutate(
+            { courseId: course.id, title: newTitle },
+            {
+                onSuccess: () => {
+                    setLocalCourse(prev => ({ ...prev, title: newTitle }));
+                    router.refresh();
+                }
+            }
+        );
+    };
+
+    const handleThumbnailChange = async (url: string) => {
+        setLocalCourse(prev => ({ ...prev, thumbnail_url: url }));
+
+        // Update the course in the database
+        try {
+            const { error } = await supabase
+                .from('courses')
+                .update({ thumbnail_url: url })
+                .eq('id', course.id);
+
+            if (error) throw error;
+
+            toast.success('Thumbnail updated successfully');
+            router.refresh();
+        } catch (error) {
+            console.error('Error updating thumbnail:', error);
+            toast.error('Failed to update thumbnail');
         }
     };
 
@@ -267,9 +307,34 @@ export default function CourseBuilder({ course, initialModules }: CourseBuilderP
         <div className="flex h-screen bg-slate-50 dark:bg-[#0f1117]">
             {/* Left Sidebar */}
             <div className="w-80 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-[#161b22] flex flex-col overflow-hidden">
-                <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#161b22] sticky top-0 z-10">
-                    <h2 className="font-semibold text-lg truncate text-slate-900 dark:text-white" title={course.title}>{course.title}</h2>
-                    <div className="flex gap-2 mt-4">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#161b22] sticky top-0 z-10 space-y-4">
+                    {/* Editable Title */}
+                    <EditableTitle
+                        value={localCourse.title}
+                        onSave={handleTitleUpdate}
+                        isLoading={updateTitle.isPending}
+                        placeholder="Course Title"
+                    />
+
+                    {/* Thumbnail Upload */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Course Thumbnail
+                        </label>
+                        <ImageUpload
+                            value={localCourse.thumbnail_url || ""}
+                            onChange={handleThumbnailChange}
+                            maxSizeMB={0.3}
+                            maxWidth={600}
+                            maxHeight={400}
+                        />
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                            Recommended: 600x400px, max 300KB
+                        </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
                         <Button size="sm" variant="outline" onClick={() => router.push("/admin/courses")} className="dark:bg-transparent dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-white">
                             Back
                         </Button>
@@ -291,7 +356,7 @@ export default function CourseBuilder({ course, initialModules }: CourseBuilderP
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-2 space-y-2">
+                <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">
                     {/* Module List Component */}
                     <div className="space-y-4">
                         <ModuleList

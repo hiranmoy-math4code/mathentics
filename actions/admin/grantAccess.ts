@@ -129,10 +129,10 @@ export async function grantTestSeriesAccess(data: {
     try {
         // Check if enrollment already exists
         const { data: existing } = await supabase
-            .from('test_series_enrollments')
+            .from('enrollments')
             .select('id, expires_at')
-            .eq('student_id', data.userId)
-            .eq('test_series_id', data.testSeriesId)
+            .eq('user_id', data.userId)
+            .eq('course_id', data.testSeriesId)
             .single();
 
         let enrollment;
@@ -140,7 +140,7 @@ export async function grantTestSeriesAccess(data: {
         if (existing) {
             // Update existing
             const { data: updated, error } = await supabase
-                .from('test_series_enrollments')
+                .from('enrollments')
                 .update({
                     expires_at: data.expiresAt || null,
                     granted_by: user.id,
@@ -158,7 +158,7 @@ export async function grantTestSeriesAccess(data: {
             await supabase.rpc('log_enrollment_action', {
                 p_action: 'modified',
                 p_performed_by: user.id,
-                p_test_series_enrollment_id: existing.id,
+                p_enrollment_id: existing.id,
                 p_previous_expiry: existing.expires_at,
                 p_new_expiry: data.expiresAt || null,
                 p_notes: data.notes || 'Test series access modified'
@@ -166,14 +166,15 @@ export async function grantTestSeriesAccess(data: {
         } else {
             // Create new
             const { data: newEnrollment, error } = await supabase
-                .from('test_series_enrollments')
+                .from('enrollments')
                 .insert({
-                    student_id: data.userId,
-                    test_series_id: data.testSeriesId,
+                    user_id: data.userId,
+                    course_id: data.testSeriesId,
                     expires_at: data.expiresAt || null,
                     granted_by: user.id,
                     granted_at: new Date().toISOString(),
-                    grant_type: 'manual'
+                    grant_type: 'manual',
+                    status: 'active'
                 })
                 .select()
                 .single();
@@ -185,7 +186,7 @@ export async function grantTestSeriesAccess(data: {
             await supabase.rpc('log_enrollment_action', {
                 p_action: 'granted',
                 p_performed_by: user.id,
-                p_test_series_enrollment_id: newEnrollment.id,
+                p_enrollment_id: newEnrollment.id,
                 p_new_expiry: data.expiresAt || null,
                 p_notes: data.notes || 'Test series access granted'
             });
@@ -229,8 +230,8 @@ export async function revokeAccess(data: {
             });
         } else {
             const { error } = await supabase
-                .from('test_series_enrollments')
-                .delete()
+                .from('enrollments')
+                .update({ status: 'refunded' })
                 .eq('id', data.enrollmentId);
 
             if (error) throw error;
@@ -239,7 +240,7 @@ export async function revokeAccess(data: {
             await supabase.rpc('log_enrollment_action', {
                 p_action: 'revoked',
                 p_performed_by: user.id,
-                p_test_series_enrollment_id: data.enrollmentId,
+                p_enrollment_id: data.enrollmentId,
                 p_notes: data.reason
             });
         }
@@ -336,8 +337,8 @@ export async function extendAccess(data: {
         } else {
             // Test series enrollment
             const { data: existing, error: fetchError } = await supabase
-                .from('test_series_enrollments')
-                .select('expires_at, student_id')
+                .from('enrollments')
+                .select('expires_at, user_id')
                 .eq('id', data.enrollmentId)
                 .single();
 
@@ -350,7 +351,7 @@ export async function extendAccess(data: {
             previousExpiry = existing?.expires_at;
 
             const { data: updated, error } = await supabase
-                .from('test_series_enrollments')
+                .from('enrollments')
                 .update({
                     expires_at: data.newExpiryDate.toISOString(),
                     updated_at: new Date().toISOString()
@@ -369,7 +370,7 @@ export async function extendAccess(data: {
 
             // Verify the update
             const { data: verified } = await supabase
-                .from('test_series_enrollments')
+                .from('enrollments')
                 .select('expires_at')
                 .eq('id', data.enrollmentId)
                 .single();
@@ -384,7 +385,7 @@ export async function extendAccess(data: {
             await supabase.rpc('log_enrollment_action', {
                 p_action: 'extended',
                 p_performed_by: user.id,
-                p_test_series_enrollment_id: data.enrollmentId,
+                p_enrollment_id: data.enrollmentId,
                 p_previous_expiry: previousExpiry,
                 p_new_expiry: data.newExpiryDate.toISOString(),
                 p_notes: data.notes || 'Access period extended'

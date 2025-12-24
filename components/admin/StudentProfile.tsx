@@ -45,8 +45,8 @@ export function StudentProfile({ studentId }: StudentProfileProps) {
         queryKey: ['admin-resources'],
         queryFn: async () => {
             const [coursesRes, seriesRes] = await Promise.all([
-                supabase.from('courses').select('id, title'),
-                supabase.from('test_series').select('id, title')
+                supabase.from('courses').select('id, title').eq('course_type', 'course').eq('is_published', true),
+                supabase.from('courses').select('id, title').eq('course_type', 'test_series').eq('is_published', true)
             ]);
             return {
                 courses: coursesRes.data || [],
@@ -59,7 +59,11 @@ export function StudentProfile({ studentId }: StudentProfileProps) {
     if (error) return <StudentProfileError message={error.message} />;
     if (!details) return null;
 
-    const { student, enrollments, testSeriesEnrollments, attempts, logs, stats } = details;
+    const { student, enrollments, attempts, logs, stats } = details;
+
+    // Separate enrollments by course_type
+    const courseEnrollments = enrollments?.filter((e: any) => e.courses?.course_type === 'course') || [];
+    const testSeriesEnrollments = enrollments?.filter((e: any) => e.courses?.course_type === 'test_series') || [];
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -229,10 +233,10 @@ export function StudentProfile({ studentId }: StudentProfileProps) {
                     >
                         <TabsContent value="courses" className="mt-0">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {enrollments.length === 0 ? (
+                                {courseEnrollments.length === 0 ? (
                                     <EmptyState label="No courses enrolled" icon={BookOpen} />
                                 ) : (
-                                    enrollments.map((en: any) => (
+                                    courseEnrollments.map((en: any) => (
                                         <Card key={en.id} className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300">
                                             <CardContent className="p-0">
                                                 <div className="flex h-32">
@@ -292,41 +296,53 @@ export function StudentProfile({ studentId }: StudentProfileProps) {
                                     <EmptyState label="No test series enrolled" icon={Trophy} />
                                 ) : (
                                     testSeriesEnrollments.map((en: any) => (
-                                        <Card key={en.id} className="p-4 border-none shadow-md hover:shadow-xl transition-all">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-500 font-bold">
-                                                        🏆
+                                        <Card key={en.id} className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300">
+                                            <CardContent className="p-0">
+                                                <div className="flex h-32">
+                                                    <div className="w-32 h-full bg-slate-100 dark:bg-slate-800 relative shrink-0 overflow-hidden">
+                                                        <img
+                                                            src={en.courses.thumbnail_url || '/placeholder-course.png'}
+                                                            alt={en.courses.title}
+                                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                        />
                                                     </div>
-                                                    <div>
-                                                        <h3 className="font-bold text-slate-900 dark:text-white">{en.test_series.title}</h3>
-                                                        <p className="text-xs text-slate-500">Enrolled on {format(new Date(en.created_at), 'PP')}</p>
+                                                    <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
+                                                        <div>
+                                                            <h3 className="font-bold text-slate-900 dark:text-white truncate" title={en.courses.title}>
+                                                                {en.courses.title}
+                                                            </h3>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <ExpiryBadge expiresAt={en.expires_at} />
+                                                                <GrantTypeBadge grantType={en.grant_type} />
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="w-6 h-6 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                                    onClick={() => {
+                                                                        setSelectedEnrollment({
+                                                                            id: en.id,
+                                                                            type: 'test_series',
+                                                                            studentName: student.full_name || student.email,
+                                                                            courseName: en.courses.title,
+                                                                            currentExpiry: en.expires_at
+                                                                        });
+                                                                        setEditExpiryOpen(true);
+                                                                    }}
+                                                                >
+                                                                    <Clock className="w-3 h-3 text-slate-400" />
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                                                <span>Progress</span>
+                                                                <span>{en.progress_percentage || 0}%</span>
+                                                            </div>
+                                                            <Progress value={en.progress_percentage || 0} className="h-1.5" />
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex flex-col items-end gap-1.5">
-                                                    <div className="flex items-center gap-1">
-                                                        <ExpiryBadge expiresAt={en.expires_at} />
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="w-6 h-6 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
-                                                            onClick={() => {
-                                                                setSelectedEnrollment({
-                                                                    id: en.id,
-                                                                    type: 'test_series',
-                                                                    studentName: student.full_name || student.email,
-                                                                    courseName: en.test_series.title,
-                                                                    currentExpiry: en.expires_at
-                                                                });
-                                                                setEditExpiryOpen(true);
-                                                            }}
-                                                        >
-                                                            <Clock className="w-3 h-3 text-slate-400" />
-                                                        </Button>
-                                                    </div>
-                                                    <GrantTypeBadge grantType={en.grant_type} />
-                                                </div>
-                                            </div>
+                                            </CardContent>
                                         </Card>
                                     ))
                                 )}

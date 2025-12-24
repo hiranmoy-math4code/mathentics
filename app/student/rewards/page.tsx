@@ -29,7 +29,6 @@ export default function StudentRewardsPage() {
         return <div className="flex items-center justify-center min-h-screen"><Loader2 className="w-8 h-8 animate-spin text-indigo-600" /></div>;
     }
 
-    const dailyProgress = (rewards.daily_coins_earned / 100) * 100;
     const earnedBadgeIds = badges?.map((b: any) => b.badge_id) || [];
 
     return (
@@ -48,9 +47,9 @@ export default function StudentRewardsPage() {
                         <div className="mt-4 pt-4 border-t border-white/20">
                             <div className="flex justify-between text-sm mb-1">
                                 <span>Daily Cap</span>
-                                <span>{rewards.daily_coins_earned}/100</span>
+                                <span>{rewards.daily_coins_earned || 0}/100</span>
                             </div>
-                            <Progress value={dailyProgress} className="h-1.5 bg-black/20" indicatorClassName="bg-white" />
+                            <Progress value={((rewards.daily_coins_earned || 0) / 100) * 100} className="h-1.5 bg-black/20" indicatorClassName="bg-white" />
                         </div>
                     </CardContent>
                 </Card>

@@ -18,17 +18,20 @@ export default function StudentsPage() {
   const { data: initialData, isLoading } = useQuery({
     queryKey: ["admin-students-init", userId],
     queryFn: async () => {
-      // Fetch courses and test series for the Grant Access dialog
+      // Fetch courses (course_type = 'course')
       const { data: courses } = await supabase
         .from('courses')
-        .select('id, title, thumbnail_url')
+        .select('id, title, thumbnail_url, course_type')
+        .eq('course_type', 'course')
         .eq('is_published', true)
         .order('title', { ascending: true });
 
+      // Fetch test series (course_type = 'test_series')
       const { data: testSeries } = await supabase
-        .from('test_series')
-        .select('id, title')
-        .eq('status', 'published')
+        .from('courses')
+        .select('id, title, thumbnail_url, course_type')
+        .eq('course_type', 'test_series')
+        .eq('is_published', true)
         .order('title', { ascending: true });
 
       return { courses, testSeries };

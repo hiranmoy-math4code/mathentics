@@ -57,6 +57,9 @@ export function ExamSettingsDialog({
     // Form state - Sequential access
     const [sequentialUnlockEnabled, setSequentialUnlockEnabled] = useState(false);
 
+    // Form state - Max attempts
+    const [maxAttempts, setMaxAttempts] = useState<number | null>(null);
+
     const supabase = createClient();
 
     useEffect(() => {
@@ -128,6 +131,9 @@ export function ExamSettingsDialog({
                 .single();
 
             setSequentialUnlockEnabled(lessonData?.sequential_unlock_enabled || false);
+
+            // Load max_attempts
+            setMaxAttempts(data.max_attempts ?? null);
 
         } catch (error) {
             console.error("Error fetching exam settings:", error);
@@ -277,6 +283,7 @@ export function ExamSettingsDialog({
                 show_answers: showAnswers,
                 start_time: startTimestamp,
                 end_time: endTimestamp,
+                max_attempts: maxAttempts,
                 updated_at: new Date().toISOString(),
             };
 
@@ -328,7 +335,7 @@ export function ExamSettingsDialog({
                 ) : (
                     <>
                         {/* Scrollable Content */}
-                        <div className="overflow-y-auto px-6 py-5 space-y-6" style={{ maxHeight: 'calc(85vh - 180px)' }}>
+                        <div className="overflow-y-auto px-6 py-5 space-y-6 custom-scrollbar" style={{ maxHeight: 'calc(85vh - 180px)' }}>
 
                             {/* Exam Scheduling Section */}
                             <div className="space-y-3">
@@ -508,6 +515,22 @@ export function ExamSettingsDialog({
                                     checked={showAnswers}
                                     onCheckedChange={setShowAnswers}
                                 />
+                            </div>
+
+                            {/* Max Attempts */}
+                            <div className="space-y-2 pt-3 border-t dark:border-slate-800">
+                                <Label className="text-sm font-medium dark:text-white">Maximum Attempts</Label>
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    value={maxAttempts ?? ""}
+                                    onChange={(e) => setMaxAttempts(e.target.value ? parseInt(e.target.value) : null)}
+                                    placeholder="Unlimited"
+                                    className="h-9 text-sm dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                                />
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    Leave empty for unlimited attempts. Set a number to limit how many times students can take this exam.
+                                </p>
                             </div>
                         </div>
 

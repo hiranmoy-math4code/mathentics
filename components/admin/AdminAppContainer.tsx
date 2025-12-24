@@ -14,6 +14,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 // Dynamically import page components
 const DashboardPage = dynamic(() => import('@/app/admin/dashboard/page'), { ssr: false });
 const CoursesPage = dynamic(() => import('@/app/admin/courses/page'), { ssr: false });
+const TestSeriesPage = dynamic(() => import('@/app/admin/test-series/page'), { ssr: false });
 const QuestionBankPage = dynamic(() => import('@/app/admin/question-bank/page'), { ssr: false });
 const ExamsPage = dynamic(() => import('@/app/admin/exams/page'), { ssr: false });
 const PaymentsPage = dynamic(() => import('@/app/admin/payments/page'), { ssr: false });
@@ -58,18 +59,18 @@ export function AdminAppContainer({ initialRoute, children }: AdminAppContainerP
     }, [navigateTo]);
 
     const renderPage = () => {
-        // SPA Routing mapping
-        // We use exact matches for SPA transitions. 
-        // For sub-routes (like /admin/exams/create), we use standard Next.js routing (children)
+        // SPA Routing for exact matches only
         if (currentRoute === '/admin/dashboard') return <DashboardPage />;
         if (currentRoute === '/admin/courses') return <CoursesPage />;
+        if (currentRoute === '/admin/test-series') return <TestSeriesPage />;
         if (currentRoute === '/admin/question-bank') return <QuestionBankPage />;
         if (currentRoute === '/admin/exams') return <ExamsPage />;
         if (currentRoute === '/admin/payments') return <PaymentsPage />;
         if (currentRoute === '/admin/students') return <StudentsPage />;
         if (currentRoute === '/admin/settings') return <SettingsPage />;
 
-        // Default to server-rendered children
+        // For dynamic routes (like course pages), use standard Next.js routing
+        // This allows server components to work properly
         return children;
     };
 

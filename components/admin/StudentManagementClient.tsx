@@ -38,7 +38,6 @@ interface Student {
     avatar_url?: string;
     created_at: string;
     enrollments: any[];
-    testSeriesEnrollments: any[];
     totalEnrollments: number;
     expiringSoonCount: number;
 }
@@ -255,18 +254,9 @@ export default function StudentManagementClient({ courses, testSeries }: any) {
                                                             </Button>
                                                         </div>
                                                     ))}
-                                                    {student.testSeriesEnrollments.slice(0, 1).map((enrollment: any) => (
-                                                        <div key={enrollment.id} className="flex items-center gap-2">
-                                                            <Badge variant="outline" className="text-xs">
-                                                                <Trophy className="w-3 h-3 mr-1" />
-                                                                {enrollment.test_series?.title}
-                                                            </Badge>
-                                                            <ExpiryBadge expiresAt={enrollment.expires_at} />
-                                                        </div>
-                                                    ))}
-                                                    {student.totalEnrollments > 3 && (
+                                                    {student.totalEnrollments > 2 && (
                                                         <Badge variant="secondary" className="text-xs">
-                                                            +{student.totalEnrollments - 3} more
+                                                            +{student.totalEnrollments - 2} more
                                                         </Badge>
                                                     )}
                                                     {student.totalEnrollments === 0 && (

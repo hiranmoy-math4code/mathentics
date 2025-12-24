@@ -181,30 +181,15 @@ export async function getStudentsWithEnrollments(filters?: {
 
         if (enrollmentsError) throw enrollmentsError;
 
-        // Get test series enrollments
-        const { data: testSeriesEnrollments } = await supabase
-            .from('test_series_enrollments')
-            .select(`
-        id,
-        student_id,
-        test_series_id,
-        expires_at,
-        granted_by,
-        grant_type,
-        test_series (
-          id,
-          title
-        )
-      `);
+
 
         // Combine data
         const studentsWithEnrollments = students?.map(student => {
             const courseEnrollments = enrollments?.filter(e => e.user_id === student.id) || [];
-            const seriesEnrollments = testSeriesEnrollments?.filter(e => e.student_id === student.id) || [];
 
             // Check expiry status
             const now = new Date();
-            const expiringSoon = [...courseEnrollments, ...seriesEnrollments].filter(e => {
+            const expiringSoon = courseEnrollments.filter(e => {
                 if (!e.expires_at) return false;
                 const expiryDate = new Date(e.expires_at);
                 const daysUntilExpiry = (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
@@ -214,8 +199,7 @@ export async function getStudentsWithEnrollments(filters?: {
             return {
                 ...student,
                 enrollments: courseEnrollments,
-                testSeriesEnrollments: seriesEnrollments,
-                totalEnrollments: courseEnrollments.length + seriesEnrollments.length,
+                totalEnrollments: courseEnrollments.length,
                 expiringSoonCount: expiringSoon.length
             };
         });
@@ -226,7 +210,7 @@ export async function getStudentsWithEnrollments(filters?: {
             filtered = filtered?.filter(s => s.totalEnrollments > 0);
         } else if (filters?.status === 'expired') {
             filtered = filtered?.filter(s => {
-                const hasExpired = [...(s.enrollments || []), ...(s.testSeriesEnrollments || [])].some(e => {
+                const hasExpired = (s.enrollments || []).some(e => {
                     if (!e.expires_at) return false;
                     return new Date(e.expires_at) < new Date();
                 });
@@ -279,9 +263,9 @@ export async function getStudentAttempts(userId: string) {
  * Get detailed info for a single student with stats
  */
 export async function getStudentDetails(userId: string) {
-    const supabase = createAdminClient();
-
     try {
+        const supabase = createAdminClient();
+
         // Get student profile
         const { data: student, error: studentError } = await supabase
             .from('profiles')
@@ -289,7 +273,14 @@ export async function getStudentDetails(userId: string) {
             .eq('id', userId)
             .single();
 
-        if (studentError) throw studentError;
+        if (studentError) {
+            console.error('Student fetch error:', studentError);
+            throw new Error(`Failed to fetch student profile: ${studentError.message}`);
+        }
+
+        if (!student) {
+            return { error: 'Student not found' };
+        }
 
         // Get active sessions count
         // Note: Accessing auth schema may require special permissions
@@ -312,7 +303,7 @@ export async function getStudentDetails(userId: string) {
         }
 
         // Get enrollments
-        const { data: enrollments } = await supabase
+        const { data: enrollments, error: enrollmentsError } = await supabase
             .from('enrollments')
             .select(`
                 *,
@@ -320,7 +311,8 @@ export async function getStudentDetails(userId: string) {
                     id,
                     title,
                     thumbnail_url,
-                    price
+                    price,
+                    course_type
                 ),
                 granted_by_profile:profiles!enrollments_granted_by_fkey (
                     id,
@@ -329,24 +321,14 @@ export async function getStudentDetails(userId: string) {
             `)
             .eq('user_id', userId);
 
-        // Get test series enrollments
-        const { data: testSeriesEnrollments } = await supabase
-            .from('test_series_enrollments')
-            .select(`
-                *,
-                test_series (
-                    id,
-                    title,
-                    price
-                ),
-                granted_by_profile:profiles!test_series_enrollments_granted_by_fkey (
-                    id,
-                    full_name
-                )
-            `)
-            .eq('student_id', userId);
+        if (enrollmentsError) {
+            console.error('Enrollments fetch error:', enrollmentsError);
+            // Don't throw, just log and continue with empty array
+        }
 
-        const { data: rawAttempts } = await supabase
+
+
+        const { data: rawAttempts, error: attemptsError } = await supabase
             .from('exam_attempts')
             .select(`
                 *,
@@ -356,6 +338,11 @@ export async function getStudentDetails(userId: string) {
             .eq('student_id', userId)
             .order('created_at', { ascending: false });
 
+        if (attemptsError) {
+            console.error('Exam attempts fetch error:', attemptsError);
+            // Don't throw, just log and continue with empty array
+        }
+
         // Transform attempts to handle singular results object
         const attempts = rawAttempts?.map(att => ({
             ...att,
@@ -364,15 +351,10 @@ export async function getStudentDetails(userId: string) {
 
         // Get enrollment logs
         const enrollmentIds = enrollments?.map(e => e.id) || [];
-        const testSeriesIds = testSeriesEnrollments?.map(e => e.id) || [];
 
         let logs: any[] = [];
-        if (enrollmentIds.length > 0 || testSeriesIds.length > 0) {
-            const orConditions = [];
-            if (enrollmentIds.length > 0) orConditions.push(`enrollment_id.in.(${enrollmentIds.join(',')})`);
-            if (testSeriesIds.length > 0) orConditions.push(`test_series_enrollment_id.in.(${testSeriesIds.join(',')})`);
-
-            const { data: logData } = await supabase
+        if (enrollmentIds.length > 0) {
+            const { data: logData, error: logsError } = await supabase
                 .from('enrollment_logs')
                 .select(`
                     *,
@@ -381,11 +363,16 @@ export async function getStudentDetails(userId: string) {
                         full_name
                     )
                 `)
-                .or(orConditions.join(','))
+                .in('enrollment_id', enrollmentIds)
                 .order('created_at', { ascending: false })
                 .limit(50);
 
-            logs = logData || [];
+            if (logsError) {
+                console.error('Enrollment logs fetch error:', logsError);
+                // Don't throw, just log and continue with empty array
+            } else {
+                logs = logData || [];
+            }
         }
 
         // Calculate Stats
@@ -399,19 +386,19 @@ export async function getStudentDetails(userId: string) {
             data: {
                 student,
                 enrollments: enrollments || [],
-                testSeriesEnrollments: testSeriesEnrollments || [],
                 attempts: attempts || [],
                 logs,
                 activeSessions,
                 stats: {
-                    totalEnrollments: (enrollments?.length || 0) + (testSeriesEnrollments?.length || 0),
+                    totalEnrollments: enrollments?.length || 0,
                     totalAttempts: attempts?.length || 0,
                     avgPercentage: Math.round(avgPercentage * 10) / 10
                 }
             }
         };
     } catch (error: any) {
-        return { error: error.message };
+        console.error('getStudentDetails error:', error);
+        return { error: error?.message || 'An unexpected error occurred while fetching student details' };
     }
 }
 

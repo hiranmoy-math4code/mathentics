@@ -237,86 +237,50 @@ export async function checkFirstLessonReward(userId: string) {
 
 export async function getDailyMissions(userId: string) {
     const supabase = await createClient();
-    const today = new Date().toISOString().split('T')[0];
 
-    let { data: missionData } = await supabase
-        .from("daily_missions")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("date", today)
-        .single();
+    // Use RPC function to get or create missions
+    const { data, error } = await supabase.rpc('get_or_create_daily_missions', {
+        p_user_id: userId
+    });
 
-    if (!missionData) {
-        // Generate new missions
-        const missions = [
-            { id: 'login', title: 'Daily Login', reward: 5, progress: 0, goal: 1, completed: false, icon: 'Zap' },
-            { id: 'quiz', title: 'Complete a Quiz', reward: 20, progress: 0, goal: 1, completed: false, icon: 'Brain' },
-            { id: 'video', title: 'Watch a Video', reward: 10, progress: 0, goal: 1, completed: false, icon: 'Play' }
-        ];
-
-        const { data } = await supabase
-            .from("daily_missions")
-            .insert({ user_id: userId, date: today, missions })
-            .select()
-            .single();
-        missionData = data;
+    if (error) {
+        console.error("Error fetching daily missions:", error);
+        return [];
     }
 
-    return missionData?.missions || [];
+    return data || [];
 }
+
 
 export async function updateMissionProgress(userId: string, type: 'login' | 'quiz' | 'video') {
     const supabase = await createClient();
-    const today = new Date().toISOString().split('T')[0];
 
-    let { data: missionData } = await supabase
-        .from("daily_missions")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("date", today)
-        .single();
-
-    if (!missionData) {
-        // Ensure missions exist for today
-        await getDailyMissions(userId);
-
-        // Retry fetch
-        const { data: retryData } = await supabase
-            .from("daily_missions")
-            .select("*")
-            .eq("user_id", userId)
-            .eq("date", today)
-            .single();
-
-        missionData = retryData;
-    }
-
-    if (!missionData) return;
-
-    let updated = false;
-    const newMissions = missionData.missions.map((m: any) => {
-        if (m.id === type && !m.completed) {
-            m.progress += 1;
-            updated = true; // Mark as updated whenever progress changes
-
-            if (m.progress >= m.goal) {
-                m.completed = true;
-                // Award mission bonus
-                awardCoins(userId, 'mission_complete', `${today}-${type}`, `Mission Complete: ${m.title}`);
-            }
-        }
-        return m;
+    // Use RPC function to update mission progress
+    const { data, error } = await supabase.rpc('update_mission_progress', {
+        p_user_id: userId,
+        p_mission_type: type
     });
 
-    if (updated) {
-        await supabase
-            .from("daily_missions")
-            .update({ missions: newMissions })
-            .eq("id", missionData.id);
-
-        revalidatePath("/student");
+    if (error) {
+        console.error("Error updating mission progress:", error);
+        return;
     }
+
+    // Check if any mission was completed
+    const missions = data || [];
+    const completedMission = missions.find((m: any) =>
+        m.id === type && m.completed && m.progress === m.goal
+    );
+
+    if (completedMission) {
+        // Award mission bonus
+        const today = new Date().toISOString().split('T')[0];
+        await awardCoins(userId, 'mission_complete', `${today}-${type}`, `Mission Complete: ${completedMission.title}`);
+    }
+
+    revalidatePath("/student");
 }
+
 
 export async function checkBadgeUnlock(userId: string, badgeId: string) {
     const supabase = await createClient();

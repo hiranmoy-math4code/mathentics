@@ -63,120 +63,237 @@ export default function CourseDashboardPage() {
     ];
 
     return (
-        <div className="p-6 md:p-8 space-y-8 bg-slate-50 dark:bg-slate-950/50 min-h-screen">
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => router.push('/admin/courses')} className="rounded-full">
-                    <ArrowLeft className="w-5 h-5" />
-                </Button>
-                <div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white">{course?.title}</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Course Management Hub</p>
-                </div>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950/50 relative overflow-hidden">
+            {/* Background Decorative Elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                {/* Subtle Grid Pattern */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+
+                {/* Floating Blobs */}
+                <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-400/5 dark:bg-blue-600/5 rounded-full blur-3xl" />
+                <div className="absolute top-1/3 -left-40 w-80 h-80 bg-indigo-400/5 dark:bg-indigo-600/5 rounded-full blur-3xl" />
+                <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-emerald-400/4 dark:bg-emerald-600/4 rounded-full blur-3xl" />
             </div>
 
-            {/* Quick Stats Banner */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="bg-white dark:bg-slate-900 border-none shadow-md overflow-hidden">
-                    <CardContent className="p-6 flex items-center justify-between">
-                        <div>
-                            <p className="text-xs font-black text-slate-400 uppercase">Total Students</p>
-                            <h3 className="text-3xl font-black text-slate-900 dark:text-white">{stats?.totalLearners}</h3>
+            <div className="relative p-6 md:p-8 lg:p-10 space-y-8 max-w-7xl mx-auto">
+                {/* Header Section with Gradient Background */}
+                <div className="relative mb-2 -mx-6 md:-mx-8 lg:-mx-10 px-6 md:px-8 lg:px-10 py-8 bg-gradient-to-r from-slate-50/80 via-white/50 to-slate-50/80 dark:from-slate-900/50 dark:via-slate-800/30 dark:to-slate-900/50 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-800/50">
+                    {/* Decorative Math SVG in corner */}
+                    <svg className="absolute top-4 right-8 w-24 h-24 text-blue-500/5 dark:text-blue-400/5" viewBox="0 0 100 100" fill="none">
+                        <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="0.5" />
+                        <circle cx="50" cy="50" r="30" stroke="currentColor" strokeWidth="0.5" />
+                        <circle cx="50" cy="50" r="20" stroke="currentColor" strokeWidth="0.5" />
+                        <line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" strokeWidth="0.5" />
+                        <line x1="50" y1="10" x2="50" y2="90" stroke="currentColor" strokeWidth="0.5" />
+                    </svg>
+
+                    <div className="flex items-center gap-4 relative z-10">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => router.push('/admin/courses')}
+                            className="rounded-full hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all shadow-sm"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                        </Button>
+                        <div className="flex-1">
+                            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white tracking-tight bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-white dark:via-slate-100 dark:to-white bg-clip-text">
+                                {course?.title}
+                            </h1>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-medium">Course Management Hub</p>
                         </div>
-                        <Users className="w-8 h-8 text-blue-500 opacity-20" />
-                    </CardContent>
-                </Card>
-                <Card className="bg-white dark:bg-slate-900 border-none shadow-md overflow-hidden">
-                    <CardContent className="p-6 flex items-center justify-between">
-                        <div>
-                            <p className="text-xs font-black text-slate-400 uppercase">Revenue Generated</p>
-                            <h3 className="text-3xl font-black text-slate-900 dark:text-white">₹{stats?.totalRevenue.toLocaleString()}</h3>
+                    </div>
+                </div>
+
+                {/* Quick Stats Banner with Enhanced Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    {/* Total Students Card */}
+                    <Card className="relative bg-gradient-to-br from-white via-blue-50/30 to-white dark:from-slate-900 dark:via-blue-950/20 dark:to-slate-900 border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group">
+                        {/* Decorative Pattern */}
+                        <div className="absolute top-0 right-0 w-32 h-32 opacity-[0.03] dark:opacity-[0.05]">
+                            <svg viewBox="0 0 100 100" className="w-full h-full text-blue-600">
+                                <circle cx="20" cy="20" r="2" fill="currentColor" />
+                                <circle cx="40" cy="20" r="2" fill="currentColor" />
+                                <circle cx="60" cy="20" r="2" fill="currentColor" />
+                                <circle cx="80" cy="20" r="2" fill="currentColor" />
+                                <circle cx="20" cy="40" r="2" fill="currentColor" />
+                                <circle cx="40" cy="40" r="2" fill="currentColor" />
+                                <circle cx="60" cy="40" r="2" fill="currentColor" />
+                                <circle cx="80" cy="40" r="2" fill="currentColor" />
+                            </svg>
                         </div>
-                        <TrendingUp className="w-8 h-8 text-emerald-500 opacity-20" />
-                    </CardContent>
-                </Card>
-                <Card className="bg-white dark:bg-slate-900 border-none shadow-md overflow-hidden">
-                    <CardContent className="p-6 flex items-center justify-between">
-                        <div>
-                            <p className="text-xs font-black text-slate-400 uppercase">Status</p>
-                            <div className="flex items-center gap-2 mt-1">
-                                <Badge variant={course?.is_published ? "default" : "secondary"}>
-                                    {course?.is_published ? "Published" : "Draft"}
-                                </Badge>
-                                <span className="text-xs text-slate-400">{course?.is_published ? "Visible to students" : "Hidden from search"}</span>
+                        <CardContent className="p-6 relative z-10">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                                        Total Students
+                                    </p>
+                                    <h3 className="text-4xl font-bold text-slate-900 dark:text-white tabular-nums">
+                                        {stats?.totalLearners}
+                                    </h3>
+                                </div>
+                                <div className="p-3.5 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-500/10 dark:to-blue-600/5 shadow-inner">
+                                    <Users className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+                                </div>
                             </div>
-                        </div>
-                        <ShieldCheck className="w-8 h-8 text-indigo-500 opacity-20" />
-                    </CardContent>
-                </Card>
-            </div>
+                        </CardContent>
+                    </Card>
 
-            {/* Tools Grid */}
-            <div className="space-y-4">
-                <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest">Management Tools</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {quickActions.map((action, i) => (
-                        <Link key={i} href={action.href}>
-                            <Card className="group hover:scale-[1.02] transition-all cursor-pointer border-slate-200 dark:border-slate-800 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/5 dark:bg-slate-900">
-                                <CardContent className="p-6 flex items-start gap-4">
-                                    <div className={`p-4 rounded-2xl bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 shadow-sm transition-colors`}>
-                                        {action.icon}
+                    {/* Revenue Card */}
+                    <Card className="relative bg-gradient-to-br from-white via-emerald-50/30 to-white dark:from-slate-900 dark:via-emerald-950/20 dark:to-slate-900 border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 opacity-[0.03] dark:opacity-[0.05]">
+                            <svg viewBox="0 0 100 100" className="w-full h-full text-emerald-600">
+                                <path d="M10 50 L30 30 L50 40 L70 20 L90 35" stroke="currentColor" strokeWidth="2" fill="none" />
+                                <path d="M10 60 L30 40 L50 50 L70 30 L90 45" stroke="currentColor" strokeWidth="2" fill="none" />
+                            </svg>
+                        </div>
+                        <CardContent className="p-6 relative z-10">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                                        Revenue Generated
+                                    </p>
+                                    <h3 className="text-4xl font-bold text-slate-900 dark:text-white tabular-nums">
+                                        ₹{stats?.totalRevenue.toLocaleString()}
+                                    </h3>
+                                </div>
+                                <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-500/10 dark:to-emerald-600/5 shadow-inner">
+                                    <TrendingUp className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Status Card */}
+                    <Card className="relative bg-gradient-to-br from-white via-indigo-50/30 to-white dark:from-slate-900 dark:via-indigo-950/20 dark:to-slate-900 border border-slate-200/60 dark:border-slate-800/60 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 opacity-[0.03] dark:opacity-[0.05]">
+                            <svg viewBox="0 0 100 100" className="w-full h-full text-indigo-600">
+                                <rect x="20" y="20" width="15" height="15" fill="currentColor" />
+                                <rect x="45" y="20" width="15" height="15" fill="currentColor" />
+                                <rect x="70" y="20" width="15" height="15" fill="currentColor" />
+                                <rect x="20" y="45" width="15" height="15" fill="currentColor" />
+                            </svg>
+                        </div>
+                        <CardContent className="p-6 relative z-10">
+                            <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                                        Status
+                                    </p>
+                                    <div className="flex items-center gap-2.5 mt-2">
+                                        <Badge
+                                            variant={course?.is_published ? "default" : "secondary"}
+                                            className={course?.is_published ? "bg-green-500 hover:bg-green-600 shadow-sm" : "shadow-sm"}
+                                        >
+                                            {course?.is_published ? "Published" : "Draft"}
+                                        </Badge>
+                                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                            {course?.is_published ? "Visible to students" : "Hidden from search"}
+                                        </span>
                                     </div>
-                                    <div className="flex-1">
-                                        <div className="flex items-center justify-between mb-1">
-                                            <h3 className="font-black text-lg text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">{action.title}</h3>
-                                            <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-all group-hover:translate-x-1" />
-                                        </div>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                                            {action.description}
-                                        </p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    ))}
+                                </div>
+                                <div className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100/50 dark:from-indigo-500/10 dark:to-indigo-600/5 shadow-inner">
+                                    <ShieldCheck className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
-            </div>
 
-            {/* Content Snapshot Area */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
-                <Card className="border-slate-200 dark:border-slate-800 bg-linear-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950">
-                    <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <PlayCircle className="w-5 h-5 text-blue-500" />
-                            Curriculum Status
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between text-sm">
-                            <span className="text-slate-500">Total Lessons</span>
-                            <span className="font-bold">{stats?.totalLessons} lessons published</span>
-                        </div>
-                        <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                            <div className="bg-blue-500 h-full w-full"></div>
-                        </div>
-                        <Button variant="outline" className="w-full mt-2" asChild>
-                            <Link href={`/admin/courses/${courseId}/builder`}>Manage Curriculum</Link>
-                        </Button>
-                    </CardContent>
-                </Card>
+                {/* Management Tools Section */}
+                <div className="space-y-5 pt-4">
+                    <div>
+                        <h2 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Management Tools
+                        </h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {quickActions.map((action, i) => (
+                            <Link key={i} href={action.href} prefetch={true}>
+                                <Card className="relative group h-full border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-900 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-0.5 transition-all duration-150 cursor-pointer overflow-hidden active:scale-[0.99]">
+                                    {/* Background Graphic */}
+                                    <div className="absolute top-0 right-0 w-40 h-40 opacity-0 group-hover:opacity-[0.03] dark:group-hover:opacity-[0.05] transition-opacity duration-200">
+                                        <svg viewBox="0 0 100 100" className="w-full h-full text-blue-600">
+                                            <circle cx="50" cy="50" r="40" fill="currentColor" />
+                                            <circle cx="50" cy="50" r="25" fill="white" />
+                                        </svg>
+                                    </div>
 
-                <Card className="border-slate-200 dark:border-slate-800 bg-linear-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-950">
-                    <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-emerald-500" />
-                            Recent Activity
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-col items-center justify-center py-6 text-center">
-                        <div className="p-3 rounded-full bg-slate-100 dark:bg-slate-800 mb-2">
-                            <Users className="w-6 h-6 text-slate-300" />
-                        </div>
-                        <p className="text-sm text-slate-500">Join Student Management to see live activity logs</p>
-                        <Button variant="link" size="sm" asChild>
-                            <Link href="/admin/students">Go to Students</Link>
-                        </Button>
-                    </CardContent>
-                </Card>
+                                    <CardContent className="p-6 relative z-10">
+                                        <div className="flex items-start gap-4">
+                                            <div className="relative p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 group-hover:bg-gradient-to-br group-hover:from-blue-50 group-hover:to-blue-100/50 dark:group-hover:from-blue-500/10 dark:group-hover:to-blue-600/5 transition-all duration-150 shrink-0 shadow-sm">
+                                                {action.icon}
+                                                {/* Icon background glow */}
+                                                <div className="absolute inset-0 rounded-xl bg-blue-500/0 group-hover:bg-blue-500/5 blur-xl transition-all duration-150" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between gap-2 mb-1.5">
+                                                    <h3 className="font-semibold text-base text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-150">
+                                                        {action.title}
+                                                    </h3>
+                                                    <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600 group-hover:text-blue-500 dark:group-hover:text-blue-400 group-hover:translate-x-1 transition-all duration-150 shrink-0" />
+                                                </div>
+                                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                                                    {action.description}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Content Snapshot Area */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-2">
+                    <Card className="border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-4">
+                            <CardTitle className="text-base font-semibold flex items-center gap-2.5">
+                                <div className="p-1.5 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-500/10 dark:to-blue-600/5">
+                                    <PlayCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                Curriculum Status
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-slate-600 dark:text-slate-400">Total Lessons</span>
+                                <span className="font-semibold text-slate-900 dark:text-white">
+                                    {stats?.totalLessons} lessons published
+                                </span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                                <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-full w-full shadow-sm"></div>
+                            </div>
+                            <Button variant="outline" className="w-full h-10 mt-2 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-300 dark:hover:border-blue-700 transition-all" asChild>
+                                <Link href={`/admin/courses/${courseId}/builder`}>Manage Curriculum</Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border border-slate-200/60 dark:border-slate-800/60 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-4">
+                            <CardTitle className="text-base font-semibold flex items-center gap-2.5">
+                                <div className="p-1.5 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-500/10 dark:to-emerald-600/5">
+                                    <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                                Recent Activity
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+                            <div className="p-3 rounded-full bg-slate-100 dark:bg-slate-800 mb-3">
+                                <Users className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+                            </div>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                                Join Student Management to see live activity logs
+                            </p>
+                            <Button variant="link" size="sm" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300" asChild>
+                                <Link href="/admin/students">Go to Students</Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </div>
     );
@@ -184,19 +301,27 @@ export default function CourseDashboardPage() {
 
 function DashboardSkeleton() {
     return (
-        <div className="p-8 space-y-8 animate-pulse">
-            <div className="flex items-center gap-4">
-                <Skeleton className="w-10 h-10 rounded-full" />
-                <div className="space-y-2">
-                    <Skeleton className="h-8 w-64" />
-                    <Skeleton className="h-4 w-48" />
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950/50">
+            <div className="p-6 md:p-8 lg:p-10 space-y-8 max-w-7xl mx-auto animate-pulse">
+                <div className="flex items-center gap-4">
+                    <Skeleton className="w-10 h-10 rounded-full" />
+                    <div className="space-y-2 flex-1">
+                        <Skeleton className="h-9 w-80" />
+                        <Skeleton className="h-4 w-48" />
+                    </div>
                 </div>
-            </div>
-            <div className="grid grid-cols-3 gap-6">
-                {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 rounded-2xl" />)}
-            </div>
-            <div className="grid grid-cols-2 gap-6">
-                {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 rounded-2xl" />)}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-28 rounded-xl" />)}
+                </div>
+                <div className="space-y-5 pt-4">
+                    <Skeleton className="h-4 w-32" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-32 rounded-xl" />)}
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-2">
+                    {[1, 2].map(i => <Skeleton key={i} className="h-48 rounded-xl" />)}
+                </div>
             </div>
         </div>
     );

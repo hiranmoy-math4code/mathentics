@@ -41,6 +41,7 @@ export default async function AdminLayout({
   const links = [
     { icon: "home", label: "Dashboard", href: "/admin/dashboard" },
     { icon: "book-open", label: "Courses", href: "/admin/courses" },
+    { icon: "award", label: "Test Series", href: "/admin/test-series" },
     { icon: "question", label: "Question Bank", href: "/admin/question-bank" },
     { icon: "grid", label: "Exam", href: "/admin/exams" },
     { icon: "payment", label: "Payments", href: "/admin/payments" },

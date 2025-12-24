@@ -52,36 +52,7 @@ export function useTestSeriesDetail(seriesId: string | undefined) {
     });
 }
 
-export function useEnrolledTestSeries(userId: string | undefined) {
-    const supabase = createClient();
 
-    return useQuery({
-        queryKey: queryKeys.testSeries.enrolled(userId!),
-        queryFn: async () => {
-            const { data, error } = await supabase
-                .from("test_series_enrollments")
-                .select(`
-          id,
-          enrolled_at,
-          status,
-          test_series (
-            id,
-            title,
-            description,
-            price
-          )
-        `)
-                .eq("student_id", userId!)
-                .eq("status", "active")
-                .order("enrolled_at", { ascending: false });
-
-            if (error) throw error;
-            return data;
-        },
-        enabled: !!userId,
-        staleTime: 1000 * 60 * 3, // 3 minutes
-    });
-}
 
 export function useTestSeriesExams(seriesId: string | undefined) {
     const supabase = createClient();

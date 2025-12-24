@@ -116,19 +116,24 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
-html, body {
+html,
+body {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
   height: 100%;
-  overscroll-behavior-y: none; /* Prevent pull-to-refresh on mobile */
-  -webkit-tap-highlight-color: transparent; /* Remove tap highlight */
-  -webkit-touch-callout: none; /* Disable long-press menu */
+  overscroll-behavior-y: none;
+  /* Prevent pull-to-refresh on mobile */
+  -webkit-tap-highlight-color: transparent;
+  /* Remove tap highlight */
+  -webkit-touch-callout: none;
+  /* Disable long-press menu */
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -138,8 +143,10 @@ html, body {
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 /* App-like touch interactions */
@@ -147,7 +154,7 @@ html, body {
   * {
     -webkit-tap-highlight-color: transparent;
   }
-  
+
   /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
@@ -164,20 +171,24 @@ html, body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #e2e8f0; /* slate-200 */
+  background-color: #e2e8f0;
+  /* slate-200 */
   border-radius: 20px;
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #334155; /* slate-700 */
+  background-color: #334155;
+  /* slate-700 */
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #cbd5e1; /* slate-300 */
+  background-color: #cbd5e1;
+  /* slate-300 */
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #475569; /* slate-600 */
+  background-color: #475569;
+  /* slate-600 */
 }
 
 /* Firefox support */
@@ -187,5 +198,62 @@ html, body {
 }
 
 .dark .custom-scrollbar {
+  scrollbar-color: #334155 transparent;
+}
+
+/* Apply custom scrollbar globally to all scrollable elements */
+.overflow-auto::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.overflow-auto::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track,
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-auto::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb,
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: #e2e8f0;
+  /* slate-200 */
+  border-radius: 20px;
+}
+
+.dark .overflow-auto::-webkit-scrollbar-thumb,
+.dark .overflow-y-auto::-webkit-scrollbar-thumb,
+.dark .overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: #334155;
+  /* slate-700 */
+}
+
+.overflow-auto::-webkit-scrollbar-thumb:hover,
+.overflow-y-auto::-webkit-scrollbar-thumb:hover,
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background-color: #cbd5e1;
+  /* slate-300 */
+}
+
+.dark .overflow-auto::-webkit-scrollbar-thumb:hover,
+.dark .overflow-y-auto::-webkit-scrollbar-thumb:hover,
+.dark .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background-color: #475569;
+  /* slate-600 */
+}
+
+/* Firefox support for global scrollbars */
+.overflow-auto,
+.overflow-y-auto,
+.overflow-x-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
+}
+
+.dark .overflow-auto,
+.dark .overflow-y-auto,
+.dark .overflow-x-auto {
   scrollbar-color: #334155 transparent;
 }

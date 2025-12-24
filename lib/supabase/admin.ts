@@ -5,7 +5,7 @@ export const createAdminClient = () => {
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
     if (!supabaseServiceKey) {
-        throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined')
+        throw new Error('SUPABASE_SERVICE_ROLE_KEY environment variable is not defined. Please check your .env.local file.')
     }
 
     return createClient(supabaseUrl, supabaseServiceKey, {

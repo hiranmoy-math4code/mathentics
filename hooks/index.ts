@@ -1,6 +1,5 @@
 // Mutation Hooks
 export { useEnrollCourse } from "./mutations/useEnrollCourse";
-export { useEnrollTestSeries } from "./mutations/useEnrollTestSeries";
 export { useSubmitExam } from "./mutations/useSubmitExam";
 export { useSaveResponse } from "./mutations/useSaveResponse";
 export { useToggleMarkForReview } from "./mutations/useToggleMarkForReview";
@@ -11,7 +10,6 @@ export { useExams, useExam, useExamSections, useExamQuestions } from "./queries/
 export {
     useTestSeries,
     useTestSeriesDetail,
-    useEnrolledTestSeries,
     useTestSeriesExams,
 } from "./queries/useTestSeries";
 export { useInfiniteQuestions } from "./queries/useInfiniteQuestions";

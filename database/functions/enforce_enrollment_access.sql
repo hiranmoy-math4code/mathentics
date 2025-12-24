@@ -37,9 +37,10 @@ DECLARE
 BEGIN
   SELECT EXISTS(
     SELECT 1
-    FROM public.test_series_enrollments
-    WHERE student_id = p_user_id
-      AND test_series_id = p_test_series_id
+    FROM public.enrollments
+    WHERE user_id = p_user_id
+      AND course_id = p_test_series_id
+      AND status = 'active'
       AND (expires_at IS NULL OR expires_at > NOW())
   ) INTO v_has_access;
   

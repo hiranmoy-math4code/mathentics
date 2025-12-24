@@ -31,8 +31,11 @@ export function CourseThumbnail({
     // Card variant specific classes (fills parent, no external styles)
     const cardClasses = "w-full h-full";
 
+    // Check if we have a valid thumbnail URL (not null, empty, or the string "NULL")
+    const hasValidThumbnail = src && src !== 'NULL' && src !== 'null' && src.trim() !== '';
+
     // If valid thumbnail exists, show it normally
-    if (src) {
+    if (hasValidThumbnail) {
         return (
             <div
                 className={cn(

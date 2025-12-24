@@ -90,10 +90,6 @@ export default function StudentDashboard() {
     }
   };
 
-  const handleViewSeries = (seriesId: string) => {
-    router.push(`/student/test-series/${seriesId}`);
-  };
-
   const handleContinueCourse = (courseId: string) => {
     router.push(`/learn/${courseId}`);
   };

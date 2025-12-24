@@ -65,7 +65,7 @@ export function ImageUpload({
                 const filePath = `course-thumbnails/${fileName}`;
 
                 const { error: uploadError } = await supabase.storage
-                    .from('courses') // Assuming 'courses' bucket exists
+                    .from('courses')
                     .upload(filePath, file);
 
                 if (uploadError) {
@@ -105,7 +105,7 @@ export function ImageUpload({
     return (
         <div className="space-y-4 w-full flex flex-col justify-center items-center">
             <div className="relative w-full h-[200px] md:w-[300px] md:h-[200px] border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl flex flex-col items-center justify-center overflow-hidden bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                {value ? (
+                {value && value !== 'NULL' && value !== 'null' ? (
                     <>
                         <div className="relative w-full h-full">
                             <Image

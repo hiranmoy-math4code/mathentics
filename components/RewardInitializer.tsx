@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { checkStreak, awardCoins } from "@/app/actions/rewardActions";
+import { checkStreak, awardCoins, updateMissionProgress } from "@/app/actions/rewardActions";
 import { toast } from "sonner";
 import { usePathname } from "next/navigation";
 
@@ -24,6 +24,9 @@ export function RewardInitializer({ userId }: { userId: string }) {
                 // Dispatch event to refresh UI counters
                 window.dispatchEvent(new Event("rewards-updated"));
             }
+
+            // Update login mission progress
+            await updateMissionProgress(userId, 'login');
         };
 
         // Run once on mount (session start)

@@ -246,66 +246,77 @@ function SortableModuleItem({
     return (
         <div ref={setNodeRef} style={style} className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden bg-white dark:bg-[#161b22]">
             <div
-                className="p-3 bg-slate-50 dark:bg-slate-900 flex items-center justify-between cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="p-3 bg-slate-50 dark:bg-slate-900 flex items-center gap-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                 onClick={onToggle}
             >
-                <div className="flex items-center gap-2 flex-1">
-                    {/* Drag Handle */}
-                    <button className="cursor-grab touch-none p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" {...attributes} {...listeners}>
-                        <GripVertical className="h-4 w-4" />
-                    </button>
+                {/* Drag Handle */}
+                <button className="cursor-grab touch-none p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 shrink-0" {...attributes} {...listeners}>
+                    <GripVertical className="h-4 w-4" />
+                </button>
 
+                {/* Chevron */}
+                <div className="shrink-0">
                     {isExpanded ? (
                         <ChevronDown className="h-4 w-4 text-slate-400" />
                     ) : (
                         <ChevronRight className="h-4 w-4 text-slate-400" />
                     )}
-
-                    {isEditing ? (
-                        <div className="flex items-center gap-2 flex-1" onClick={(e) => e.stopPropagation()}>
-                            <Input
-                                value={editingTitle}
-                                onChange={(e) => onEditChange(e.target.value)}
-                                className="h-8 dark:bg-slate-800 dark:text-white"
-                                autoFocus
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") onEditSave();
-                                    if (e.key === "Escape") onEditCancel();
-                                }}
-                            />
-                            <Button size="sm" onClick={onEditSave} className="h-8">Save</Button>
-                            <Button size="sm" variant="ghost" onClick={onEditCancel} className="h-8">Cancel</Button>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2 group flex-1">
-                            <span className="font-semibold text-slate-700 dark:text-slate-200">{module.title}</span>
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                                <button
-                                    className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-indigo-500"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onEditStart();
-                                    }}
-                                >
-                                    <Edit className="h-3 w-3" />
-                                </button>
-                                <button
-                                    className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-red-500"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onDeleteRequest();
-                                    }}
-                                >
-                                    <Trash className="h-3 w-3" />
-                                </button>
-                            </div>
-                        </div>
-                    )}
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-500">
+
+                {/* Module Title */}
+                <div className="flex items-center gap-2 group flex-1 min-w-0">
+                    <span className="font-semibold text-slate-700 dark:text-slate-200 truncate">{module.title}</span>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 shrink-0">
+                        <button
+                            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-indigo-500"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEditStart();
+                            }}
+                        >
+                            <Edit className="h-3 w-3" />
+                        </button>
+                        <button
+                            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-red-500"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteRequest();
+                            }}
+                        >
+                            <Trash className="h-3 w-3" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Lesson Count */}
+                <div className="flex items-center gap-2 text-xs text-slate-500 shrink-0">
                     <span>{module.lessons.length} lessons</span>
                 </div>
             </div>
+
+            {/* Edit Module Dialog */}
+            {isEditing && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onEditCancel}>
+                    <div className="bg-white dark:bg-slate-900 rounded-lg p-6 w-full max-w-md mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-white">Edit Module Name</h3>
+                        <Input
+                            value={editingTitle}
+                            onChange={(e) => onEditChange(e.target.value)}
+                            className="mb-4 dark:bg-slate-800 dark:text-white"
+                            placeholder="Module name"
+                            autoFocus
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") onEditSave();
+                                if (e.key === "Escape") onEditCancel();
+                            }}
+                        />
+                        <div className="flex justify-end gap-2">
+                            <Button variant="ghost" onClick={onEditCancel}>Cancel</Button>
+                            <Button onClick={onEditSave}>Save Changes</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {isExpanded && (
                 <div className="p-2 space-y-2 border-t border-slate-200 dark:border-slate-800">

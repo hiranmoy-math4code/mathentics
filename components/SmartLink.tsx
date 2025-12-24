@@ -82,7 +82,7 @@ export function SmartLink({
 
         // List of routes that are handled by the SPA containers
         const spaRoutes = [
-            '/admin/dashboard', '/admin/courses', '/admin/question-bank',
+            '/admin/dashboard', '/admin/courses', '/admin/test-series', '/admin/question-bank',
             '/admin/exams', '/admin/payments',
             '/admin/students', '/admin/settings',
             '/student/dashboard', '/student/results', '/student/rewards',
@@ -92,19 +92,20 @@ export function SmartLink({
 
         const isExactSpaRoute = spaRoutes.includes(href);
 
-        // ⚡ INSTANT STUDENT NAVIGATION: Use StudentAppContainer if available and route is SPA-able
+        // ⚡ INSTANT STUDENT NAVIGATION: Use StudentAppContainer for exact SPA routes
         if (href.startsWith('/student/') && (window as any).__studentNavigate && isExactSpaRoute) {
             (window as any).__studentNavigate(href);
             return;
         }
 
-        // ⚡ INSTANT ADMIN NAVIGATION: Use AdminAppContainer if available and route is SPA-able
+        // ⚡ INSTANT ADMIN NAVIGATION: Use AdminAppContainer for exact SPA routes
         if (href.startsWith('/admin/') && (window as any).__adminNavigate && isExactSpaRoute) {
             (window as any).__adminNavigate(href);
             return;
         }
 
-        // Otherwise use router.push for navigation (prefetching should make it fast)
+        // For all other routes (including dynamic routes), use router.push
+        // Prefetching makes this fast
         startTransition(() => {
             router.push(href);
         });
