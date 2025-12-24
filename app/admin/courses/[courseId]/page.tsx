@@ -22,8 +22,6 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const dynamic = 'force-dynamic';
-
 export default function CourseDashboardPage() {
     const { courseId } = useParams();
     const router = useRouter();
