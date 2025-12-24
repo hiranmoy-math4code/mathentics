@@ -87,7 +87,11 @@ export function useStudentDetails(userId: string) {
                 totalAttempts: attempts.length,
                 averageScore: attempts.length > 0
                     ? Math.round(attempts.reduce((sum: number, a: any) => sum + (a.percentage || 0), 0) / attempts.length)
-                    : 0
+                    : 0,
+                avgPercentage: attempts.length > 0
+                    ? Math.round(attempts.reduce((sum: number, a: any) => sum + (a.percentage || 0), 0) / attempts.length)
+                    : 0,
+                activeSessions: 0 // Will be populated from device_sessions if needed
             };
 
             return {

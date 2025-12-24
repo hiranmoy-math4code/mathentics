@@ -186,7 +186,7 @@ export function StudentProfile({ studentId }: StudentProfileProps) {
                         <div className="p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100/50 dark:border-slate-800/50">
                             <div className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Active Devices</div>
                             <div className="flex items-end gap-2">
-                                <div className="text-2xl font-black text-slate-900 dark:text-white">{details.activeSessions || 0}</div>
+                                <div className="text-2xl font-black text-slate-900 dark:text-white">{stats.activeSessions || 0}</div>
                                 <Monitor className="w-5 h-5 text-blue-500 mb-1" />
                             </div>
                         </div>
