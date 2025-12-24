@@ -39,19 +39,33 @@ export async function fetchLessonDetailedData(
             if (userId) {
                 const { data: attempts } = await supabase
                     .from("exam_attempts")
-                    .select("*, result:results(*)")
+                    .select("*")
                     .eq("exam_id", lesson.exam_id)
-                    .eq("user_id", userId);
+                    .eq("student_id", userId);
                 result.attempts = attempts || [];
             }
         }
 
-        // 3. Fetch Course/Author Context
+        // 3. Fetch Course/Author Context (optional, don't fail if this errors)
         if (courseId) {
-            const { data: course } = await supabase.from("courses").select("user_id").eq("id", courseId).single();
-            if (course?.user_id) {
-                const { data: author } = await supabase.from("profiles").select("*").eq("id", course.user_id).single();
-                result.author = author;
+            try {
+                const { data: course } = await supabase
+                    .from("courses")
+                    .select("user_id")
+                    .eq("id", courseId)
+                    .single();
+
+                if (course?.user_id) {
+                    const { data: author } = await supabase
+                        .from("profiles")
+                        .select("*")
+                        .eq("id", course.user_id)
+                        .single();
+                    result.author = author;
+                }
+            } catch (authorError) {
+                // Ignore author fetch errors - not critical
+                console.warn("Could not fetch author:", authorError);
             }
         }
 
