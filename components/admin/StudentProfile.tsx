@@ -195,7 +195,7 @@ export function StudentProfile({ studentId }: StudentProfileProps) {
                             <Button variant="default" className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20">
                                 Send Message
                             </Button>
-                            <DropdownMenu>
+                            <DropdownMenu modal={false}>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="outline" size="icon">
                                         <MoreVertical className="w-5 h-5" />
