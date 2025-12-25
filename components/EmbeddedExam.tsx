@@ -16,6 +16,8 @@ import {
 import { renderWithLatex } from "@/lib/renderWithLatex"
 import { useRouter } from "next/navigation"
 import { useLessonContext } from "@/context/LessonContext"
+import { ResponseExpiryWarning } from "@/components/exam/ResponseExpiryWarning"
+import { isResponseExpired } from "@/lib/responseCleanup"
 import { ExamTimer } from "@/components/exam/ExamTimer"
 import { QuestionDisplay } from "@/components/exam/QuestionDisplay"
 import { QuestionPalette } from "@/components/exam/QuestionPalette"
@@ -43,11 +45,13 @@ interface QuizResult {
 function QuestionAnalysisView({
     structured,
     responseMap,
-    onBack
+    onBack,
+    isExpired = false
 }: {
     structured: any[],
     responseMap: Record<string, any>,
-    onBack: () => void
+    onBack: () => void,
+    isExpired?: boolean
 }) {
     const [activeSectionIdx, setActiveSectionIdx] = useState(0)
 
@@ -83,26 +87,36 @@ function QuestionAnalysisView({
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
                 {activeSection?.questions.map((q: any, idx: number) => {
-                    const userAns = responseMap[q.id]
-                    const isCorrect = checkAnswer(q, userAns)
-                    const isSkipped = userAns === undefined || userAns === null || (Array.isArray(userAns) && userAns.length === 0)
+                    // Hide user response if expired
+                    const userAns = isExpired ? undefined : responseMap[q.id]
+
+                    // If expired, we can't really judge Correct/Incorrect based on userAns (it's undefined).
+                    // But we likely want to show just the question and correct answer.
+                    // However, `isCorrect` logic depends on `userAns`.
+                    // If isExpired, isCorrect will be false (undefined ans).
+                    // We should probably adjust the display to generic "View Solution" mode.
+
+                    const isCorrect = !isExpired && checkAnswer(q, userAns)
+                    const isSkipped = !isExpired && (userAns === undefined || userAns === null || (Array.isArray(userAns) && userAns.length === 0))
 
                     return (
-                        <div key={q.id} className={`p-4 md:p-6 rounded-xl border ${isCorrect ? "border-emerald-500/30 bg-emerald-500/5" :
-                            isSkipped ? "border-border bg-muted/20" :
-                                "border-rose-500/30 bg-rose-500/5"
+                        <div key={q.id} className={`p-4 md:p-6 rounded-xl border ${isExpired ? "border-border bg-card" :
+                            isCorrect ? "border-emerald-500/30 bg-emerald-500/5" :
+                                isSkipped ? "border-border bg-muted/20" :
+                                    "border-rose-500/30 bg-rose-500/5"
                             }`}>
                             <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm font-medium text-muted-foreground bg-muted px-2 py-1 rounded">
                                         Q{idx + 1}
                                     </span>
-                                    {isCorrect && <span className="text-xs font-bold text-emerald-500 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Correct</span>}
-                                    {!isCorrect && !isSkipped && <span className="text-xs font-bold text-rose-500 flex items-center gap-1"><X className="w-3 h-3" /> Incorrect</span>}
-                                    {isSkipped && <span className="text-xs font-bold text-muted-foreground flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Skipped</span>}
+                                    {!isExpired && isCorrect && <span className="text-xs font-bold text-emerald-500 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Correct</span>}
+                                    {!isExpired && !isCorrect && !isSkipped && <span className="text-xs font-bold text-rose-500 flex items-center gap-1"><X className="w-3 h-3" /> Incorrect</span>}
+                                    {!isExpired && isSkipped && <span className="text-xs font-bold text-muted-foreground flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Skipped</span>}
+                                    {isExpired && <span className="text-xs font-bold text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Response Expired</span>}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                    Marks: {isCorrect ? `+${q.marks}` : isSkipped ? "0" : `-${q.negative_marks}`}
+                                    Marks: {isCorrect ? `+${q.marks}` : isSkipped || isExpired ? "0" : `-${q.negative_marks}`}
                                 </div>
                             </div>
 
@@ -112,7 +126,7 @@ function QuestionAnalysisView({
 
                             <div className="space-y-2 mb-6">
                                 {q.options?.map((opt: any, optIdx: number) => {
-                                    const isSelected = isOptionSelected(q, opt.id, userAns)
+                                    const isSelected = !isExpired && isOptionSelected(q, opt.id, userAns)
                                     const isRightOption = isOptionCorrect(q, opt.id)
 
                                     let optClass = "border-border bg-muted/30 text-muted-foreground"
@@ -134,7 +148,7 @@ function QuestionAnalysisView({
                                 {q.question_type === "NAT" && (
                                     <div className="p-3 rounded-lg border border-border bg-muted/30">
                                         <div className="text-sm text-muted-foreground mb-1">Correct Answer: <span className="text-emerald-500 font-mono">{q.correct_answer}</span></div>
-                                        <div className="text-sm text-muted-foreground">Your Answer: <span className={`${isCorrect ? "text-emerald-500" : "text-rose-500"} font-mono`}>{userAns ?? "N/A"}</span></div>
+                                        {!isExpired && <div className="text-sm text-muted-foreground">Your Answer: <span className={`${isCorrect ? "text-emerald-500" : "text-rose-500"} font-mono`}>{userAns ?? "N/A"}</span></div>}
                                     </div>
                                 )}
                             </div>
@@ -255,6 +269,9 @@ export function PreviousResultView({
     const { result, structured, responseMap, attempt } = resultData
     const passed = result.passed ?? (result.percentage >= 40)
 
+    // Check for response expiry
+    const isExpired = attempt?.submitted_at ? isResponseExpired(attempt.submitted_at) : false
+
     // Check visibility settings
     const examSettings = attempt?.exams
     const visibility = examSettings?.result_visibility || "immediate"
@@ -290,7 +307,7 @@ export function PreviousResultView({
     }
 
     if (showAnalysis) {
-        return <QuestionAnalysisView structured={structured} responseMap={responseMap} onBack={() => setShowAnalysis(false)} />
+        return <QuestionAnalysisView structured={structured} responseMap={responseMap} onBack={() => setShowAnalysis(false)} isExpired={isExpired} />
     }
 
     return (
@@ -304,7 +321,10 @@ export function PreviousResultView({
             </div>
 
             <div className="p-4 md:p-6 space-y-6">
-                {/* Score Card */}
+
+                {attempt?.submitted_at && (
+                    <ResponseExpiryWarning submittedAt={attempt.submitted_at} />
+                )}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                     <div className="bg-blue-50 dark:bg-blue-900/20 p-3 md:p-4 rounded-xl border border-blue-200 dark:border-blue-800 text-center">
                         <Target className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 text-blue-500 dark:text-blue-400" />

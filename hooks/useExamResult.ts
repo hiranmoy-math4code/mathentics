@@ -20,6 +20,13 @@ export async function fetchExamResult(attemptId: string) {
 
     const examId = attempt.exam_id
 
+    // Auto-cleanup expired responses (calls database function)
+    // This runs in background and doesn't block the query
+    const { cleanupAttemptResponses } = await import('@/lib/responseCleanup');
+    cleanupAttemptResponses(attemptId).catch(err => {
+      console.warn('Background cleanup failed:', err);
+    });
+
     // 2. Fetch all responses for this attempt
     const { data: responses, error: responsesError } = await supabase
       .from("responses")

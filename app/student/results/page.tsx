@@ -176,7 +176,7 @@ export default function ResultsPage() {
                     {/* Action */}
                     <TableCell className="text-center">
                       <Link
-                        href={`/student/results/${result.id}?attemptId=${result.attempt_id}`}
+                        href={`/student/results/attempt/${result.attempt_id}`}
                       >
                         <Button
                           variant="outline"

@@ -21,6 +21,9 @@ const DashboardPage = dynamic(() => import('@/app/student/dashboard/page'), {
 const ResultsPage = dynamic(() => import('@/app/student/results/page'), {
     ssr: false,
 });
+const AttemptPage = dynamic(() => import('@/app/student/results/attempt/[attemptId]/page'), {
+    ssr: false,
+});
 const RewardsPage = dynamic(() => import('@/app/student/rewards/page'), {
     ssr: false,
 });
@@ -86,6 +89,11 @@ export function StudentAppContainer({ initialRoute }: StudentAppContainerProps) 
 
     // Render component based on current route
     const renderPage = () => {
+        // Specific routes first
+        if (currentRoute.includes('/student/results/attempt/')) {
+            return <AttemptPage />;
+        }
+
         if (currentRoute.startsWith('/student/results')) {
             return <ResultsPage />;
         }

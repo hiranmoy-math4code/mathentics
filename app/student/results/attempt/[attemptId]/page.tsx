@@ -1,5 +1,5 @@
 "use client"
-import React, { useMemo } from "react"
+import React, { useMemo, useEffect } from "react"
 import { motion } from "framer-motion"
 import { useParams, useRouter } from "next/navigation"
 import {
@@ -18,11 +18,22 @@ import { useExamResult } from "@/hooks/useExamResult"
 import ExamResultSkeleton from "@/components/skeletons/ExamResultSkeleton"
 import Link from "next/link"
 import { renderWithLatex } from "@/lib/renderWithLatex"
+import { ResponseExpiryWarning } from "@/components/exam/ResponseExpiryWarning"
+import { isResponseExpired, cleanupAttemptResponses } from "@/lib/responseCleanup"
 
 export default function ExamResultPage() {
   const { attemptId } = useParams()
   const router = useRouter()
   const { data, isLoading, error } = useExamResult(attemptId as string)
+
+  // Auto-cleanup expired responses when component mounts
+  useEffect(() => {
+    if (attemptId) {
+      cleanupAttemptResponses(attemptId as string).catch(err => {
+        console.warn('Background cleanup failed:', err);
+      });
+    }
+  }, [attemptId]);
 
   // Calculate all statistics
   const stats = useMemo(() => {
@@ -106,6 +117,7 @@ export default function ExamResultPage() {
   const { attempt, structured, responseMap } = data
   const examTitle = attempt.exams.title
   const examId = attempt.exam_id
+  const responsesExpired = isResponseExpired(attempt.submitted_at)
 
   // Determine pass/fail (assuming 40% is passing)
   const isPassed = stats.percentage >= 40
@@ -251,6 +263,9 @@ export default function ExamResultPage() {
           </div>
         </motion.div>
 
+        {/* Response Expiry Warning */}
+        <ResponseExpiryWarning submittedAt={attempt.submitted_at} />
+
         {/* Questions Review */}
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
@@ -388,12 +403,12 @@ export default function ExamResultPage() {
                                 </div>
 
                                 <div className="flex gap-2">
-                                  {chosen && !correct && (
+                                  {!responsesExpired && chosen && !correct && (
                                     <span className="px-3 py-1 text-xs rounded-full bg-rose-600 text-white font-bold">
                                       Your Answer
                                     </span>
                                   )}
-                                  {chosen && correct && (
+                                  {!responsesExpired && chosen && correct && (
                                     <span className="px-3 py-1 text-xs rounded-full bg-green-600 text-white font-bold flex items-center gap-1">
                                       <CheckCircle2 className="w-3 h-3" /> Your Answer
                                     </span>
@@ -412,18 +427,20 @@ export default function ExamResultPage() {
 
                       {/* NAT Answer */}
                       {q.question_type === "NAT" && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-                            <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Your Answer</div>
-                            <div className={`text-lg font-bold ${isCorrect
-                              ? "text-green-600 dark:text-green-400"
-                              : isUnattempted
-                                ? "text-slate-500 dark:text-slate-400"
-                                : "text-rose-600 dark:text-rose-400"
-                              }`}>
-                              {ans ? renderWithLatex(String(ans)) : "—"}
+                        <div className={`grid grid-cols-1 ${!responsesExpired ? 'md:grid-cols-2' : ''} gap-4`}>
+                          {!responsesExpired && (
+                            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                              <div className="text-sm text-slate-500 dark:text-slate-400 mb-1">Your Answer</div>
+                              <div className={`text-lg font-bold ${isCorrect
+                                ? "text-green-600 dark:text-green-400"
+                                : isUnattempted
+                                  ? "text-slate-500 dark:text-slate-400"
+                                  : "text-rose-600 dark:text-rose-400"
+                                }`}>
+                                {ans ? renderWithLatex(String(ans)) : "—"}
+                              </div>
                             </div>
-                          </div>
+                          )}
                           <div className="p-4 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
                             <div className="text-sm text-green-600 dark:text-green-400 mb-1">Correct Answer</div>
                             <div className="text-lg font-bold text-green-700 dark:text-green-300">
