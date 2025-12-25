@@ -120,9 +120,9 @@ export function CourseThumbnail({
                         </span>
                     )}
 
-                    {/* ✨ Premium Math4Code Text Logo */}
+                    {/* ✨ Premium mathentics Text Logo */}
                     <div className="px-2.5 py-1.5 rounded-lg bg-white/20 backdrop-blur-md text-white font-extrabold text-xs tracking-widest drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
-                        Math4Code
+                        mathentics
                     </div>
                 </div>
 

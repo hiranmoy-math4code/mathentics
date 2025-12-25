@@ -7,9 +7,10 @@ import {
     FileText, History, ArrowLeft, RefreshCw,
     TrendingUp, Target, Award, Clock,
     ChevronRight, ExternalLink, MoreVertical,
-    IdCard, ShieldCheck, Monitor
+    IdCard, ShieldCheck, Monitor, UserX, Edit, Trash2
 } from 'lucide-react';
 import { useStudentDetails, useResetSessions } from '@/hooks/admin/useAdminStudents';
+import { useUserActions } from '@/hooks/admin/useUserActions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,6 +18,14 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { StatusBadge, ExpiryBadge, GrantTypeBadge } from './StatusBadges';
 import { formatDistanceToNow, format } from 'date-fns';
 import { EditExpiryDialog } from './EditExpiryDialog';
@@ -24,6 +33,9 @@ import { GrantAccessDialog } from './GrantAccessDialog';
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { EditProfileDialog } from '@/components/admin/EditProfileDialog';
 
 interface StudentProfileProps {
     studentId: string;
@@ -38,6 +50,29 @@ export function StudentProfile({ studentId }: StudentProfileProps) {
     const [editExpiryOpen, setEditExpiryOpen] = useState(false);
     const [grantAccessOpen, setGrantAccessOpen] = useState(false);
     const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
+
+    // User actions hook - MUST be before conditional returns
+    const {
+        handleToggleBlock,
+        handleDeleteChat,
+        handleEditProfile,
+        confirmToggleBlock,
+        confirmDeleteChat,
+        isBlocking,
+        isDeleting,
+        isBanned,
+        blockDialogOpen,
+        setBlockDialogOpen,
+        deleteDialogOpen,
+        setDeleteDialogOpen,
+        editProfileOpen,
+        setEditProfileOpen,
+        confirmAction,
+        userName
+    } = useUserActions({
+        userId: studentId,
+        userName: details?.student?.full_name || details?.student?.email || 'User'
+    });
 
     // Fetch resources for GrantAccessDialog
     const supabase = createClient();
@@ -137,6 +172,12 @@ export function StudentProfile({ studentId }: StudentProfileProps) {
                                 <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 border-none">
                                     Student ID: {student.id.slice(0, 8)}...
                                 </Badge>
+                                {isBanned && (
+                                    <Badge variant="destructive" className="bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-200 dark:border-rose-800">
+                                        <UserX className="w-3 h-3 mr-1" />
+                                        Blocked
+                                    </Badge>
+                                )}
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
                                 <div className="flex items-center gap-1.5">
@@ -154,9 +195,41 @@ export function StudentProfile({ studentId }: StudentProfileProps) {
                             <Button variant="default" className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20">
                                 Send Message
                             </Button>
-                            <Button variant="outline" size="icon">
-                                <MoreVertical className="w-5 h-5" />
-                            </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="icon">
+                                        <MoreVertical className="w-5 h-5" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48">
+                                    <DropdownMenuLabel>User Actions</DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={handleEditProfile}
+                                        className="cursor-pointer"
+                                    >
+                                        <Edit className="w-4 h-4 mr-2" />
+                                        Edit Profile
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={handleToggleBlock}
+                                        disabled={isBlocking}
+                                        className="cursor-pointer text-orange-600 focus:text-orange-600"
+                                    >
+                                        <UserX className="w-4 h-4 mr-2" />
+                                        {isBlocking ? 'Processing...' : isBanned ? 'Unblock User' : 'Block User'}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={handleDeleteChat}
+                                        disabled={isDeleting}
+                                        className="cursor-pointer text-rose-600 focus:text-rose-600"
+                                    >
+                                        <Trash2 className="w-4 h-4 mr-2" />
+                                        {isDeleting ? 'Deleting...' : 'Delete Chat History'}
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </div>
 
@@ -473,6 +546,41 @@ export function StudentProfile({ studentId }: StudentProfileProps) {
                 onSuccess={() => refetch()}
                 courses={resources?.courses || []}
                 testSeries={resources?.testSeries || []}
+            />
+
+            {/* User Action Confirmation Dialogs */}
+            <ConfirmDialog
+                open={blockDialogOpen}
+                onOpenChange={setBlockDialogOpen}
+                title={confirmAction === 'block' ? 'Block User' : 'Unblock User'}
+                description={
+                    confirmAction === 'block'
+                        ? `Are you sure you want to block ${userName}? They will not be able to access the platform.`
+                        : `Are you sure you want to unblock ${userName}? They will regain access to the platform.`
+                }
+                confirmText={confirmAction === 'block' ? 'Block User' : 'Unblock User'}
+                variant={confirmAction === 'block' ? 'destructive' : 'default'}
+                onConfirm={confirmToggleBlock}
+            />
+            <ConfirmDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                title="Delete Chat History"
+                description={`Are you sure you want to delete all chat history for ${userName}? This action cannot be undone.`}
+                confirmText="Delete"
+                variant="destructive"
+                onConfirm={confirmDeleteChat}
+            />
+            <EditProfileDialog
+                open={editProfileOpen}
+                onOpenChange={setEditProfileOpen}
+                userId={studentId}
+                currentData={{
+                    fullName: student.full_name || '',
+                    email: student.email,
+                    phone: student.phone || ''
+                }}
+                onSuccess={() => refetch()}
             />
         </div>
     );

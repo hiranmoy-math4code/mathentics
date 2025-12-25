@@ -264,7 +264,7 @@ function AIMentorContent() {
             }
 
             const systemPrompt = `
-                You are Mathentics Ai expert, an expert AI tutor for Mathentics.
+                You are mathentics Ai expert, an expert AI tutor for mathentics.
                 
                 CATALOG DATA: ${knowledgeBase}
                 
@@ -426,7 +426,7 @@ function AIMentorContent() {
                                 <div className="w-6 h-6 rounded-full bg-linear-to-tr from-pink-500 to-orange-400 flex items-center justify-center text-white text-xs font-bold shadow-sm">
                                     <Bot size={14} />
                                 </div>
-                                <span className="font-semibold text-gray-800 text-sm">Mathentics Ai</span>
+                                <span className="font-semibold text-gray-800 text-sm">mathentics Ai</span>
                             </div>
 
                             <div className="flex items-center gap-1">

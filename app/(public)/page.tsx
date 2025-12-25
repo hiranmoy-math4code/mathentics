@@ -14,8 +14,8 @@ export default function App() {
     <div className="font-sans antialiased text-slate-900 bg-[#FBFBFD]">
       <Hero />
       <FeaturesStrip />
-      <CoursesSection />
       <ExamSeriesSection />
+      <CoursesSection />
       <DemoSection />
       <Testimonials />
       <CTA />

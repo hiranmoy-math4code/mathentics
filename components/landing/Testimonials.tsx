@@ -6,7 +6,7 @@ import { Star } from "lucide-react";
 
 const TESTIMONIALS = [
     { id: 1, name: 'Aarav P.', role: 'IIT-JAM Aspirant', text: "The adaptive practice problems changed the game for me. I finally understood where my logic was breaking down.", score: 'AIR 89' },
-    { id: 2, name: 'Sarah L.', role: 'IIT-JAM Student', text: "Mathentics bridges the gap between theory and practice. The analytics-driven insights helped me identify my weak areas instantly.", score: 'AIR 127' },
+    { id: 2, name: 'Sarah L.', role: 'IIT-JAM Student', text: "mathentics bridges the gap between theory and practice. The analytics-driven insights helped me identify my weak areas instantly.", score: 'AIR 127' },
     { id: 3, name: 'Rahul K.', role: 'GATE Mathematics Aspirant', text: "The mock exams are actually harder than the real thing, which made the actual exam feel like a breeze. Best investment I made!", score: '99.8 Percentile' },
 ];
 

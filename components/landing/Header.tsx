@@ -104,7 +104,7 @@ export const Header = () => {
                         <div className="relative h-12 w-auto transition-all group-hover:scale-105">
                             <Image
                                 src="/mathentics-logo-new.png"
-                                alt="Mathentics Academy Logo"
+                                alt="mathentics Academy Logo"
                                 width={500}
                                 height={100}
                                 className="h-12 w-auto object-contain"

@@ -16,7 +16,7 @@ export default function AboutPage() {
                         Empowering the Next Generation of Developers
                     </h1>
                     <p className="text-xl text-slate-600">
-                        Math4Code is a premium learning platform designed to help students master mathematics and coding concepts through interactive exams and comprehensive courses.
+                        mathentics is a premium learning platform designed to help students master mathematics and coding concepts through interactive exams and comprehensive courses.
                     </p>
                 </div>
             </div>

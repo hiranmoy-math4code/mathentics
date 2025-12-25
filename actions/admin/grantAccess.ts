@@ -204,7 +204,7 @@ export async function grantTestSeriesAccess(data: {
  */
 export async function revokeAccess(data: {
     enrollmentId: string;
-    type: 'course' | 'test_series';
+    type: 'course';
     reason: string;
 }) {
     const supabase = await createClient();
@@ -257,7 +257,7 @@ export async function revokeAccess(data: {
  */
 export async function extendAccess(data: {
     enrollmentId: string;
-    type: 'course' | 'test_series';
+    type: 'course';
     newExpiryDate: Date;
     notes?: string;
 }) {

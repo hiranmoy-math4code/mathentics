@@ -16,7 +16,7 @@ interface EditExpiryDialogProps {
     onSuccess?: () => void;
     enrollment: {
         id: string;
-        type: 'course' | 'test_series';
+        type: 'course';
         studentName: string;
         courseName: string;
         currentExpiry: string | null;

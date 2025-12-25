@@ -14,7 +14,7 @@ export const StatsSection: React.FC = () => {
         <section id="stats" className="py-20 bg-linear-to-b from-white to-slate-50">
             <div className="max-w-6xl mx-auto px-6 lg:px-8 text-center">
                 <motion.h3 initial="hidden" animate="show" variants={fadeUp} className="text-3xl font-bold text-slate-900">Numbers that matter</motion.h3>
-                <p className="mt-2 text-slate-600">Real results from students using Math4Code</p>
+                <p className="mt-2 text-slate-600">Real results from students using mathentics</p>
 
                 <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <div className="rounded-2xl p-8 bg-linear-to-br from-indigo-500 to-violet-500 text-white shadow-xl">

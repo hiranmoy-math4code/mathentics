@@ -34,6 +34,17 @@ const extractYouTubeId = (s?: string | null) => {
     return null;
 };
 
+const formatTime = (seconds: number): string => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    if (hrs > 0) {
+        return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
 function loadYouTubeIframeAPI(): Promise<void> {
     return new Promise((resolve) => {
         if ((window as any).YT && (window as any).YT.Player) return resolve();
@@ -340,7 +351,7 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
                     <div className={`absolute top-0 left-0 right-0 h-24 bg-linear-to-b from-black/90 via-black/40 to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'} `} />
                     <div className={`absolute top-4 left-4 z-30 pointer-events-none flex items-center gap-2 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'} `}>
                         <div className="bg-blue-600 w-2 h-6 rounded-full"></div>
-                        <span className="text-white font-bold tracking-wider text-sm shadow-black drop-shadow-md">MATH4CODE</span>
+                        <span className="text-white font-bold tracking-wider text-sm shadow-black drop-shadow-md">mathentics</span>
                     </div>
                     <div className={`absolute top-4 right-4 z-30 pointer-events-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'} `}>
                         <div className="bg-white/10 p-2 rounded-full backdrop-blur-md"><Info size={20} className="text-white/80" /></div>
@@ -418,7 +429,7 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
                         </button>
 
                         <div className="text-[10px] sm:text-xs font-mono text-white/60 whitespace-nowrap">
-                            {new Date(currentTime * 1000).toISOString().substr(14, 5)} / {duration ? new Date(duration * 1000).toISOString().substr(14, 5) : "00:00"}
+                            {formatTime(currentTime)} / {duration ? formatTime(duration) : "0:00"}
                         </div>
                     </div>
 

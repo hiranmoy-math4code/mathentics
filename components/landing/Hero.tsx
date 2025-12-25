@@ -47,7 +47,7 @@ export const Hero: React.FC = () => {
             </span>
           </h1>
           <p className="text-lg text-slate-500 mb-8 max-w-lg leading-relaxed">
-            <span className="font-semibold text-[#1F2A6B]">Mathentics</span> combines authentic mathematical practice with powerful analytics.
+            <span className="font-semibold text-[#1F2A6B]">mathentics</span> combines authentic mathematical practice with powerful analytics.
             Master IIT-JAM, CSIR NET & GATE Mathematics with intelligent mock tests and data-driven insights.
           </p>
 

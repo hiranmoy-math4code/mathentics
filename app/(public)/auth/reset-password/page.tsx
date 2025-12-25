@@ -72,7 +72,7 @@ export default function ResetPasswordPage() {
                             <span className="text-xl">Σ✨{'}'}</span>
                         </div>
                         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-indigo-400 to-violet-400">
-                            Math4Code
+                            mathentics
                         </h1>
                     </div>
                 </Link>

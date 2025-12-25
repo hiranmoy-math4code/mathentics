@@ -100,7 +100,7 @@ export const DemoSection: React.FC = () => {
                 <div>
                     <h2 className="text-3xl lg:text-4xl font-extrabold mb-6">AI-Powered Math Learning</h2>
                     <p className="text-indigo-200 text-lg mb-8">
-                        Get instant, step-by-step solutions to complex mathematical problems. Mathentics' AI mentor helps you understand concepts deeply, not just memorize formulas.
+                        Get instant, step-by-step solutions to complex mathematical problems. mathentics' AI mentor helps you understand concepts deeply, not just memorize formulas.
                     </p>
                     <ul className="space-y-4 mb-8">
                         {['Instant step-by-step solutions', 'Concept explanations tailored to your level', 'Practice problems with detailed feedback'].map((item, i) => (

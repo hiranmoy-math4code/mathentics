@@ -8,7 +8,7 @@ export const Footer: React.FC = () => (
         <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
                 <div className="flex items-center gap-2 font-bold text-2xl text-white mb-4">
-                    <span className="text-[#14B8A6]">Mathentics</span>
+                    <span className="text-[#14B8A6]">mathentics</span>
                 </div>
                 <p className="max-w-xs text-sm text-slate-400">
                     Master IIT-JAM, CSIR NET & GATE Mathematics with expert-led courses, intelligent mock tests, and AI-powered learning.
@@ -34,7 +34,7 @@ export const Footer: React.FC = () => (
             </div>
         </div>
         <div className="max-w-7xl mx-auto px-6 mt-12 pt-8 border-t border-slate-800 text-center text-xs text-slate-500">
-            © 2025 Mathentics Academy. All rights reserved.
+            © 2025 mathentics Academy. All rights reserved.
         </div>
     </footer>
 );

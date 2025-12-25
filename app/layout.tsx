@@ -39,22 +39,22 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.math4code.com"),
+  metadataBase: new URL("https://www.mathentics.com"),
   title: {
-    default: "Math4Code - Master IIT JEE & JAM with Expert Online Courses",
-    template: "%s | Math4Code",
+    default: "mathentics - Master IIT JEE & JAM with Expert Online Courses",
+    template: "%s | mathentics",
   },
   description: "Premium online exam system for IIT JEE and IIT JAM preparation. Expert-curated courses, practice tests, and personalized learning paths to ace your exams.",
   keywords: ["IIT JEE", "IIT JAM", "online courses", "exam preparation", "mathematics", "physics", "chemistry", "test series"],
   authors: [{ name: "Hiranmoy Mandal" }],
   creator: "Hiranmoy Mandal",
-  publisher: "Math4Code",
+  publisher: "mathentics",
   generator: "Next.js",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Math4Code",
+    title: "mathentics",
   },
   icons: {
     icon: "/favicon.ico",
@@ -63,14 +63,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://www.math4code.com",
-    title: "Math4Code - Master IIT JEE & JAM",
+    url: "https://www.mathentics.com",
+    title: "mathentics - Master IIT JEE & JAM",
     description: "Expert-curated courses and test series for IIT JEE and JAM preparation",
-    siteName: "Math4Code",
+    siteName: "mathentics",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Math4Code - Master IIT JEE & JAM",
+    title: "mathentics - Master IIT JEE & JAM",
     description: "Expert-curated courses and test series for IIT JEE and JAM preparation",
   },
   robots: {

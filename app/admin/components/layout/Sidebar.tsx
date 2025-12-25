@@ -108,12 +108,12 @@ export default function Sidebar({
           {sidebarCollapsed ? (
             <SmartLink href="/" queryKey={['route', '/']}>
               <div className="w-10 h-10 rounded-lg overflow-hidden">
-                <img src="/mathentics-logo-new.png" alt="Mathentics" className="w-full h-full object-contain" />
+                <img src="/mathentics-logo-new.png" alt="mathentics" className="w-full h-full object-contain" />
               </div>
             </SmartLink>
           ) : (
             <SmartLink href="/" queryKey={['route', '/']} className="flex items-center gap-3">
-              <img src="/mathentics-logo-new.png" alt="Mathentics Academy" className="h-10 w-auto object-contain" />
+              <img src="/mathentics-logo-new.png" alt="mathentics Academy" className="h-10 w-auto object-contain" />
             </SmartLink>
           )}
           {!sidebarCollapsed && (
@@ -318,7 +318,7 @@ export default function Sidebar({
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-3">
-                  <img src="/mathentics-logo-new.png" alt="Mathentics Academy" className="h-10 w-auto object-contain" />
+                  <img src="/mathentics-logo-new.png" alt="mathentics Academy" className="h-10 w-auto object-contain" />
                   <div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                       Admin Panel
@@ -393,7 +393,7 @@ export default function Sidebar({
 
               <div className="p-4 border-t border-slate-100 dark:border-slate-800">
                 <p className="text-xs text-center text-slate-400 dark:text-slate-500">
-                  © 2025 Mathentics Academy. All rights reserved.
+                  © 2025 mathentics Academy. All rights reserved.
                 </p>
               </div>
             </motion.aside>

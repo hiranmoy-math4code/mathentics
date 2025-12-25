@@ -31,8 +31,9 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     { icon: "home", label: "Dashboard", href: "/student/dashboard" },
     { icon: "bookopen", label: "My Courses", href: "/student/my-courses" },
     { icon: "layers", label: "All Courses", href: "/student/all-courses" },
-    { icon: "messagesquare", label: "Community", href: "#", onClick: "openCommunity" },
     { icon: "trendingup", label: "My Series", href: "/student/my-series" },
+    { icon: "layers", label: "All Series", href: "/student/all-test-series" },
+    { icon: "messagesquare", label: "Community", href: "#", onClick: "openCommunity" },
     {
       icon: "award",
       label: "Result",
@@ -53,7 +54,6 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       }
     },
     { icon: "gift", label: "Rewards", href: "/student/rewards" },
-    { icon: "layers", label: "All Series", href: "/student/all-test-series" },
     { icon: "settings", label: "Settings", href: "/student/settings" },
   ];
 

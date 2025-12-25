@@ -191,7 +191,7 @@ export async function POST(req: Request) {
 
         // If Mobile, wrap in Bridge URL to ensure Referer header is sent (Fixes INTERNAL_SECURITY_BLOCK_1)
         if (isMobile) {
-            const domain = process.env.NEXT_PUBLIC_DOMAIN || 'https://www.math4code.com';
+            const domain = process.env.NEXT_PUBLIC_DOMAIN || 'https://www..com';
             finalUrl = `${domain}/mobile-payment?target=${encodeURIComponent(finalUrl)}`;
         }
 
