@@ -18,10 +18,11 @@ export const usePublicTestSeries = () => {
         queryKey: ["public-test-series"],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("test_series")
+                .from("courses")
                 .select("*")
+                .eq("is_published", true)
+                .eq("course_type", "test_series")
                 .order("created_at", { ascending: false });
-
             if (error) throw error;
             return data as PublicTestSeries[];
         },

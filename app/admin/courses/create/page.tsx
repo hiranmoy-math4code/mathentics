@@ -208,11 +208,11 @@ export default function CreateCoursePage() {
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="development">Development</SelectItem>
-                                            <SelectItem value="business">Business</SelectItem>
-                                            <SelectItem value="design">Design</SelectItem>
-                                            <SelectItem value="marketing">Marketing</SelectItem>
-                                            <SelectItem value="academic">Academic</SelectItem>
+                                            <SelectItem value="iit_jam">IIT-JAM Mathematics</SelectItem>
+                                            <SelectItem value="csir_net">CSIR NET Mathematical Sciences</SelectItem>
+                                            <SelectItem value="gate">GATE Mathematics</SelectItem>
+                                            <SelectItem value="foundation">Foundation Courses</SelectItem>
+                                            <SelectItem value="advanced">Advanced Topics</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

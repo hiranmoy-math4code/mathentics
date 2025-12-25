@@ -1,0 +1,31 @@
+<svg width="400" height="100" viewBox="0 0 400 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Green Diamond with + -->
+  <g transform="translate(20, 20)">
+    <rect width="30" height="30" rx="4" transform="rotate(45 15 15)" fill="#00C853"/>
+    <text x="15" y="21" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle">+</text>
+  </g>
+  
+  <!-- Orange Diamond with × -->
+  <g transform="translate(60, 20)">
+    <rect width="30" height="30" rx="4" transform="rotate(45 15 15)" fill="#FF6D00"/>
+    <text x="15" y="21" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle">×</text>
+  </g>
+  
+  <!-- Red Diamond with ÷ -->
+  <g transform="translate(100, 20)">
+    <rect width="30" height="30" rx="4" transform="rotate(45 15 15)" fill="#D32F2F"/>
+    <text x="15" y="21" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle">÷</text>
+  </g>
+  
+  <!-- Blue Diamond with − -->
+  <g transform="translate(140, 20)">
+    <rect width="30" height="30" rx="4" transform="rotate(45 15 15)" fill="#0091EA"/>
+    <text x="15" y="21" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle">−</text>
+  </g>
+  
+  <!-- MATHENTICS Text -->
+  <text x="190" y="38" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="28" font-weight="800" fill="#1a1a1a" letter-spacing="1">MATHENTICS</text>
+  
+  <!-- ACADEMY Text -->
+  <text x="190" y="58" font-family="'Inter', 'Segoe UI', Arial, sans-serif" font-size="14" font-weight="600" fill="#666666" letter-spacing="3">ACADEMY</text>
+</svg>

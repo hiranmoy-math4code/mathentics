@@ -1,36 +1,66 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Star } from "lucide-react";
+
+const TESTIMONIALS = [
+    { id: 1, name: 'Aarav P.', role: 'IIT-JAM Aspirant', text: "The adaptive practice problems changed the game for me. I finally understood where my logic was breaking down.", score: 'AIR 89' },
+    { id: 2, name: 'Sarah L.', role: 'IIT-JAM Student', text: "Mathentics bridges the gap between theory and practice. The analytics-driven insights helped me identify my weak areas instantly.", score: 'AIR 127' },
+    { id: 3, name: 'Rahul K.', role: 'GATE Mathematics Aspirant', text: "The mock exams are actually harder than the real thing, which made the actual exam feel like a breeze. Best investment I made!", score: '99.8 Percentile' },
+];
 
 export const Testimonials: React.FC = () => {
-    const t = [
-        { name: "Riya Sen", note: "I improved 20% in 6 weeks — the practice sets are so focused." },
-        { name: "Sourav Das", note: "Auto PDF upload and exam creation saved me weeks of manual work." },
-        { name: "Asha Roy", note: "The speed trainer made me faster and less anxious." },
-    ];
-    const [idx, setIdx] = useState(0);
+    const [index, setIndex] = useState(0);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setIndex((prev) => (prev + 1) % TESTIMONIALS.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, []);
+
     return (
-        <section className="py-16 bg-white">
+        <section className="py-24 bg-white">
             <div className="max-w-4xl mx-auto px-6 text-center">
-                <h4 className="text-2xl font-bold text-slate-900">Students ❤️ Math4Code</h4>
-                <p className="text-slate-600 mt-2">Success stories from our community</p>
+                <h2 className="text-3xl font-extrabold text-[#1F2A6B] mb-12">Success Stories</h2>
 
-                <div className="mt-8">
-                    <motion.div key={idx} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-                        <div className="rounded-xl p-8 bg-linear-to-br from-indigo-50 to-white border">
-                            <div className="text-slate-700 text-lg">“{t[idx].note}”</div>
-                            <div className="mt-4 flex items-center justify-center gap-3">
-                                <div className="w-12 h-12 rounded-full bg-indigo-600/10 flex items-center justify-center text-indigo-600 font-semibold">{t[idx].name.split(" ").map(n => n[0]).join("")}</div>
-                                <div className="text-sm text-slate-700 font-medium">{t[idx].name}</div>
+                <div className="relative min-h-[250px] flex items-center justify-center">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={index}
+                            initial={{ opacity: 0, x: 50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -50 }}
+                            transition={{ duration: 0.5 }}
+                            className="absolute w-full"
+                        >
+                            <div className="text-[#F6C85F] flex justify-center mb-6">
+                                {[1, 2, 3, 4, 5].map(i => <Star key={i} fill="currentColor" size={24} />)}
                             </div>
-                        </div>
-                    </motion.div>
+                            <h3 className="text-2xl md:text-3xl font-medium text-slate-800 italic mb-6 leading-relaxed">
+                                "{TESTIMONIALS[index].text}"
+                            </h3>
+                            <div>
+                                <div className="font-bold text-[#1F2A6B] text-lg">{TESTIMONIALS[index].name}</div>
+                                <div className="text-slate-500 text-sm">{TESTIMONIALS[index].role}</div>
+                                <div className="inline-block mt-3 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                                    {TESTIMONIALS[index].score}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
 
-                    <div className="mt-4 flex items-center justify-center gap-3">
-                        <button onClick={() => setIdx((s) => (s - 1 + t.length) % t.length)} className="px-3 py-1 rounded bg-white/6">Prev</button>
-                        <button onClick={() => setIdx((s) => (s + 1) % t.length)} className="px-3 py-1 rounded bg-indigo-600 text-white">Next</button>
-                    </div>
+                <div className="flex justify-center gap-2 mt-8">
+                    {TESTIMONIALS.map((_, i) => (
+                        <button
+                            key={i}
+                            onClick={() => setIndex(i)}
+                            className={`w-2 h-2 rounded-full transition-all ${i === index ? 'w-6 bg-[#1F2A6B]' : 'bg-gray-300'}`}
+                            aria-label={`Go to testimonial ${i + 1}`}
+                        />
+                    ))}
                 </div>
             </div>
         </section>

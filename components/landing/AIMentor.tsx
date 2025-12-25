@@ -264,7 +264,7 @@ function AIMentorContent() {
             }
 
             const systemPrompt = `
-                You are Hiranmoy, an expert AI tutor for Math4Code.
+                You are Mathentics Ai expert, an expert AI tutor for Mathentics.
                 
                 CATALOG DATA: ${knowledgeBase}
                 
@@ -426,7 +426,7 @@ function AIMentorContent() {
                                 <div className="w-6 h-6 rounded-full bg-linear-to-tr from-pink-500 to-orange-400 flex items-center justify-center text-white text-xs font-bold shadow-sm">
                                     <Bot size={14} />
                                 </div>
-                                <span className="font-semibold text-gray-800 text-sm">Hiranmoy Mandal</span>
+                                <span className="font-semibold text-gray-800 text-sm">Mathentics Ai</span>
                             </div>
 
                             <div className="flex items-center gap-1">

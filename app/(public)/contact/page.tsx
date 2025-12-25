@@ -35,7 +35,7 @@ export default function ContactPage() {
                                         </div>
                                         <div>
                                             <p className="font-medium text-slate-900">Email</p>
-                                            <p className="text-slate-600">hiranmoymandalucb@gmail.com</p>
+                                            <p className="text-slate-600">mathentics.acad@gmail.com</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-4">
@@ -44,7 +44,7 @@ export default function ContactPage() {
                                         </div>
                                         <div>
                                             <p className="font-medium text-slate-900">Phone</p>
-                                            <p className="text-slate-600">6297534924</p>
+                                            <p className="text-slate-600">9136373339</p>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-4">
@@ -53,7 +53,7 @@ export default function ContactPage() {
                                         </div>
                                         <div>
                                             <p className="font-medium text-slate-900">Office</p>
-                                            <p className="text-slate-600">Math4Code, Kolkata, India</p>
+                                            <p className="text-slate-600">Mathentics Academy, Madhubani, Bihar, 847227, India</p>
                                         </div>
                                     </div>
                                 </div>

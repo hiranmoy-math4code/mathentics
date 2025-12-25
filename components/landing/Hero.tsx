@@ -1,136 +1,213 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { FiChevronRight } from "react-icons/fi";
-import { AiOutlineRocket, AiOutlineTrophy } from "react-icons/ai";
-import { FaUsers } from "react-icons/fa";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
-
-const MiniDemo: React.FC = () => {
-  const sample = useMemo(
-    () => [
-      { id: 1, q: "If f(x)=x^2, f'(2) equals?", opts: ["2", "4", "1", "0"], a: 1 },
-      { id: 2, q: "Limit of sin(x)/x as x→0 is:", opts: ["0", "1", "∞", "doesn't exist"], a: 1 },
-      { id: 3, q: "Derivative of ln(x) is:", opts: ["1/x", "ln(x)", "x", "x^2"], a: 0 },
-    ],
-    []
-  );
-  const [idx, setIdx] = useState(0);
-  const [chosen, setChosen] = useState<number | null>(null);
-  return (
-    <div className="bg-white/6 p-3 rounded-xl">
-      <div className="text-sm text-slate-200">Question {idx + 1} / {sample.length}</div>
-      <div className="mt-2 font-medium text-white text-sm">{sample[idx].q}</div>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        {sample[idx].opts.map((o, i) => (
-          <button
-            key={i}
-            onClick={() => setChosen(i)}
-            className={`text-left rounded-lg p-2 border ${chosen === i ? "border-indigo-400 bg-indigo-500/20" : "border-white/6"} text-slate-100`}
-          >
-            <div className="text-sm">{String.fromCharCode(97 + i)}. {o}</div>
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-3 flex items-center justify-between text-sm text-slate-300">
-        <div>{chosen === null ? "Choose an answer" : chosen === sample[idx].a ? <span className="text-emerald-400 font-medium">Correct</span> : <span className="text-rose-400 font-medium">Incorrect</span>}</div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => { setChosen(null); setIdx((s) => Math.max(0, s - 1)); }} className="px-3 py-1 rounded bg-white/6">Prev</button>
-          <button onClick={() => { setChosen(null); setIdx((s) => Math.min(sample.length - 1, s + 1)); }} className="px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-700">Next</button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Check, X, Star, Play, Trophy, ArrowRight
+} from "lucide-react";
+import VideoPlayer from "@/components/VideoPlayer";
 
 export const Hero: React.FC = () => {
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+
+  const mcqOptions = [
+    { text: "sin(2x)", correct: false },
+    { text: "cos(2x)", correct: true },
+    { text: "sin²(x)", correct: false },
+    { text: "-sin(2x)", correct: false }
+  ];
+
+  const handleOptionClick = (index: number) => {
+    setSelectedOption(index);
+  };
+
   return (
-    <section className="relative overflow-hidden bg-linear-to-b from-slate-900 via-[#0f172a] to-[#050816] text-white pt-20 pb-28">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-2 items-center">
-          <motion.div initial="hidden" animate="show" variants={fadeUp}>
-            <div className="max-w-xl">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight bg-clip-text text-transparent bg-linear-to-r from-indigo-400 to-violet-400">
-                Math4Code — Learn. Compete. Conquer.
-              </h1>
-              <p className="mt-6 text-slate-300 text-lg">
-                Smart practice for IIT-JAM & JEE aspirants — upload PDFs, auto-generate mock exams,
-                track mastery, and level up with gamified practice.
-              </p>
+    <section className="relative pt-24 pb-20 lg:pt-32 lg:pb-32 overflow-hidden bg-[#FBFBFD]">
+      {/* Background Decor */}
+      <div className="absolute top-0 right-0 w-1/2 h-full bg-linear-to-bl from-indigo-50 to-transparent opacity-50 -z-10" />
+      <div className="absolute top-20 left-10 w-64 h-64 bg-teal-50 rounded-full blur-3xl -z-10" />
 
-              <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                <Link href="/auth/signup" className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 shadow-lg">
-                  <AiOutlineRocket className="text-white" />
-                  <span className="font-semibold">Start Practicing — Free</span>
-                  <FiChevronRight className="ml-2" />
-                </Link>
+      <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+        {/* Left Content */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="inline-flex items-center gap-2 bg-indigo-50 text-[#1F2A6B] px-3 py-1 rounded-full text-sm font-bold mb-6">
+            <span className="w-2 h-2 rounded-full bg-[#1F2A6B] animate-pulse" />
+            New: IIT-JAM, CSIR NET & GATE 2026 Modules
+          </div>
+          <h1 className="text-5xl lg:text-7xl font-extrabold text-[#1F2A6B] leading-[1.1] mb-6 tracking-tight">
+            Mathematics, <br />
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-[#14B8A6] to-blue-500">
+              With Authentic Learning.
+            </span>
+          </h1>
+          <p className="text-lg text-slate-500 mb-8 max-w-lg leading-relaxed">
+            <span className="font-semibold text-[#1F2A6B]">Mathentics</span> combines authentic mathematical practice with powerful analytics.
+            Master IIT-JAM, CSIR NET & GATE Mathematics with intelligent mock tests and data-driven insights.
+          </p>
 
-                <a href="#features" className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/6 hover:bg-white/10">
-                  <span>Explore Features</span>
-                </a>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Link href="/auth/login">
+              <button className="bg-[#1F2A6B] hover:bg-[#161e4d] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-indigo-200 transition-transform hover:-translate-y-1 flex items-center justify-center gap-2 group">
+                Start Free Trial
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </Link>
+            <button
+              onClick={() => setIsDemoOpen(true)}
+              className="bg-white border border-gray-200 text-slate-600 hover:border-[#1F2A6B] hover:text-[#1F2A6B] px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2"
+            >
+              <Play className="w-5 h-5 fill-current" />
+              Watch Demo
+            </button>
+          </div>
+
+          {/* Video Modal */}
+          <AnimatePresence>
+            {isDemoOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+                onClick={() => setIsDemoOpen(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    onClick={() => setIsDemoOpen(false)}
+                    className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                  >
+                    <X size={24} />
+                  </button>
+                  <VideoPlayer url="https://www.youtube.com/watch?v=WfgaS4GynwE" />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="mt-10 flex items-center gap-4 text-sm text-slate-500 font-medium">
+            <div className="flex -space-x-2">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs overflow-hidden">
+                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i * 13}`} alt="User" />
+                </div>
+              ))}
+            </div>
+            <p>Trusted by <span className="text-[#1F2A6B] font-bold">10,000+</span> top students</p>
+          </div>
+        </motion.div>
+
+        {/* Right Visual */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative block mt-12 lg:mt-0"
+        >
+          {/* Main Card */}
+          <div className="relative z-10 bg-white rounded-3xl shadow-2xl p-5 border border-gray-100 max-w-md mx-auto transform -rotate-2 hover:rotate-0 transition-transform duration-500">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-400" />
+                <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                <div className="w-3 h-3 rounded-full bg-green-400" />
               </div>
+              <div className="text-xs font-mono text-gray-400">quiz.ts</div>
+            </div>
 
-              <div className="mt-6 flex items-center gap-4 text-sm text-slate-400">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-linear-to-tr from-emerald-400 to-emerald-600 flex items-center justify-center shadow">
-                    <FaUsers className="text-white" />
-                  </div>
-                  <div>
-                    <div className="text-white font-semibold">12k+</div>
-                    <div className="text-slate-400">Active students</div>
-                  </div>
-                </div>
+            <div className="space-y-4">
+              <p className="font-bold text-gray-800 text-lg">What is the derivative of f(x) = sin(x) · cos(x)?</p>
 
-                <div className="h-6 w-px bg-white/10" />
+              <div className="space-y-3">
+                {mcqOptions.map((option, idx) => {
+                  const isSelected = selectedOption === idx;
+                  const isCorrect = option.correct;
 
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-linear-to-tr from-orange-400 to-rose-500 flex items-center justify-center shadow">
-                    <AiOutlineTrophy className="text-white" />
-                  </div>
-                  <div>
-                    <div className="text-white font-semibold">98%</div>
-                    <div className="text-slate-400">Satisfaction</div>
-                  </div>
-                </div>
+                  let buttonClass = "w-full text-left p-3 rounded-lg border-2 font-bold transition-all duration-200 flex justify-between items-center text-sm ";
+
+                  if (isSelected) {
+                    if (isCorrect) {
+                      buttonClass += "bg-green-50 border-green-500 text-green-700 shadow-sm";
+                    } else {
+                      buttonClass += "bg-red-50 border-red-500 text-red-700 shadow-sm";
+                    }
+                  } else {
+                    buttonClass += "bg-white border-slate-100 text-slate-600 hover:border-indigo-200 hover:bg-slate-50";
+                  }
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleOptionClick(idx)}
+                      className={buttonClass}
+                    >
+                      <span className="flex items-center gap-3">
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${isSelected ? (isCorrect ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800') : 'bg-slate-100 text-slate-500'}`}>
+                          {String.fromCharCode(65 + idx)}
+                        </span>
+                        {option.text}
+                      </span>
+
+                      {isSelected && (
+                        <span className="animate-in fade-in zoom-in">
+                          {isCorrect ? (
+                            <Check className="w-5 h-5 text-green-600" />
+                          ) : (
+                            <X className="w-5 h-5 text-red-600" />
+                          )}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          </motion.div>
 
-          <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
-            <div className="relative w-full max-w-2xl mx-auto">
-              <div className="rounded-3xl border border-white/6 bg-linear-to-br from-white/4 to-white/2 p-6 shadow-2xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm text-slate-300">Live Demo</div>
-                    <div className="flex items-baseline gap-3">
-                      <div className="text-2xl font-semibold">Mock Test — 3Q</div>
-                      <div className="text-xs px-2 py-1 rounded bg-white/6 text-slate-200">Practice</div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-slate-300">⏱ 5 mins</div>
-                </div>
-
-                <div className="mt-4 space-y-4">
-                  <MiniDemo />
-                </div>
-
-                <div className="mt-4 flex items-center gap-3">
-                  <button className="flex-1 rounded-xl px-4 py-2 bg-indigo-600 hover:bg-indigo-700">Try Full Demo</button>
-                  <button className="rounded-xl px-4 py-2 border border-white/10 bg-transparent">Preview</button>
-                </div>
+            <div className="mt-6 bg-indigo-50 rounded-xl p-3 flex items-center gap-4">
+              <div className="bg-white p-2 rounded-lg shadow-sm">
+                <Trophy className="text-[#F6C85F] w-5 h-5" />
               </div>
-
-              <div className="absolute -bottom-6 -right-6 w-40 h-40 rounded-full bg-linear-to-tr from-violet-500 to-indigo-400 opacity-30 blur-3xl" />
+              <div>
+                <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Leaderboard</div>
+                <div className="font-bold text-[#1F2A6B] text-sm">You're in the top 5%</div>
+              </div>
             </div>
+          </div>
+
+          {/* Floating Elements */}
+          <motion.div
+            animate={{ y: [0, -10, 0] }}
+            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+            className="absolute top-10 -right-4 bg-white p-4 rounded-2xl shadow-xl z-20 flex flex-col items-center"
+          >
+            <div className="text-[#F6C85F] font-bold text-2xl">4.9</div>
+            <div className="flex text-[#F6C85F] gap-0.5">
+              {[1, 2, 3, 4, 5].map(i => <Star key={i} size={12} fill="currentColor" />)}
+            </div>
+            <div className="text-[10px] text-gray-400 mt-1">Avg Rating</div>
           </motion.div>
-        </div>
+
+          <motion.div
+            animate={{ y: [0, 15, 0] }}
+            transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+            className="absolute -bottom-6 -left-4 bg-[#1F2A6B] text-white p-4 rounded-2xl shadow-xl z-20"
+          >
+            <Trophy size={24} className="mb-2 text-[#F6C85F]" />
+            <div className="font-bold text-lg">Top 1%</div>
+            <div className="text-[10px] opacity-80">Of performers</div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   );

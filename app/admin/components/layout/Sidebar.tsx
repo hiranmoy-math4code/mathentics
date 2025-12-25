@@ -105,23 +105,23 @@ export default function Sidebar({
       >
         {/* Logo */}
         <div className={`flex items-center gap-3 mb-8 transition-all duration-500 ${sidebarCollapsed ? "justify-center" : "px-2"}`}>
-          <div className="w-auto px-2 h-10 min-w-[2.5rem] rounded-xl bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20">
-            {/* Logo */}
-            <SmartLink href="/" queryKey={['route', '/']} >
-              <div className="w-auto px-2 h-8 rounded-lg bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:shadow-indigo-500/30 transition-all">
-                Σ✨{'}'}
+          {sidebarCollapsed ? (
+            <SmartLink href="/" queryKey={['route', '/']}>
+              <div className="w-10 h-10 rounded-lg overflow-hidden">
+                <img src="/mathentics-logo-new.png" alt="Mathentics" className="w-full h-full object-contain" />
               </div>
             </SmartLink>
-          </div>
+          ) : (
+            <SmartLink href="/" queryKey={['route', '/']} className="flex items-center gap-3">
+              <img src="/mathentics-logo-new.png" alt="Mathentics Academy" className="h-10 w-auto object-contain" />
+            </SmartLink>
+          )}
           {!sidebarCollapsed && (
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <h3 className="text-lg font-bold bg-linear-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 bg-clip-text text-transparent">
-                Math4Code
-              </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                 Admin Workspace
               </p>
@@ -318,13 +318,8 @@ export default function Sidebar({
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-3">
-                  <div className="w-auto px-2 h-10 rounded-xl bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20">
-                    Σ✨{'}'}
-                  </div>
+                  <img src="/mathentics-logo-new.png" alt="Mathentics Academy" className="h-10 w-auto object-contain" />
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                      Math4Code
-                    </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                       Admin Panel
                     </p>
@@ -398,7 +393,7 @@ export default function Sidebar({
 
               <div className="p-4 border-t border-slate-100 dark:border-slate-800">
                 <p className="text-xs text-center text-slate-400 dark:text-slate-500">
-                  © 2025 Math4Code. All rights reserved.
+                  © 2025 Mathentics Academy. All rights reserved.
                 </p>
               </div>
             </motion.aside>

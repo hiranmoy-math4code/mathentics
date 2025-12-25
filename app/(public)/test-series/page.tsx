@@ -35,15 +35,11 @@ export default async function TestSeriesPage({
     const { data: testSeries } = await query;
 
     const categories = [
-        "JEE",
-        "NEET",
-        "UPSC",
-        "SSC",
-        "Banking",
-        "Railways",
-        "State Exams",
-        "Mathematics",
-        "Programming"
+        { label: "IIT-JAM Mathematics", value: "iit_jam" },
+        { label: "CSIR NET Mathematical Sciences", value: "csir_net" },
+        { label: "GATE Mathematics", value: "gate" },
+        { label: "Foundation Courses", value: "foundation" },
+        { label: "Advanced Topics", value: "advanced" }
     ];
 
     return (
@@ -100,11 +96,11 @@ export default async function TestSeriesPage({
                                 </Link>
                                 {categories.map((cat) => (
                                     <Link
-                                        key={cat}
-                                        href={`/test-series?category=${cat.toLowerCase()}`}
-                                        className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${category === cat.toLowerCase() ? "bg-green-50 text-green-700" : "text-slate-600 hover:bg-slate-100"}`}
+                                        key={cat.value}
+                                        href={`/courses?category=${cat.value}`}
+                                        className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${category === cat.value ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-100"}`}
                                     >
-                                        {cat}
+                                        {cat.label}
                                     </Link>
                                 ))}
                             </div>
@@ -120,10 +116,12 @@ export default async function TestSeriesPage({
                                 </Badge>
                             </Link>
                             {categories.map((cat) => (
-                                <Link key={cat} href={`/test-series?category=${cat.toLowerCase()}`}>
-                                    <Badge variant={category === cat.toLowerCase() ? "default" : "outline"} className={`whitespace-nowrap py-2 px-4 text-sm ${category === cat.toLowerCase() ? "bg-green-600 hover:bg-green-700" : ""}`}>
-                                        {cat}
-                                    </Badge>
+                                <Link
+                                    key={cat.value}
+                                    href={`/courses?category=${cat.value}`}
+                                    className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${category === cat.value ? "bg-indigo-50 text-indigo-700" : "text-slate-600 hover:bg-slate-100"}`}
+                                >
+                                    {cat.label}
                                 </Link>
                             ))}
                         </div>

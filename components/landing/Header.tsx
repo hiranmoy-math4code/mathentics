@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronRight, User, LogOut, LayoutDashboard } from "lucide-react";
@@ -93,19 +94,23 @@ export const Header = () => {
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
                 className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/70 ${isScrolled
-                    ? "bg-white/70 backdrop-blur-lg border-b border-white/20 py-3 shadow-lg shadow-black/5"
-                    : "bg-white/50 backdrop-blur-md border-b border-white/10 py-5"
+                    ? "bg-white/70 backdrop-blur-lg border-b border-white/20 py-2 shadow-lg shadow-black/5"
+                    : "bg-white/50 backdrop-blur-md border-b border-white/10 py-3"
                     }`}
             >
                 <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2 group">
-                        <div className="w-auto px-2 h-8 rounded-lg bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:shadow-indigo-500/30 transition-all">
-                            Σ✨{'}'}
+                    <Link href="/" className="flex items-center gap-3 group">
+                        <div className="relative h-12 w-auto transition-all group-hover:scale-105">
+                            <Image
+                                src="/mathentics-logo-new.png"
+                                alt="Mathentics Academy Logo"
+                                width={500}
+                                height={100}
+                                className="h-12 w-auto object-contain"
+                                priority
+                            />
                         </div>
-                        <span className={`text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-slate-900 to-slate-700 ${!isScrolled && pathname === "/" ? "text-slate-900" : ""}`}>
-                            Math4Code
-                        </span>
                     </Link>
 
                     {/* Desktop Nav */}
@@ -123,34 +128,68 @@ export const Header = () => {
                     </nav>
 
                     {/* Auth Buttons / Profile */}
-                    <div className="hidden md:flex items-center gap-4">
-                        {/* {user && (
-                            <RewardDisplay userId={user.id} />
-                        )} */}
+                    <div className="hidden md:flex items-center gap-3">
                         {user ? (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
+                            <>
+                                {/* Dashboard Button */}
+                                <Link href={getDashboardLink()}>
                                     <Button variant="ghost" className="flex items-center gap-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50">
-                                        <div className="w-8 h-8 rounded-full bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white text-sm font-medium">
-                                            {user.email?.[0].toUpperCase()}
-                                        </div>
-                                        <span className="text-sm font-medium">{user.email?.split('@')[0]}</span>
+                                        <LayoutDashboard className="w-4 h-4" />
+                                        <span className="text-sm font-medium">Dashboard</span>
                                     </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56">
-                                    <DropdownMenuItem asChild>
-                                        <Link href={getDashboardLink()} className="flex items-center gap-2 cursor-pointer">
-                                            <LayoutDashboard className="w-4 h-4" />
-                                            <span>Dashboard</span>
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 cursor-pointer text-rose-600">
-                                        <LogOut className="w-4 h-4" />
-                                        <span>Sign out</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                                </Link>
+
+                                {/* Profile Dropdown */}
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="p-0 w-10 h-10 rounded-full hover:ring-2 hover:ring-indigo-200 transition-all">
+                                            <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-md hover:shadow-lg transition-shadow">
+                                                {user.email?.[0].toUpperCase()}
+                                            </div>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-64 p-2">
+                                        {/* User Info Header */}
+                                        <div className="px-3 py-3 mb-2 border-b border-gray-100">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                                                    {user.email?.[0].toUpperCase()}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-semibold text-gray-900 truncate">
+                                                        {user.email?.split('@')[0]}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 truncate">
+                                                        {user.email}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Menu Items */}
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/student/profile" className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-lg hover:bg-indigo-50 transition-colors">
+                                                <User className="w-4 h-4 text-indigo-600" />
+                                                <span className="text-sm font-medium text-gray-700">Profile</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+
+                                        <DropdownMenuItem asChild>
+                                            <Link href={getDashboardLink()} className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-lg hover:bg-indigo-50 transition-colors">
+                                                <LayoutDashboard className="w-4 h-4 text-indigo-600" />
+                                                <span className="text-sm font-medium text-gray-700">Dashboard</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+
+                                        <DropdownMenuSeparator className="my-2" />
+
+                                        <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-lg hover:bg-rose-50 transition-colors">
+                                            <LogOut className="w-4 h-4 text-rose-600" />
+                                            <span className="text-sm font-medium text-rose-600">Sign out</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </>
                         ) : (
                             <>
                                 <Link href="/auth/login">
