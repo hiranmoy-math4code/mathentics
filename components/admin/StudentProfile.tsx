@@ -459,8 +459,8 @@ export function StudentProfile({ studentId }: StudentProfileProps) {
                                                         <td className="px-6 py-4">
                                                             {att.status === 'submitted' && att.results ? (
                                                                 <div className="space-y-1">
-                                                                    <div className="font-bold text-emerald-600 dark:text-emerald-400">{att.results.percentage}%</div>
-                                                                    <div className="text-[10px] text-slate-400">{att.results.obtained_marks} / {att.exams.total_marks}</div>
+                                                                    <div className="font-bold text-emerald-600 dark:text-emerald-400">{att.percentage}%</div>
+                                                                    <div className="text-[10px] text-slate-400">{att.obtained_marks} / {att.total_marks}</div>
                                                                 </div>
                                                             ) : (
                                                                 <span className="text-slate-400 text-sm italic">N/A</span>

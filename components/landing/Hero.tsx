@@ -104,7 +104,7 @@ export const Hero: React.FC = () => {
                 </div>
               ))}
             </div>
-            <p>Trusted by <span className="text-[#1F2A6B] font-bold">10,000+</span> top students</p>
+            <p>Trusted by <span className="text-[#1F2A6B] font-bold">1000+</span> top students</p>
           </div>
         </motion.div>
 

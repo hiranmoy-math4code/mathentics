@@ -51,7 +51,12 @@ export default function AdminExamReviewPage() {
                 const neg = q.negative_marks ?? 0;
                 let got = 0;
 
-                if (!ans || (Array.isArray(ans) && ans.length === 0)) {
+                // Check if question is unattempted
+                const isUnattempted = !ans ||
+                    (Array.isArray(ans) && ans.length === 0) ||
+                    (typeof ans === 'string' && ans.trim() === '');
+
+                if (isUnattempted) {
                     unattempted++;
                 } else {
                     let isCorrect = false;
@@ -79,7 +84,8 @@ export default function AdminExamReviewPage() {
         );
 
         const percentage = totalMarks > 0 ? ((obtainedMarks / totalMarks) * 100) : 0;
-        const accuracy = totalQuestions > 0 ? ((correct / (correct + wrong)) * 100) : 0;
+        const attemptedQuestions = correct + wrong;
+        const accuracy = attemptedQuestions > 0 ? ((correct / attemptedQuestions) * 100) : 0;
 
         return {
             totalMarks,

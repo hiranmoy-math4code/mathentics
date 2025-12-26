@@ -21,6 +21,7 @@ export const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [user, setUser] = useState<any>(null);
+    const [userProfile, setUserProfile] = useState<any>(null);
     const [userRole, setUserRole] = useState<string | null>(null);
     const pathname = usePathname();
     const router = useRouter();
@@ -41,12 +42,13 @@ export const Header = () => {
             setUser(user);
 
             if (user) {
-                // Fetch user role
+                // Fetch user profile including avatar
                 const { data: profile } = await supabase
                     .from("profiles")
-                    .select("role")
+                    .select("role, avatar_url, full_name")
                     .eq("id", user.id)
                     .single();
+                setUserProfile(profile);
                 setUserRole(profile?.role || null);
             }
         };
@@ -59,11 +61,15 @@ export const Header = () => {
             if (session?.user) {
                 supabase
                     .from("profiles")
-                    .select("role")
+                    .select("role, avatar_url, full_name")
                     .eq("id", session.user.id)
                     .single()
-                    .then(({ data }) => setUserRole(data?.role || null));
+                    .then(({ data }) => {
+                        setUserProfile(data);
+                        setUserRole(data?.role || null);
+                    });
             } else {
+                setUserProfile(null);
                 setUserRole(null);
             }
         });
@@ -143,18 +149,39 @@ export const Header = () => {
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" className="p-0 w-10 h-10 rounded-full hover:ring-2 hover:ring-indigo-200 transition-all">
-                                            <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-md hover:shadow-lg transition-shadow">
-                                                {user.email?.[0].toUpperCase()}
-                                            </div>
+                                            {userProfile?.avatar_url ? (
+                                                <Image
+                                                    src={userProfile.avatar_url}
+                                                    alt={userProfile?.full_name || "Profile"}
+                                                    width={40}
+                                                    height={40}
+                                                    className="w-10 h-10 rounded-full object-cover shadow-md hover:shadow-lg transition-shadow"
+                                                    priority
+                                                />
+                                            ) : (
+                                                <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-md hover:shadow-lg transition-shadow">
+                                                    {user.email?.[0].toUpperCase()}
+                                                </div>
+                                            )}
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="w-64 p-2">
                                         {/* User Info Header */}
                                         <div className="px-3 py-3 mb-2 border-b border-gray-100">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
-                                                    {user.email?.[0].toUpperCase()}
-                                                </div>
+                                                {userProfile?.avatar_url ? (
+                                                    <Image
+                                                        src={userProfile.avatar_url}
+                                                        alt={userProfile?.full_name || "Profile"}
+                                                        width={40}
+                                                        height={40}
+                                                        className="w-10 h-10 rounded-full object-cover shadow-md"
+                                                    />
+                                                ) : (
+                                                    <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                                                        {user.email?.[0].toUpperCase()}
+                                                    </div>
+                                                )}
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-semibold text-gray-900 truncate">
                                                         {user.email?.split('@')[0]}
@@ -168,7 +195,7 @@ export const Header = () => {
 
                                         {/* Menu Items */}
                                         <DropdownMenuItem asChild>
-                                            <Link href="/student/profile" className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-lg hover:bg-indigo-50 transition-colors">
+                                            <Link href="/student/settings" className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-lg hover:bg-indigo-50 transition-colors">
                                                 <User className="w-4 h-4 text-indigo-600" />
                                                 <span className="text-sm font-medium text-gray-700">Profile</span>
                                             </Link>

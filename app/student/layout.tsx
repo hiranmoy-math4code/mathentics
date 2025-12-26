@@ -77,7 +77,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     full_name: profile.fullName,
     email: profile.email,
     role: profile.role,
-    avatar_url: null, // useCurrentUser might not fetch avatar_url, add if needed
+    avatar_url: profile.avatarUrl || null,
   };
 
   // Check if we're on a payment route - if so, render children directly

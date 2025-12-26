@@ -8,6 +8,7 @@ interface UserProfile {
     email: string;
     fullName: string;
     role: string;
+    avatarUrl?: string | null;
 }
 
 export function useCurrentUser() {
@@ -22,7 +23,7 @@ export function useCurrentUser() {
 
             const { data: profile, error } = await supabase
                 .from("profiles")
-                .select("id, email, full_name, role")
+                .select("id, email, full_name, role, avatar_url")
                 .eq("id", user.id)
                 .single();
 
@@ -38,6 +39,7 @@ export function useCurrentUser() {
                 email: profile.email,
                 fullName: profile.full_name || "Student",
                 role: profile.role,
+                avatarUrl: profile.avatar_url,
             };
         },
         // Production Policy: Retry 3 times with delay to wait for DB Trigger

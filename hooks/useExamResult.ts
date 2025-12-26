@@ -39,10 +39,24 @@ export async function fetchExamResult(attemptId: string) {
 
     const responseMap: Record<string, any> = {}
     responses?.forEach((r: any) => {
+      if (!r.student_answer) {
+        // No answer provided
+        return;
+      }
+
       try {
-        responseMap[r.question_id] = JSON.parse(r.student_answer)
+        // Try to parse as JSON first (for arrays and objects)
+        const parsed = JSON.parse(r.student_answer)
+        responseMap[r.question_id] = parsed
       } catch {
-        responseMap[r.question_id] = r.student_answer
+        // If parsing fails, use the raw value (for strings/numbers)
+        // Remove quotes if it's a quoted string
+        let value = r.student_answer
+        if (typeof value === 'string') {
+          // Remove surrounding quotes if present
+          value = value.replace(/^["']|["']$/g, '')
+        }
+        responseMap[r.question_id] = value
       }
     })
 

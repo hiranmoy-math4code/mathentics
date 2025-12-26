@@ -8,6 +8,8 @@ import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/landing/Footer";
 import { CourseThumbnail } from "@/components/ui/CourseThumbnail";
 
+export { metadata } from './metadata';
+
 export default async function TestSeriesPage({
     searchParams,
 }: {

@@ -37,12 +37,22 @@ export default async function CourseLessonPage({
     // Fast Enrollment Check (indexed query)
     const { data: enrollment } = await supabase
         .from("enrollments")
-        .select("status")
+        .select("status, expires_at")
         .eq("user_id", user.id)
         .eq("course_id", courseId)
         .eq("status", "active")
         .single();
     const isEnrolled = !!enrollment;
+
+    // Check if enrollment has expired
+    if (enrollment?.expires_at) {
+        const expiryDate = new Date(enrollment.expires_at);
+        const now = new Date();
+        if (expiryDate < now) {
+            // Course access has expired, redirect to course page
+            redirect(`/courses/${courseId}?expired=true`);
+        }
+    }
 
     return (
         <LessonAppContainer

@@ -12,6 +12,9 @@ import {
 import { CheckCircle, PlayCircle, FileText, Lock, Unlock } from "lucide-react";
 import EnrollButton from "./EnrollButton";
 import { CourseThumbnail } from "@/components/ui/CourseThumbnail";
+import { CourseSchema } from "@/components/seo/StructuredData";
+
+export { generateMetadata } from './metadata';
 
 export default async function CourseLandingPage({
     params,
@@ -81,6 +84,14 @@ export default async function CourseLandingPage({
 
     return (
         <div className="min-h-screen bg-background font-sans">
+            <CourseSchema
+                name={course.title}
+                description={course.description || ''}
+                instructor={(course.profiles as any)?.full_name}
+                price={course.price}
+                image={course.thumbnail_url}
+                url={`https://www.mathentics.com/courses/${courseId}`}
+            />
             <main className="pb-20">
                 {/* Hero Section */}
                 <div className="relative bg-[#FBFBFD] overflow-hidden">
@@ -242,7 +253,9 @@ export default async function CourseLandingPage({
                                                 )}
                                             </div>
                                             <p className="text-sm text-muted-foreground">
-                                                Full lifetime access • Certificate of completion
+                                                {course.duration_months
+                                                    ? `Valid for ${course.duration_months} months`
+                                                    : 'Full lifetime access'} • Certificate of completion
                                             </p>
                                         </div>
 
@@ -260,7 +273,9 @@ export default async function CourseLandingPage({
                                             </div>
                                             <div className="flex items-center gap-3 text-sm text-muted-foreground">
                                                 <CheckCircle className="h-4 w-4 text-emerald-500" />
-                                                <span>Full lifetime access</span>
+                                                <span>{course.duration_months
+                                                    ? `Valid for ${course.duration_months} months`
+                                                    : 'Full lifetime access'}</span>
                                             </div>
                                             <div className="flex items-center gap-3 text-sm text-muted-foreground">
                                                 <CheckCircle className="h-4 w-4 text-emerald-500" />

@@ -46,12 +46,12 @@ export default function AboutPage() {
                     <div className="grid grid-cols-2 gap-6">
                         <div className="bg-indigo-50 p-6 rounded-2xl text-center">
                             <Users className="w-8 h-8 text-indigo-600 mx-auto mb-3" />
-                            <div className="text-2xl font-bold text-slate-900">10k+</div>
+                            <div className="text-2xl font-bold text-slate-900">1k+</div>
                             <div className="text-sm text-slate-600">Students</div>
                         </div>
                         <div className="bg-violet-50 p-6 rounded-2xl text-center">
                             <Trophy className="w-8 h-8 text-violet-600 mx-auto mb-3" />
-                            <div className="text-2xl font-bold text-slate-900">500+</div>
+                            <div className="text-2xl font-bold text-slate-900">50+</div>
                             <div className="text-sm text-slate-600">Exams</div>
                         </div>
                         <div className="bg-blue-50 p-6 rounded-2xl text-center col-span-2">

@@ -8,6 +8,8 @@ import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/landing/Footer";
 import { CourseThumbnail } from "@/components/ui/CourseThumbnail";
 
+export { metadata } from './metadata';
+
 export default async function MarketplacePage({
     searchParams,
 }: {
@@ -20,6 +22,7 @@ export default async function MarketplacePage({
         .from("courses")
         .select("*, profiles:creator_id(full_name)")
         .eq("is_published", true)
+        .eq("course_type", "course")
         .order("created_at", { ascending: false })
         .range(0, 19);
 

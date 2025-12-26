@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /student/
+Disallow: /api/
+Disallow: /auth/
+
+# Sitemap
+Sitemap: https://www.mathentics.com/sitemap.xml

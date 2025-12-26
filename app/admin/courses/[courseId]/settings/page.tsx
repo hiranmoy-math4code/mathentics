@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Save, Loader2, Sparkles, DollarSign, Tag, BarChart, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Sparkles, DollarSign, Tag, BarChart, Eye, EyeOff, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,7 +42,8 @@ export default function CourseSettingsPage() {
         price: 0,
         category: '',
         level: 'beginner' as 'beginner' | 'intermediate' | 'advanced' | 'all',
-        is_published: false
+        is_published: false,
+        duration_months: null as number | null
     });
 
     const [isSaving, setIsSaving] = useState(false);
@@ -56,7 +57,8 @@ export default function CourseSettingsPage() {
                 price: course.price || 0,
                 category: course.category || '',
                 level: course.level || 'beginner',
-                is_published: course.is_published || false
+                is_published: course.is_published || false,
+                duration_months: course.duration_months || null
             });
         }
     }, [course]);
@@ -78,6 +80,7 @@ export default function CourseSettingsPage() {
                     category: formData.category,
                     level: formData.level,
                     is_published: formData.is_published,
+                    duration_months: formData.duration_months,
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', courseId);
@@ -222,6 +225,46 @@ export default function CourseSettingsPage() {
                                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                                     <Sparkles className="w-3 h-3" />
                                     Set to 0 to make this course free for everyone
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Course Duration */}
+                    <Card className="border-none shadow-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl overflow-hidden group hover:shadow-amber-500/10 transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 dark:from-amber-500/10 dark:to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <CardHeader className="relative border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-amber-50/50 to-orange-50/50 dark:from-amber-950/30 dark:to-orange-950/30">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-xl bg-amber-500/10 dark:bg-amber-500/20">
+                                    <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-xl font-bold">Course Duration</CardTitle>
+                                    <CardDescription>Set validity period for course access</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="relative space-y-4 p-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="duration_months" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                    Duration (Months)
+                                </Label>
+                                <Input
+                                    id="duration_months"
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    value={formData.duration_months ?? ''}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setFormData({ ...formData, duration_months: value === '' ? null : parseInt(value) });
+                                    }}
+                                    placeholder="Leave empty for lifetime access"
+                                    className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-xl border-slate-200/50 dark:border-slate-700/50 focus:border-amber-500 dark:focus:border-amber-400 transition-all h-12 text-base"
+                                />
+                                <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                                    <Sparkles className="w-3 h-3" />
+                                    Number of months students can access this course after enrollment. Leave empty for lifetime access.
                                 </p>
                             </div>
                         </CardContent>

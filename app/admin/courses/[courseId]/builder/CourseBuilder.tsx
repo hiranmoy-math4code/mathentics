@@ -35,7 +35,6 @@ import { ModuleList } from "./ModuleList";
 import { LessonEditor } from "./LessonEditor";
 import { EditableTitle } from "@/components/admin/EditableTitle";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { generateCourseOutline } from "@/app/actions/generateCourseOutline";
 import { useCourseModules, ModuleWithLessons } from "@/hooks/useCourseModules";
 import { useCourseMetadata } from "@/hooks/admin/useCourseMetadata";
 
@@ -196,12 +195,19 @@ export default function CourseBuilder({ course, initialModules }: CourseBuilderP
     const handleGenerateOutline = async () => {
         setIsGenerating(true);
         try {
-            const result = await generateCourseOutline(course.title);
+            const response = await fetch('/api/generate-outline', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ courseTitle: course.title })
+            });
+
+            const result = await response.json();
+
             if (result.success) {
                 setGeneratedOutline(result.outline);
                 setShowOutlinePreview(true);
             } else {
-                toast.error(result.error);
+                toast.error(result.error || 'Failed to generate outline');
             }
         } catch (error) {
             console.error(error);

@@ -8,10 +8,12 @@ import { ExamSeriesSection } from '@/components/landing/ExamSeriesSection';
 import { DemoSection } from '@/components/landing/DemoSection';
 import { Testimonials } from '@/components/landing/Testimonials';
 import { CTA } from '@/components/landing/CTA';
+import { OrganizationSchema } from '@/components/seo/StructuredData';
 
 export default function App() {
   return (
     <div className="font-sans antialiased text-slate-900 bg-[#FBFBFD]">
+      <OrganizationSchema />
       <Hero />
       <FeaturesStrip />
       <ExamSeriesSection />

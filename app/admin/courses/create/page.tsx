@@ -43,6 +43,7 @@ const formSchema = z.object({
     level: z.enum(["beginner", "intermediate", "advanced", "all"]),
     course_type: z.enum(["course", "test_series"]),
     thumbnail_url: z.string().optional(),
+    duration_months: z.coerce.number().int().positive().optional().nullable(),
 });
 
 export default function CreateCoursePage() {
@@ -60,6 +61,7 @@ export default function CreateCoursePage() {
             level: "all",
             course_type: "course",
             thumbnail_url: "",
+            duration_months: null,
         },
     });
 
@@ -87,6 +89,7 @@ export default function CreateCoursePage() {
                         level: values.level,
                         course_type: values.course_type,
                         thumbnail_url: values.thumbnail_url,
+                        duration_months: values.duration_months,
                         is_published: false,
                     },
                 ])
@@ -243,6 +246,34 @@ export default function CreateCoursePage() {
                                         <SelectItem value="all">All Levels</SelectItem>
                                     </SelectContent>
                                 </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="duration_months"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Course Duration (Months)</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        min="1"
+                                        step="1"
+                                        placeholder="Leave empty for lifetime access"
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            field.onChange(value === '' ? null : parseInt(value));
+                                        }}
+                                    />
+                                </FormControl>
+                                <FormDescription>
+                                    Number of months the course will be accessible after enrollment. Leave empty for lifetime access.
+                                </FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}

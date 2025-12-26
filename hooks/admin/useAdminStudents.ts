@@ -54,7 +54,7 @@ export function useStudentDetails(userId: string) {
                 .eq('user_id', userId);
 
             // Get exam attempts
-            const { data: rawAttempts } = await supabase
+            const { data: rawAttempts, error } = await supabase
                 .from('exam_attempts')
                 .select(`
                     *,
@@ -63,14 +63,14 @@ export function useStudentDetails(userId: string) {
                 `)
                 .eq('student_id', userId)
                 .order('created_at', { ascending: false });
-
             const attempts = rawAttempts?.map((attempt: any) => ({
                 ...attempt,
                 exam_title: attempt.exams?.title,
                 total_marks: attempt.exams?.total_marks,
-                percentage: attempt.results?.percentage,
-                obtained_marks: attempt.results?.obtained_marks
+                percentage: attempt.results?.[0]?.percentage,
+                obtained_marks: attempt.results?.[0]?.obtained_marks
             })) || [];
+
 
             // Get activity logs
             const { data: logs } = await supabase
