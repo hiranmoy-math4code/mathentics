@@ -162,7 +162,7 @@ export interface Lesson {
   is_free_preview: boolean
   is_downloadable: boolean
   lesson_order: number
-  exam_id?: string
+  exam_id?: string | null
   // Live Class fields
   is_live?: boolean
   meeting_url?: string | null

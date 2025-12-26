@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Lesson, Course } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -63,7 +63,46 @@ export function LessonEditor({ lesson, course, onUpdate, onDelete }: LessonEdito
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showExamSettings, setShowExamSettings] = useState(false);
+    const [availableExams, setAvailableExams] = useState<any[]>([]);
+    const [selectedExamId, setSelectedExamId] = useState(lesson.exam_id || "");
+    const [isLoadingExams, setIsLoadingExams] = useState(false);
     const supabase = createClient();
+
+    // Load available exams for quiz lessons
+    useEffect(() => {
+        if (lesson.content_type === "quiz") {
+            loadAvailableExams();
+        }
+    }, [lesson.content_type]);
+
+    const loadAvailableExams = async () => {
+        setIsLoadingExams(true);
+        try {
+            const { data, error } = await supabase
+                .from("exams")
+                .select("id, title, status")
+                .eq("status", "published")
+                .order("created_at", { ascending: false });
+
+            if (error) throw error;
+            setAvailableExams(data || []);
+        } catch (error) {
+            console.error("Error loading exams:", error);
+        } finally {
+            setIsLoadingExams(false);
+        }
+    };
+
+    const handleExamChange = async (newExamId: string) => {
+        try {
+            await onUpdate({ exam_id: newExamId || null });
+            setSelectedExamId(newExamId);
+            toast.success(newExamId ? "Exam linked successfully" : "Exam unlinked");
+        } catch (error) {
+            console.error("Error updating exam:", error);
+            toast.error("Failed to update exam");
+        }
+    };
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -395,27 +434,57 @@ export function LessonEditor({ lesson, course, onUpdate, onDelete }: LessonEdito
                     )}
 
                     {lesson.content_type === "quiz" && (
-                        <div className="p-8 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
-                            <HelpCircle className="h-12 w-12 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-                            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">Quiz Content</h3>
-                            <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                                This lesson is linked to an exam. Students will see the exam interface when they access this lesson.
-                            </p>
-                            <div className="mt-6">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setShowExamSettings(true)}
-                                    className="dark:bg-transparent dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-800"
-                                >
-                                    Manage Exam Settings
-                                </Button>
+                        <div className="space-y-6">
+                            {/* Exam Selection */}
+                            <div className="p-6 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <HelpCircle className="h-5 w-5 text-purple-500" />
+                                    <h3 className="text-lg font-medium text-slate-900 dark:text-white">Exam Configuration</h3>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-medium dark:text-slate-300">Linked Exam</Label>
+                                        {isLoadingExams ? (
+                                            <div className="text-sm text-slate-500">Loading exams...</div>
+                                        ) : (
+                                            <select
+                                                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                                                value={selectedExamId}
+                                                onChange={(e) => handleExamChange(e.target.value)}
+                                            >
+                                                <option value="">None - Upcoming Exam Placeholder</option>
+                                                {availableExams.map((exam) => (
+                                                    <option key={exam.id} value={exam.id}>
+                                                        {exam.title}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        )}
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                                            {selectedExamId
+                                                ? "Students will take this exam when they access this lesson."
+                                                : "This is a placeholder. Link an exam when ready."}
+                                        </p>
+                                    </div>
+
+                                    {selectedExamId && (
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setShowExamSettings(true)}
+                                            className="w-full dark:bg-transparent dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-800"
+                                        >
+                                            Manage Exam Settings
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
 
-                            {lesson.exam_id && (
+                            {selectedExamId && (
                                 <ExamSettingsDialog
                                     open={showExamSettings}
                                     onOpenChange={setShowExamSettings}
-                                    examId={lesson.exam_id}
+                                    examId={selectedExamId}
                                 />
                             )}
                         </div>

@@ -57,6 +57,9 @@ export function ExamSettingsDialog({
     // Form state - Sequential access
     const [sequentialUnlockEnabled, setSequentialUnlockEnabled] = useState(false);
 
+    // Form state - Exam scheduling toggle
+    const [isSchedulingEnabled, setIsSchedulingEnabled] = useState(false);
+
     // Form state - Max attempts
     const [maxAttempts, setMaxAttempts] = useState<number | null>(null);
 
@@ -135,6 +138,9 @@ export function ExamSettingsDialog({
             // Load max_attempts
             setMaxAttempts(data.max_attempts ?? null);
 
+            // Set scheduling enabled if start or end time exists
+            setIsSchedulingEnabled(!!(data.start_time || data.end_time));
+
         } catch (error) {
             console.error("Error fetching exam settings:", error);
             toast.error("Failed to load exam settings");
@@ -160,29 +166,30 @@ export function ExamSettingsDialog({
                 releaseTimestamp = new Date(`${releaseDate}T${releaseTime}`).toISOString();
             }
 
-            // Validate exam start time
-            if (startDate && startTime) {
-                startTimestamp = new Date(`${startDate}T${startTime}`).toISOString();
-            } else if (startDate || startTime) {
-                toast.error("Please select both date and time for exam start");
-                setSaving(false);
-                return;
-            }
+            // Validate exam start/end time only if scheduling is enabled
+            if (isSchedulingEnabled) {
+                if (startDate && startTime) {
+                    startTimestamp = new Date(`${startDate}T${startTime}`).toISOString();
+                } else if (startDate || startTime) {
+                    toast.error("Please select both date and time for exam start");
+                    setSaving(false);
+                    return;
+                }
 
-            // Validate exam end time
-            if (endDate && endTime) {
-                endTimestamp = new Date(`${endDate}T${endTime}`).toISOString();
-            } else if (endDate || endTime) {
-                toast.error("Please select both date and time for exam end");
-                setSaving(false);
-                return;
-            }
+                if (endDate && endTime) {
+                    endTimestamp = new Date(`${endDate}T${endTime}`).toISOString();
+                } else if (endDate || endTime) {
+                    toast.error("Please select both date and time for exam end");
+                    setSaving(false);
+                    return;
+                }
 
-            // Validate start time is before end time
-            if (startTimestamp && endTimestamp && new Date(startTimestamp) >= new Date(endTimestamp)) {
-                toast.error("Exam start time must be before end time");
-                setSaving(false);
-                return;
+                // Validate start time is before end time
+                if (startTimestamp && endTimestamp && new Date(startTimestamp) >= new Date(endTimestamp)) {
+                    toast.error("Exam start time must be before end time");
+                    setSaving(false);
+                    return;
+                }
             }
 
             // Handle sequential unlock for ALL lessons using this exam
@@ -347,49 +354,82 @@ export function ExamSettingsDialog({
                                     Set when students can access this exam
                                 </p>
 
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-1.5">
-                                        <Label className="text-xs font-medium dark:text-slate-300">Start Date</Label>
-                                        <Input
-                                            type="date"
-                                            value={startDate}
-                                            onChange={(e) => setStartDate(e.target.value)}
-                                            className="h-9 text-sm dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                                        />
+                                {/* Scheduling Toggle */}
+                                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900/50">
+                                    <div className="flex-1">
+                                        <Label className="text-sm font-medium dark:text-blue-300">Enable Scheduling</Label>
+                                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                            Set specific start and end times for this exam
+                                        </p>
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <Label className="text-xs font-medium dark:text-slate-300">Start Time</Label>
-                                        <Input
-                                            type="time"
-                                            value={startTime}
-                                            onChange={(e) => setStartTime(e.target.value)}
-                                            className="h-9 text-sm dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <Label className="text-xs font-medium dark:text-slate-300">End Date</Label>
-                                        <Input
-                                            type="date"
-                                            value={endDate}
-                                            onChange={(e) => setEndDate(e.target.value)}
-                                            className="h-9 text-sm dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <Label className="text-xs font-medium dark:text-slate-300">End Time</Label>
-                                        <Input
-                                            type="time"
-                                            value={endTime}
-                                            onChange={(e) => setEndTime(e.target.value)}
-                                            className="h-9 text-sm dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                                        />
-                                    </div>
+                                    <Switch
+                                        checked={isSchedulingEnabled}
+                                        onCheckedChange={(checked) => {
+                                            setIsSchedulingEnabled(checked);
+                                            if (!checked) {
+                                                // Clear dates when disabled
+                                                setStartDate("");
+                                                setStartTime("");
+                                                setEndDate("");
+                                                setEndTime("");
+                                            }
+                                        }}
+                                    />
                                 </div>
-                                {(startDate || endDate) && (
-                                    <p className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-3 py-2 rounded-md">
-                                        {startDate && !endDate && "Accessible from start date onwards"}
-                                        {!startDate && endDate && "Accessible until end date"}
-                                        {startDate && endDate && "Accessible between specified dates"}
+
+                                {isSchedulingEnabled && (
+                                    <>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1.5">
+                                                <Label className="text-xs font-medium dark:text-slate-300">Start Date</Label>
+                                                <Input
+                                                    type="date"
+                                                    value={startDate}
+                                                    onChange={(e) => setStartDate(e.target.value)}
+                                                    className="h-9 text-sm dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label className="text-xs font-medium dark:text-slate-300">Start Time</Label>
+                                                <Input
+                                                    type="time"
+                                                    value={startTime}
+                                                    onChange={(e) => setStartTime(e.target.value)}
+                                                    className="h-9 text-sm dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label className="text-xs font-medium dark:text-slate-300">End Date</Label>
+                                                <Input
+                                                    type="date"
+                                                    value={endDate}
+                                                    onChange={(e) => setEndDate(e.target.value)}
+                                                    className="h-9 text-sm dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label className="text-xs font-medium dark:text-slate-300">End Time</Label>
+                                                <Input
+                                                    type="time"
+                                                    value={endTime}
+                                                    onChange={(e) => setEndTime(e.target.value)}
+                                                    className="h-9 text-sm dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                                                />
+                                            </div>
+                                        </div>
+                                        {(startDate || endDate) && (
+                                            <p className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-3 py-2 rounded-md">
+                                                {startDate && !endDate && "Accessible from start date onwards"}
+                                                {!startDate && endDate && "Accessible until end date"}
+                                                {startDate && endDate && "Accessible between specified dates"}
+                                            </p>
+                                        )}
+                                    </>
+                                )}
+
+                                {!isSchedulingEnabled && (
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-md">
+                                        Exam is accessible anytime without time restrictions
                                     </p>
                                 )}
                             </div>

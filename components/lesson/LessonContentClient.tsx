@@ -229,7 +229,7 @@ export default function LessonContentClient({
 
                                 {/* Heading with Gradient */}
                                 <h3 className="text-2xl md:text-3xl font-bold mb-4 bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-slate-100 dark:via-slate-200 dark:to-slate-100 bg-clip-text text-transparent">
-                                    Quiz in Preparation
+                                    Test in Preparation
                                 </h3>
 
                                 {/* Description */}

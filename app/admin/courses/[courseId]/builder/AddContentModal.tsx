@@ -71,11 +71,8 @@ export function AddContentModal({ moduleId, lessonCount, onAdd, onSuccess }: Add
         e.preventDefault();
         if (!selectedType) return;
 
-        // Validation for quiz
-        if (selectedType === "quiz" && !selectedExamId) {
-            toast.error("Please select an exam");
-            return;
-        }
+        // Exam selection is now optional - can create "upcoming exam" placeholder
+        // Admin can add exam later when ready
 
         // Validation for live class
         if (selectedType === "live") {
@@ -123,8 +120,8 @@ export function AddContentModal({ moduleId, lessonCount, onAdd, onSuccess }: Add
                 lessonData.meeting_platform = meetingPlatform;
             }
 
-            // Add exam_id for quiz type
-            if (selectedType === "quiz") {
+            // Add exam_id for quiz type (only if exam is selected)
+            if (selectedType === "quiz" && selectedExamId) {
                 lessonData.exam_id = selectedExamId;
             }
 
@@ -283,7 +280,10 @@ export function AddContentModal({ moduleId, lessonCount, onAdd, onSuccess }: Add
 
                         {selectedType === "quiz" && (
                             <div className="space-y-2">
-                                <Label className="dark:text-slate-300">Select Exam/Quiz</Label>
+                                <Label className="dark:text-slate-300">Select Exam/Quiz (Optional)</Label>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                                    💡 You can create an "Upcoming Exam" placeholder without selecting an exam. Link the actual exam later when ready.
+                                </p>
                                 {isLoadingExams ? (
                                     <div className="text-sm text-slate-500">Loading exams...</div>
                                 ) : availableExams.length > 0 ? (
@@ -291,9 +291,8 @@ export function AddContentModal({ moduleId, lessonCount, onAdd, onSuccess }: Add
                                         className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 dark:bg-slate-900 dark:border-slate-700 dark:text-white"
                                         value={selectedExamId}
                                         onChange={(e) => setSelectedExamId(e.target.value)}
-                                        required
                                     >
-                                        <option value="">Select an exam...</option>
+                                        <option value="">None - Create upcoming exam placeholder</option>
                                         {availableExams.map((exam) => (
                                             <option key={exam.id} value={exam.id}>
                                                 {exam.title}
@@ -302,7 +301,7 @@ export function AddContentModal({ moduleId, lessonCount, onAdd, onSuccess }: Add
                                     </select>
                                 ) : (
                                     <div className="text-sm text-slate-500">
-                                        No published exams available. Please create an exam first.
+                                        No published exams available. You can still create an upcoming exam placeholder.
                                     </div>
                                 )}
                             </div>
