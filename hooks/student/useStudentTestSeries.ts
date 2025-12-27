@@ -11,6 +11,8 @@ interface EnrolledTestSeries {
     last_accessed_at: string | null
     total_tests: number
     completed_tests: number
+    totalExams: number
+    completedExams: number
 }
 
 export function useStudentTestSeries(userId: string | undefined) {
@@ -112,6 +114,8 @@ export function useStudentTestSeries(userId: string | undefined) {
                     last_accessed_at: enrollment.last_accessed_at,
                     total_tests: testCounts[enrollment.course_id] || 0,
                     completed_tests: completedCounts[enrollment.course_id] || 0,
+                    totalExams: testCounts[enrollment.course_id] || 0,
+                    completedExams: completedCounts[enrollment.course_id] || 0,
                 })) as EnrolledTestSeries[];
 
             return testSeries;
