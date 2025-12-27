@@ -1,3 +1,0 @@
-{
-  "/(public)/courses/[courseId]/page": "app-edge-has-no-entrypoint"
-}
