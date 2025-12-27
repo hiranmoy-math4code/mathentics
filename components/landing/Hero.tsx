@@ -25,7 +25,7 @@ export const Hero: React.FC = () => {
   };
 
   return (
-    <section className="relative min-h-[90vh] flex items-center pt-20 pb-16 lg:pt-24 lg:pb-20 overflow-hidden bg-white">
+    <section className="relative min-h-[75vh] flex items-center pt-16 pb-12 lg:pt-20 lg:pb-16 overflow-hidden bg-white">
       {/* Subtle Background Gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-white to-purple-50/40 -z-10" />
 
@@ -41,7 +41,7 @@ export const Hero: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
-            className="space-y-8 text-center lg:text-left"
+            className="space-y-6 text-center lg:text-left"
           >
             {/* Badge */}
             <motion.div
@@ -55,26 +55,26 @@ export const Hero: React.FC = () => {
             </motion.div>
 
             {/* Main Heading */}
-            <div className="space-y-6">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold leading-tight tracking-tight">
+            <div className="space-y-4">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight tracking-tight">
                 <span className="block text-slate-900 mb-2">Master Mathematics</span>
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-teal-500">
                   With AI-Powered Learning
                 </span>
               </h1>
 
-              <p className="text-lg lg:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              <p className="text-base lg:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                 Ace <span className="font-semibold text-blue-600">IIT-JAM</span>, <span className="font-semibold text-purple-600">CSIR NET</span> & <span className="font-semibold text-teal-600">GATE</span> with intelligent mock tests, step-by-step AI guidance, and data-driven insights.
               </p>
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start pt-1">
               <Link href="/auth/login">
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
-                  className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 transition-all flex items-center justify-center gap-2"
+                  className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-bold text-base shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 transition-all flex items-center justify-center gap-2"
                 >
                   Start Free Trial
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -85,7 +85,7 @@ export const Hero: React.FC = () => {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setIsDemoOpen(true)}
-                className="bg-white border-2 border-slate-200 text-slate-700 hover:border-blue-400 hover:bg-blue-50 px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                className="bg-white border-2 border-slate-200 text-slate-700 hover:border-blue-400 hover:bg-blue-50 px-6 py-3 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
               >
                 <Play className="w-5 h-5" />
                 Watch Demo
