@@ -25,7 +25,7 @@ export const Hero: React.FC = () => {
   };
 
   return (
-    <section className="relative min-h-[75vh] flex items-center pt-16 pb-12 lg:pt-20 lg:pb-16 overflow-hidden bg-white">
+    <section className="relative min-h-[90vh] flex items-center pt-20 pb-16 lg:pt-24 lg:pb-20 overflow-hidden bg-white">
       {/* Subtle Background Gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-white to-purple-50/40 -z-10" />
 
@@ -41,7 +41,7 @@ export const Hero: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
-            className="space-y-6 text-center lg:text-left"
+            className="space-y-8 text-center lg:text-left"
           >
             {/* Badge */}
             <motion.div
@@ -55,7 +55,7 @@ export const Hero: React.FC = () => {
             </motion.div>
 
             {/* Main Heading */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight tracking-tight">
                 <span className="block text-slate-900 mb-2">Master Mathematics</span>
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-teal-500">
@@ -63,18 +63,18 @@ export const Hero: React.FC = () => {
                 </span>
               </h1>
 
-              <p className="text-base lg:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              <p className="text-lg lg:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                 Ace <span className="font-semibold text-blue-600">IIT-JAM</span>, <span className="font-semibold text-purple-600">CSIR NET</span> & <span className="font-semibold text-teal-600">GATE</span> with intelligent mock tests, step-by-step AI guidance, and data-driven insights.
               </p>
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start pt-1">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
               <Link href="/auth/login">
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
-                  className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-bold text-base shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 transition-all flex items-center justify-center gap-2"
+                  className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 transition-all flex items-center justify-center gap-2"
                 >
                   Start Free Trial
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -85,7 +85,7 @@ export const Hero: React.FC = () => {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setIsDemoOpen(true)}
-                className="bg-white border-2 border-slate-200 text-slate-700 hover:border-blue-400 hover:bg-blue-50 px-6 py-3 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+                className="bg-white border-2 border-slate-200 text-slate-700 hover:border-blue-400 hover:bg-blue-50 px-8 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
               >
                 <Play className="w-5 h-5" />
                 Watch Demo
@@ -126,7 +126,7 @@ export const Hero: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
-              className="flex flex-wrap items-center justify-center lg:justify-start gap-8 pt-4"
+              className="flex flex-wrap items-center justify-center lg:justify-start gap-8 pt-4 pb-12"
             >
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2">
@@ -159,10 +159,10 @@ export const Hero: React.FC = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.3 }}
-            className="relative"
+            className="relative perspective-1000"
           >
             {/* Main Demo Card */}
-            <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 lg:p-8 max-w-lg mx-auto">
+            <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 lg:p-8 max-w-lg mx-auto transform lg:rotate-6 lg:scale-105 hover:rotate-0 hover:scale-100 transition-all duration-500 ease-out">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -245,7 +245,7 @@ export const Hero: React.FC = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-5 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200"
+                  className="mt-5 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-200 mb-6"
                 >
                   <div className="flex items-start gap-3">
                     <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
@@ -258,11 +258,12 @@ export const Hero: React.FC = () => {
               )}
             </div>
 
+
             {/* Floating Badge - Top Right */}
             <motion.div
               animate={{ y: [0, -8, 0] }}
               transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-              className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg border border-slate-200 p-3 z-10"
+              className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg border border-slate-200 p-3 z-20"
             >
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-yellow-500" />
@@ -277,7 +278,7 @@ export const Hero: React.FC = () => {
             <motion.div
               animate={{ y: [0, 10, 0] }}
               transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: 1 }}
-              className="absolute -bottom-4 -left-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg p-3 z-10"
+              className="absolute -bottom-4 -left-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl shadow-lg p-3 z-20"
             >
               <div className="flex items-center gap-2 text-white">
                 <Star className="w-5 h-5 fill-yellow-300 text-yellow-300" />

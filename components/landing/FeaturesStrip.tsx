@@ -34,7 +34,7 @@ export const FeaturesStrip: React.FC = () => {
     ];
 
     return (
-        <section className="relative py-20 lg:py-24 bg-white border-y border-slate-100">
+        <section className="relative py-20 lg:py-24 bg-white border-y border-slate-100 pt-20">
             {/* Background decoration */}
             <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-white pointer-events-none" />
 
