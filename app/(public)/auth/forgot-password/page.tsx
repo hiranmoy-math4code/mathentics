@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
               <span className="text-xl">Σ✨{'}'}</span>
             </div>
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-indigo-400 to-violet-400">
-              mathentics
+              math4code
             </h1>
           </div>
         </Link>

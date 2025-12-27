@@ -1,0 +1,136 @@
+{
+  "[project]/app/admin/settings/page.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/app/admin/settings/page.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/_9960b2e2._.js",
+      "static/chunks/app_admin_settings_page_tsx_9e8be31b._.js"
+    ]
+  },
+  "[project]/app/admin/students/page.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/app/admin/students/page.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/_19971b60._.js",
+      "static/chunks/node_modules_8ce72c18._.js",
+      "static/chunks/app_admin_students_page_tsx_9e8be31b._.js"
+    ]
+  },
+  "[project]/app/admin/payments/page.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/app/admin/payments/page.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/_5107eef3._.js",
+      "static/chunks/app_admin_payments_page_tsx_9e8be31b._.js"
+    ]
+  },
+  "[project]/app/admin/exams/page.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/app/admin/exams/page.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/node_modules_mammoth_lib_index_8d74b672.js",
+      "static/chunks/_1c3b3e26._.js",
+      "static/chunks/node_modules_77f7515e._.js",
+      "static/chunks/app_admin_exams_page_tsx_9e8be31b._.js",
+      "static/chunks/node_modules_underscore_modules_844e7552._.js",
+      "static/chunks/node_modules_bluebird_js_release_9cdc1937._.js",
+      "static/chunks/node_modules_mammoth_c23b2609._.js",
+      "static/chunks/node_modules_next_dist_compiled_6f20943d._.js",
+      "static/chunks/node_modules_jszip_lib_de8925ba._.js",
+      "static/chunks/node_modules_pako_2138412d._.js",
+      "static/chunks/node_modules_@xmldom_xmldom_lib_f6488e4b._.js",
+      "static/chunks/node_modules_dingbat-to-unicode_dist_4b374a65._.js",
+      "static/chunks/node_modules_6bf94a93._.js",
+      "static/chunks/node_modules_mammoth_lib_index_08c4fa05.js"
+    ]
+  },
+  "[project]/app/admin/question-bank/page.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/app/admin/question-bank/page.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/_b63e9176._.js",
+      "static/chunks/_96f30cb7._.js",
+      "static/chunks/node_modules_be7f186c._.js",
+      "static/chunks/app_admin_question-bank_page_tsx_9e8be31b._.js",
+      "static/chunks/components_question-bank_QuestionForm_tsx_3295ab8e._.js",
+      "static/chunks/components_question-bank_QuestionForm_tsx_b7bae923._.js",
+      "static/chunks/node_modules_xlsx_xlsx_mjs_fef98e92._.js",
+      "static/chunks/node_modules_xlsx_xlsx_mjs_dae64d0f._.js",
+      "static/chunks/node_modules_underscore_modules_844e7552._.js",
+      "static/chunks/node_modules_bluebird_js_release_9cdc1937._.js",
+      "static/chunks/node_modules_mammoth_c23b2609._.js",
+      "static/chunks/node_modules_next_dist_compiled_6f20943d._.js",
+      "static/chunks/node_modules_jszip_lib_de8925ba._.js",
+      "static/chunks/node_modules_pako_2138412d._.js",
+      "static/chunks/node_modules_@xmldom_xmldom_lib_f6488e4b._.js",
+      "static/chunks/node_modules_dingbat-to-unicode_dist_4b374a65._.js",
+      "static/chunks/node_modules_6bf94a93._.js",
+      "static/chunks/node_modules_mammoth_lib_index_dae64d0f.js"
+    ]
+  },
+  "[project]/app/admin/test-series/page.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/app/admin/test-series/page.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/_35d02d18._.js",
+      "static/chunks/node_modules_6c08555f._.js",
+      "static/chunks/app_admin_test-series_page_tsx_9e8be31b._.js"
+    ]
+  },
+  "[project]/app/admin/courses/page.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/app/admin/courses/page.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/_c8a5ea41._.js",
+      "static/chunks/node_modules_6c08555f._.js",
+      "static/chunks/app_admin_courses_page_tsx_9e8be31b._.js"
+    ]
+  },
+  "[project]/app/admin/dashboard/page.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/app/admin/dashboard/page.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/_ac858882._.js",
+      "static/chunks/node_modules_lodash_5f5730f7._.js",
+      "static/chunks/node_modules_recharts_es6_c78f2d56._.js",
+      "static/chunks/node_modules_c85a20b3._.js",
+      "static/chunks/app_admin_dashboard_page_tsx_9e8be31b._.js"
+    ]
+  },
+  "[project]/components/VideoPlayer.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/components/VideoPlayer.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/node_modules_react-player_dist_index_cd156306.js",
+      "static/chunks/_e5060a90._.js",
+      "static/chunks/components_VideoPlayer_tsx_baa3aab5._.js",
+      "static/chunks/node_modules_e40de16a._.js",
+      "static/chunks/node_modules_react-player_dist_689ec1e5._.js",
+      "static/chunks/node_modules_react-player_dist_index_c5fea520.js",
+      "static/chunks/node_modules_hls_js_dist_hls_mjs_3305f6ee._.js",
+      "static/chunks/node_modules_a6856489._.js",
+      "static/chunks/node_modules_hls-video-element_dist_react_2fdb3ede.js",
+      "static/chunks/node_modules_dashjs_dist_modern_esm_dash_all_min_1e67ce00.js",
+      "static/chunks/node_modules_c73c75dd._.js",
+      "static/chunks/node_modules_dash-video-element_dist_react_2fdb3ede.js",
+      "static/chunks/node_modules_dashjs_dist_modern_esm_dash_all_min_711269a3.js",
+      "static/chunks/node_modules_dashjs_dist_modern_esm_dash_all_min_f463ecc7.js",
+      "static/chunks/node_modules_media-chrome_dist_f42152ea._.js",
+      "static/chunks/node_modules_@mux_mux-player_dist_ea156277._.js",
+      "static/chunks/node_modules_de12c334._.js",
+      "static/chunks/node_modules_@mux_mux-player-react_dist_index_mjs_1362855a._.js",
+      "static/chunks/node_modules_youtube-video-element_dist_22c8d751._.js",
+      "static/chunks/node_modules_youtube-video-element_dist_react_2fdb3ede.js",
+      "static/chunks/node_modules_2dc6ebd0._.js",
+      "static/chunks/node_modules_vimeo-video-element_dist_react_2fdb3ede.js",
+      "static/chunks/node_modules_74cc9146._.js",
+      "static/chunks/node_modules_wistia-video-element_dist_react_2fdb3ede.js",
+      "static/chunks/node_modules_spotify-audio-element_dist_4a702d35._.js",
+      "static/chunks/node_modules_spotify-audio-element_dist_react_2fdb3ede.js",
+      "static/chunks/node_modules_twitch-video-element_dist_392bb290._.js",
+      "static/chunks/node_modules_twitch-video-element_dist_react_2fdb3ede.js",
+      "static/chunks/node_modules_tiktok-video-element_dist_f6e34911._.js",
+      "static/chunks/node_modules_tiktok-video-element_dist_react_2fdb3ede.js",
+      "static/chunks/node_modules_react-player_dist_Preview_725a9e73.js",
+      "static/chunks/node_modules_react-player_dist_Preview_2fdb3ede.js"
+    ]
+  },
+  "[project]/components/RichTextEditor.tsx [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/components/RichTextEditor.tsx [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/_273587ad._.js",
+      "static/chunks/components_RichTextEditor_tsx_baa3aab5._.js"
+    ]
+  }
+}

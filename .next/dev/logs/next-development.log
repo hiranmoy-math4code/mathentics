@@ -1,0 +1,1031 @@
+[00:00:48.182] Server  LOG      ○ Compiling middleware ...
+[00:00:52.356] Server  WARN     ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:01:02.204] Server  LOG      ✓ Ready in 44.4s
+[00:01:05.764] Server  LOG      ○ Compiling / ...
+[00:02:02.704] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:02:06.173] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+      <RedirectBoundary>
+        <RedirectErrorBoundary router={{...}}>
+          <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
+            <SegmentViewNode type="layout" pagePath="(public)/l...">
+              <SegmentTrieNode>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <PublicLayout>
+                <div className="min-h-scre...">
+                  ...
+                    <div className="max-w-7xl ...">
+                      <LinkComponent href="/" className="flex items...">
+                        <a className="flex items..." ref={function} onClick={function onClick} ...>
+                          <div className="relative h...">
+                            <img
++                             alt="mathentics Academy Logo"
+-                             alt="math4code Academy Logo"
+                              fetchPriority={undefined}
+                              loading={undefined}
+                              width={500}
+                              height={100}
+                              decoding="async"
+                              data-nimg="1"
+                              className="h-12 w-auto object-contain"
+                              style={{color:"transparent"}}
+                              sizes={undefined}
+                              srcSet={undefined}
++                             src="/mathentics-logo-new.png"
+-                             src="/mathlogo.png"
+                              ref={function}
+                              onLoad={function onLoad}
+                              onError={function onError}
+                            >
+                            ...
+                      ...
+                  <main>
+                    <OuterLayoutRouter>
+                    <AIMentor>
+                    <Footer>
+                      <footer className="bg-slate-9...">
+                        <div className="max-w-7xl ...">
+                          <div className="col-span-1...">
+                            <div className="flex items...">
+                              <span className="text-[#14B8A6]">
++                               mathentics
+-                               math4code
+                            ...
+                          ...
+                        ...
+          ...
+
+[00:02:13.415] Server  LOG      ✓ Compiled in 4.9s
+[00:03:00.138] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:03:00.922] Browser ERROR   {"__isAuthError":true,"code":"refresh_token_not_found","name":"AuthApiError","status":400}
+[00:03:02.015] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+      <RedirectBoundary>
+        <RedirectErrorBoundary router={{...}}>
+          <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
+            <SegmentViewNode type="layout" pagePath="(public)/l...">
+              <SegmentTrieNode>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <PublicLayout>
+                <div className="min-h-scre...">
+                  ...
+                    <div className="max-w-7xl ...">
+                      <LinkComponent href="/" className="flex items...">
+                        <a className="flex items..." ref={function} onClick={function onClick} ...>
+                          <div className="relative h...">
+                            <img
++                             alt="mathentics Academy Logo"
+-                             alt="math4code Academy Logo"
+                              fetchPriority={undefined}
+                              loading={undefined}
+                              width={500}
+                              height={100}
+                              decoding="async"
+                              data-nimg="1"
+                              className="h-12 w-auto object-contain"
+                              style={{color:"transparent"}}
+                              sizes={undefined}
+                              srcSet={undefined}
++                             src="/mathentics-logo-new.png"
+-                             src="/mathlogo.png"
+                              ref={function}
+                              onLoad={function onLoad}
+                              onError={function onError}
+                            >
+                            ...
+                      ...
+                  <main>
+                    <OuterLayoutRouter>
+                    <AIMentor>
+                    <Footer>
+                      <footer className="bg-slate-9...">
+                        <div className="max-w-7xl ...">
+                          <div className="col-span-1...">
+                            <div className="flex items...">
+                              <span className="text-[#14B8A6]">
++                               mathentics
+-                               math4code
+                            ...
+                          ...
+                        ...
+          ...
+
+[00:04:35.962] Server  LOG      ○ Compiling /courses ...
+[00:04:47.887] Server  LOG      ○ Compiling /_not-found/page ...
+[00:04:57.724] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:59.231] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+      <RedirectBoundary>
+        <RedirectErrorBoundary router={{...}}>
+          <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
+            <SegmentViewNode type="layout" pagePath="(public)/l...">
+              <SegmentTrieNode>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <PublicLayout>
+                <div className="min-h-scre...">
+                  ...
+                    <div className="max-w-7xl ...">
+                      <LinkComponent href="/" className="flex items...">
+                        <a className="flex items..." ref={function} onClick={function onClick} ...>
+                          <div className="relative h...">
+                            <img
++                             alt="mathentics Academy Logo"
+-                             alt="math4code Academy Logo"
+                              fetchPriority={undefined}
+                              loading={undefined}
+                              width={500}
+                              height={100}
+                              decoding="async"
+                              data-nimg="1"
+                              className="h-12 w-auto object-contain"
+                              style={{color:"transparent"}}
+                              sizes={undefined}
+                              srcSet={undefined}
++                             src="/mathentics-logo-new.png"
+-                             src="/mathlogo.png"
+                              ref={function}
+                              onLoad={function onLoad}
+                              onError={function onError}
+                            >
+                            ...
+                      ...
+                  <main>
+                    <OuterLayoutRouter>
+                    <AIMentor>
+                    <Footer>
+                      <footer className="bg-slate-9...">
+                        <div className="max-w-7xl ...">
+                          <div className="col-span-1...">
+                            <div className="flex items...">
+                              <span className="text-[#14B8A6]">
++                               mathentics
+-                               math4code
+                            ...
+                          ...
+                        ...
+          ...
+
+[00:06:19.764] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:08:52.648] Server  LOG      ✓ Compiled in 3.6s
+[00:09:12.038] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:09:13.487] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+      <RedirectBoundary>
+        <RedirectErrorBoundary router={{...}}>
+          <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
+            <SegmentViewNode type="layout" pagePath="(public)/l...">
+              <SegmentTrieNode>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <script>
+              <PublicLayout>
+                <div className="min-h-scre...">
+                  ...
+                    <div className="max-w-7xl ...">
+                      <LinkComponent href="/" className="flex items...">
+                        <a className="flex items..." ref={function} onClick={function onClick} ...>
+                          <div className="relative h...">
+                            <img
++                             alt="mathentics Academy Logo"
+-                             alt="math4code Academy Logo"
+                              fetchPriority={undefined}
+                              loading={undefined}
+                              width={500}
+                              height={100}
+                              decoding="async"
+                              data-nimg="1"
+                              className="h-12 w-auto object-contain"
+                              style={{color:"transparent"}}
+                              sizes={undefined}
+                              srcSet={undefined}
++                             src="/mathentics-logo-new.png"
+-                             src="/mathlogo.png"
+                              ref={function}
+                              onLoad={function onLoad}
+                              onError={function onError}
+                            >
+                            ...
+                      ...
+                  <main>
+                    <OuterLayoutRouter>
+                    <AIMentor>
+                    <Footer>
+                      <footer className="bg-slate-9...">
+                        <div className="max-w-7xl ...">
+                          <div className="col-span-1...">
+                            <div className="flex items...">
+                              <span className="text-[#14B8A6]">
++                               mathentics
+-                               math4code
+                            ...
+                          ...
+                        ...
+          ...
+
+[00:11:01.211] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:12:28.130] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:12:33.054] Server  LOG      ✓ Compiled in 1118ms
+[00:12:45.484] Server  LOG      ✓ Compiled in 1213ms
+[00:12:48.787] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:13:10.751] Server  LOG      ✓ Compiled in 2.4s
+[00:13:27.573] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:13:28.753] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="(public)/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
+                    <SegmentViewNode type="page" pagePath="(public)/p...">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function App} serverProvidedParams={{...}}>
+                        <App params={Promise} searchParams={Promise}>
+                          <div className="font-sans ...">
+                            <OrganizationSchema>
+                            <Hero>
+                              <section
++                               className="relative pt-32 pb-24 lg:pt-40 lg:pb-32 overflow-hidden bg-gradient-to-br fr..."
+-                               className="relative min-h-[90vh] flex items-center pt-20 pb-16 lg:pt-24 lg:pb-20 overf..."
+                              >
+                                <div
++                                 className="absolute top-20 right-0 w-96 h-96 bg-gradient-to-br from-blue-100 to-purp..."
+-                                 className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-white to-purple-50..."
+                                >
+                                <div
++                                 className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-teal-100 to-blu..."
+-                                 className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-20..."
+                                >
+                                <motion.div animate={{y:[...], ...}} transition={{...}} className="absolute t...">
+                                  <div
++                                   className="absolute top-40 left-20 w-2 h-2 bg-blue-400 rounded-full"
+-                                   className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-tea..."
+                                    style={{}}
+                                    ref={function useMotionRef.useCallback}
+                                  >
+                                <motion.div animate={{y:[...], ...}} transition={{...}} className="absolute t...">
+                                  <div
++                                   className="absolute top-60 right-40 w-2 h-2 bg-purple-400 rounded-full"
+-                                   className="max-w-7xl mx-auto px-6 lg:px-8 w-full"
+                                    style={{}}
+                                    ref={function useMotionRef.useCallback}
+                                  >
+-                                   <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                                ...
+                            ...
+                    ...
+                  ...
+      ...
+
+[00:14:34.880] Server  LOG      ✓ Compiled in 1574ms
+[00:15:17.196] Server  LOG      ✓ Compiled in 2.7s
+[00:17:33.092] Server  LOG      ✓ Compiled in 3.4s
+[00:19:15.178] Server  LOG      ✓ Compiled in 1293ms
+[00:19:15.185] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:19:16.679] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:19:16.687] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:19:16.705] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:19:17.826] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:19:18.659] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:19:19.539] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:19:20.131] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:19:48.685] Server  LOG      ✓ Compiled in 1044ms
+[00:19:48.721] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:19:48.892] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:19:51.084] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:19:51.086] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:19:52.990] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:19:53.641] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:19:54.592] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:19:55.087] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:19:55.832] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="(public)/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
+                    <SegmentViewNode type="page" pagePath="(public)/p...">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function App} serverProvidedParams={{...}}>
+                        <App params={Promise} searchParams={Promise}>
+                          <div className="font-sans ...">
+                            <OrganizationSchema>
+                            <Hero>
+                            <FeaturesStrip>
+                            <ExamSeriesSection>
+                              <section
+                                id="exams"
++                               className="py-24 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative..."
+-                               className="py-20 lg:py-24 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 rela..."
+                              >
+                                <div
++                                 className="absolute inset-0 overflow-hidden"
+-                                 className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100/20 to-pu..."
+                                >
++                                 <div
++                                   className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3x..."
++                                 >
+                                  ...
+                                ...
+                            ...
+                    ...
+                  ...
+      ...
+
+[00:19:56.156] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="(public)/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
+                    <SegmentViewNode type="page" pagePath="(public)/p...">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function App} serverProvidedParams={{...}}>
+                        <App params={Promise} searchParams={Promise}>
+                          <div className="font-sans ...">
+                            <OrganizationSchema>
+                            <Hero>
+                            <FeaturesStrip>
+                            <ExamSeriesSection>
+                              <section
+                                id="exams"
++                               className="py-24 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative..."
+-                               className="py-20 lg:py-24 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 rela..."
+                              >
+                                <div
++                                 className="absolute inset-0 overflow-hidden"
+-                                 className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100/20 to-pu..."
+                                >
++                                 <div
++                                   className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3x..."
++                                 >
+                                  ...
+                                ...
+                            ...
+                    ...
+                  ...
+      ...
+
+[00:19:56.650] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="(public)/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
+                    <SegmentViewNode type="page" pagePath="(public)/p...">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function App} serverProvidedParams={{...}}>
+                        <App params={Promise} searchParams={Promise}>
+                          <div className="font-sans ...">
+                            <OrganizationSchema>
+                            <Hero>
+                            <FeaturesStrip>
+                            <ExamSeriesSection>
+                              <section
+                                id="exams"
++                               className="py-24 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative..."
+-                               className="py-20 lg:py-24 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 rela..."
+                              >
+                                <div
++                                 className="absolute inset-0 overflow-hidden"
+-                                 className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100/20 to-pu..."
+                                >
++                                 <div
++                                   className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3x..."
++                                 >
+                                  ...
+                                ...
+                            ...
+                    ...
+                  ...
+      ...
+
+[00:19:57.292] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="(public)/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
+                    <SegmentViewNode type="page" pagePath="(public)/p...">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function App} serverProvidedParams={{...}}>
+                        <App params={Promise} searchParams={Promise}>
+                          <div className="font-sans ...">
+                            <OrganizationSchema>
+                            <Hero>
+                            <FeaturesStrip>
+                            <ExamSeriesSection>
+                              <section
+                                id="exams"
++                               className="py-24 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative..."
+-                               className="py-20 lg:py-24 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 rela..."
+                              >
+                                <div
++                                 className="absolute inset-0 overflow-hidden"
+-                                 className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100/20 to-pu..."
+                                >
++                                 <div
++                                   className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3x..."
++                                 >
+                                  ...
+                                ...
+                            ...
+                    ...
+                  ...
+      ...
+
+[00:21:19.750] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:21:24.571] Server  LOG      ✓ Compiled in 1803ms
+[00:22:15.490] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:22:16.743] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="(public)/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
+                    <SegmentViewNode type="page" pagePath="(public)/p...">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function App} serverProvidedParams={{...}}>
+                        <App params={Promise} searchParams={Promise}>
+                          <div className="font-sans ...">
+                            <OrganizationSchema>
+                            <Hero>
+                            <FeaturesStrip>
+                            <ExamSeriesSection>
+                              <section
+                                id="exams"
++                               className="py-24 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative..."
+-                               className="py-20 lg:py-24 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 rela..."
+                              >
+                                <div
++                                 className="absolute inset-0 overflow-hidden"
+-                                 className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100/20 to-pu..."
+                                >
++                                 <div
++                                   className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3x..."
++                                 >
+                                  ...
+                                ...
+                            ...
+                    ...
+                  ...
+      ...
+
+[00:23:07.762] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:23:09.642] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="(public)/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
+                    <SegmentViewNode type="page" pagePath="(public)/p...">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function App} serverProvidedParams={{...}}>
+                        <App params={Promise} searchParams={Promise}>
+                          <div className="font-sans ...">
+                            <OrganizationSchema>
+                            <Hero>
+                            <FeaturesStrip>
+                            <ExamSeriesSection>
+                              <section
+                                id="exams"
++                               className="py-24 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative..."
+-                               className="py-20 lg:py-24 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 rela..."
+                              >
+                                <div
++                                 className="absolute inset-0 overflow-hidden"
+-                                 className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100/20 to-pu..."
+                                >
++                                 <div
++                                   className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3x..."
++                                 >
+                                  ...
+                                ...
+                            ...
+                    ...
+                  ...
+      ...
+
+[00:25:17.128] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:25:32.926] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:25:44.539] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:25:46.166] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="(public)/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
+                    <SegmentViewNode type="page" pagePath="(public)/p...">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function App} serverProvidedParams={{...}}>
+                        <App params={Promise} searchParams={Promise}>
+                          <div className="font-sans ...">
+                            <OrganizationSchema>
+                            <Hero>
+                            <FeaturesStrip>
+                            <ExamSeriesSection>
+                              <section
+                                id="exams"
++                               className="py-24 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative..."
+-                               className="py-20 lg:py-24 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 rela..."
+                              >
+                                <div
++                                 className="absolute inset-0 overflow-hidden"
+-                                 className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100/20 to-pu..."
+                                >
++                                 <div
++                                   className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3x..."
++                                 >
+                                  ...
+                                ...
+                            ...
+                    ...
+                  ...
+      ...
+
+[00:27:32.578] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:27:51.649] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:27:53.405] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <InnerScrollAndFocusHandler segmentPath={[...]} focusAndScrollRef={{apply:false, ...}}>
+      <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+        <LoadingBoundary name="(public)/" loading={null}>
+          <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} ...>
+                    <SegmentViewNode type="page" pagePath="(public)/p...">
+                      <SegmentTrieNode>
+                      <ClientPageRoot Component={function App} serverProvidedParams={{...}}>
+                        <App params={Promise} searchParams={Promise}>
+                          <div className="font-sans ...">
+                            <OrganizationSchema>
+                            <Hero>
+                            <FeaturesStrip>
+                            <ExamSeriesSection>
+                              <section
+                                id="exams"
++                               className="py-24 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative..."
+-                               className="py-20 lg:py-24 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 rela..."
+                              >
+                                <div
++                                 className="absolute inset-0 overflow-hidden"
+-                                 className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100/20 to-pu..."
+                                >
++                                 <div
++                                   className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3x..."
++                                 >
+                                  ...
+                                ...
+                            ...
+                    ...
+                  ...
+      ...
+
+[00:28:53.018] Server  LOG      ✓ Compiled in 3.7s
+[00:31:11.843] Server  LOG      ✓ Compiled in 3.9s
+[00:33:04.740] Server  LOG      ✓ Compiled in 1198ms
+[00:33:40.465] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:35:12.189] Server  LOG      ✓ Compiled in 3.8s
+[00:35:39.694] Server  LOG      ✓ Compiled in 1517ms
+[00:35:39.724] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:35:39.778] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:35:42.329] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:35:42.595] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:35:42.604] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:35:44.115] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:35:44.947] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:35:44.972] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:35:45.364] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./app/(public)/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:35:48.131] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:35:49.929] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:35:51.278] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:35:51.414] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:35:52.282] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:36:14.631] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:37:17.490] Server  LOG      ✓ Compiled in 3.4s
+[00:38:43.357] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:39:53.606] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:40:45.029] Server  LOG      ✓ Compiled in 3.7s
+[00:40:45.965] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:41:43.808] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:43:00.197] Server  LOG      ○ Compiling /auth/sign-up ...
+[00:45:18.978] Server  LOG      ○ Compiling /courses/[courseId] ...
+[00:48:41.060] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:51:05.755] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:52:25.105] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:53:18.779] Server  LOG      ✓ Compiled in 4.7s
+[00:53:56.116] Server  LOG      ✓ Compiled in 1896ms
+[00:55:31.089] Server  LOG      ✓ Compiled in 2.4s
+[00:56:19.235] Server  LOG      ✓ Compiled in 5.4s
+[03:47:04.528] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:47:05.478] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <RedirectBoundary>
+      <RedirectErrorBoundary router={{...}}>
+        <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
+          <SegmentViewNode type="page" pagePath="(public)/p...">
+            <SegmentTrieNode>
+            <ClientPageRoot Component={function App} serverProvidedParams={{...}}>
+              <App params={Promise} searchParams={Promise}>
+                <div className="font-sans ...">
+                  <OrganizationSchema>
+                  <Hero>
+                  <FeaturesStrip>
+                  <ExamSeriesSection>
+                  <CoursesSection>
+                  <AIMentorSection>
+                  <DemoSection>
+                    <section id="demo" className="py-20 lg:p...">
+                      <div>
+                      <div>
+                      <div className="max-w-7xl ...">
+                        <div className="grid lg:gr...">
+                          <motion.div initial={{opacity:0,x:-30}} whileInView={{opacity:1,x:0}} viewport={{once:true}} ...>
+                            <div style={{opacity:0, ...}} ref={function useMotionRef.useCallback}>
+                              <div>
+                              <h2>
+                              <p>
+                              <ul
++                               className="space-y-4 mb-8"
+-                               className="space-y-3 md:space-y-4 mb-6 md:mb-8"
+                              >
+                              ...
+                                <a ref={function} onClick={function onClick} onMouseEnter={function onMouseEnter} ...>
+                                  <motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95}} ...>
+                                    <button
++                                     className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-70..."
+-                                     className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-70..."
+                                      tabIndex={0}
+                                      style={{}}
+                                      ref={function useMotionRef.useCallback}
+                                    >
+                          <motion.div initial={{opacity:0,x:30}} whileInView={{opacity:1,x:0}} viewport={{once:true}} ...>
+                            <div
++                             className="relative"
+-                             className="relative max-w-lg mx-auto"
+                              style={{opacity:0,transform:"translateX..."}}
+                              ref={function useMotionRef.useCallback}
+                            >
+                              <div className="relative r...">
+                                <div
++                                 className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 flex items-center ..."
+-                                 className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 flex items-center ..."
+                                >
+                                  <div
++                                   className="flex items-center gap-3"
+-                                   className="flex items-center gap-2.5"
+                                  >
+                                    <div
++                                     className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center j..."
+-                                     className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center j..."
+                                    >
+                                      <span
++                                       className="text-3xl text-white"
+-                                       className="text-2xl text-white"
+                                      >
++                                       ∫
+                                    <div>
+                                      <div
++                                       className="text-white font-bold"
+-                                       className="text-white font-bold text-sm"
+                                      >
++                                       Calculus Problem
+                                      <div
++                                       className="text-blue-100 text-sm"
+-                                       className="text-blue-100 text-xs"
+                                      >
++                                       Differentiation
+                                  <div
++                                   className="text-xs text-white bg-white/20 px-3 py-1.5 rounded-full font-semibold"
+-                                   className="text-xs text-white bg-white/20 px-2.5 py-1 rounded-full font-semibold"
+                                  >
++                                   Advanced
+                                <div
++                                 className="p-6 text-slate-900"
+-                                 className="p-5 text-slate-900"
+                                >
+                                  <div
++                                   className="mb-6"
+-                                   className="mb-5"
+                                  >
+                                    <div>
+                                    <div
++                                     className="bg-gradient-to-br from-slate-50 to-blue-50 p-5 rounded-xl border-l-4 ..."
+-                                     className="bg-gradient-to-br from-slate-50 to-blue-50 p-4 rounded-xl border-l-4 ..."
+                                    >
+                                      <div
++                                       className="text-sm text-slate-600 mb-2"
+-                                       className="text-xs text-slate-600 mb-1.5"
+                                      >
++                                       Find the derivative of
+                                      <div
++                                       className="text-xl font-bold text-slate-900"
+-                                       className="text-lg font-bold text-slate-900"
+                                      >
+                                  <div
++                                   className="mb-6"
+-                                   className="mb-5"
+                                  >
+                                    <button
+                                      onClick={function handleExplainMath}
+                                      disabled={false}
++                                     className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-b..."
+-                                     className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-b..."
+                                    >
+                                      <Sparkles size={18} className="text-yello...">
+                                        <_c ref={null} iconNode={[...]} className="lucide-spa..." size={18}>
+                                          <svg
+                                            ref={null}
+                                            xmlns="http://www.w3.org/2000/svg"
++                                           width={18}
+-                                           width="16"
++                                           height={18}
+-                                           height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            className="lucide lucide-sparkles text-yellow-300"
+                                          >
+                                      ...
+                                  <div
++                                   className="bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-xl border bor..."
+-                                   className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border bor..."
+                                  >
+                                    <div
++                                     className="text-xs font-bold text-green-800 mb-3 uppercase tracking-wide"
+-                                     className="text-xs font-bold text-green-800 mb-2.5 uppercase tracking-wide"
+                                    >
++                                     Solution Preview
+                                    <div
++                                     className="text-slate-700 space-y-3"
+-                                     className="text-slate-700 space-y-2.5"
+                                    >
+                                      <div
++                                       className="flex items-start gap-3"
+-                                       className="flex items-start gap-2.5"
+                                      >
+                                        <span
++                                         className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center ju..."
+-                                         className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center ju..."
+                                        >
++                                         1
+                                        <span
++                                         className="text-sm"
+-                                         className="text-xs"
+                                        >
+                                      <div
++                                       className="flex items-start gap-3"
+-                                       className="flex items-start gap-2.5"
+                                      >
+                                        <span
++                                         className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center ju..."
+-                                         className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center ju..."
+                                        >
++                                         2
+                                        <span
++                                         className="text-sm font-semibold text-green-900"
+-                                         className="text-xs font-semibold text-green-900"
+                                        >
+                              <motion.div animate={{y:[...]}} transition={{...}} className="absolute -...">
+                                <div
++                                 className="absolute -top-4 -right-4 bg-white rounded-2xl shadow-xl border-2 border-b..."
+-                                 className="hidden md:block absolute -top-4 -right-4 bg-white rounded-2xl shadow-xl b..."
+                                  style={{}}
+                                  ref={function useMotionRef.useCallback}
+                                >
+                      ...
+                  ...
+          ...
+        ...
+
+[03:47:11.235] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:47:26.590] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:48:46.080] Server  LOG      ○ Compiling /admin/dashboard ...
+[03:49:39.665] Server  LOG      ○ Compiling /admin/students ...
+[03:50:02.262] Server  LOG      ○ Compiling /admin/profile ...
+[03:53:56.799] Server  LOG      ✓ Compiled in 2s
+[03:56:46.706] Server  LOG      ✓ Compiled in 1993ms
+[03:56:59.860] Server  LOG      ✓ Compiled in 2.3s

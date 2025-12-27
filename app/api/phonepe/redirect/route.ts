@@ -68,7 +68,7 @@ async function processRedirect(req: Request, transactionId: string) {
 
     // 1. Mobile App Redirect (Deep Link)
     if (source === "mobile") {
-      const deepLink = `mathentics://payment/verify?txnId=${transactionId}&status=${status}`;
+      const deepLink = `math4code://payment/verify?txnId=${transactionId}&status=${status}`;
       return NextResponse.redirect(deepLink, 303);
     }
 

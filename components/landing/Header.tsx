@@ -109,8 +109,8 @@ export const Header = () => {
                     <Link href="/" className="flex items-center gap-3 group">
                         <div className="relative h-12 w-auto transition-all group-hover:scale-105">
                             <Image
-                                src="/mathentics-logo-new.png"
-                                alt="mathentics Academy Logo"
+                                src="/mathlogo.png"
+                                alt="math4code Academy Logo"
                                 width={500}
                                 height={100}
                                 className="h-12 w-auto object-contain"

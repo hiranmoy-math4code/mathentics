@@ -39,22 +39,73 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.mathentics.com"),
+  metadataBase: new URL("https://www.math4code.com"),
   title: {
-    default: "mathentics - Master IIT JEE & JAM with Expert Online Courses",
-    template: "%s | mathentics",
+    default: "math4code - Master IIT-JAM, CSIR NET & GATE Mathematics | By Hiranmoy Mandal",
+    template: "%s | math4code",
   },
-  description: "Premium online exam system for IIT JEE and IIT JAM preparation. Expert-curated courses, practice tests, and personalized learning paths to ace your exams.",
-  keywords: ["IIT JEE", "IIT JAM", "online courses", "exam preparation", "mathematics", "physics", "chemistry", "test series"],
-  authors: [{ name: "Hiranmoy Mandal" }],
+  description: "Premium online mathematics learning platform by Hiranmoy Mandal. Expert-curated courses, AI-powered tutoring, practice tests, and personalized learning paths for IIT-JAM, CSIR NET & GATE Mathematics preparation. Join thousands of successful students.",
+  keywords: [
+    // Brand & Creator
+    "math4code",
+    "Hiranmoy Mandal",
+    "Hiranmoy",
+    "mathematics online courses",
+    "math learning platform",
+
+    // Exams
+    "IIT-JAM",
+    "IIT JAM",
+    "JAM Mathematics",
+    "CSIR NET",
+    "CSIR NET Mathematics",
+    "GATE Mathematics",
+    "GATE Maths",
+    "competitive exam preparation",
+
+    // Features
+    "AI math tutor",
+    "AI-powered learning",
+    "step-by-step solutions",
+    "mathematics test series",
+    "mock tests",
+    "practice problems",
+    "online mathematics coaching",
+    "mathematics courses",
+
+    // Topics
+    "calculus",
+    "linear algebra",
+    "real analysis",
+    "complex analysis",
+    "differential equations",
+    "abstract algebra",
+    "topology",
+    "number theory",
+
+    // General
+    "mathematics education",
+    "online learning",
+    "exam preparation",
+    "study material",
+    "mathematics tutor"
+  ],
+  authors: [{ name: "Hiranmoy Mandal", url: "https://www.math4code.com" }],
   creator: "Hiranmoy Mandal",
-  publisher: "mathentics",
+  publisher: "math4code",
   generator: "Next.js",
+  applicationName: "math4code",
+  referrer: "origin-when-cross-origin",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "mathentics",
+    title: "math4code",
   },
   icons: {
     icon: "/favicon.ico",
@@ -63,27 +114,43 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://www.mathentics.com",
-    title: "mathentics - Master IIT JEE & JAM",
-    description: "Expert-curated courses and test series for IIT JEE and JAM preparation",
-    siteName: "mathentics",
+    url: "https://www.math4code.com",
+    title: "math4code - Master IIT-JAM, CSIR NET & GATE Mathematics | By Hiranmoy Mandal",
+    description: "Premium mathematics learning platform by Hiranmoy Mandal. AI-powered tutoring, expert courses, and comprehensive test series for IIT-JAM, CSIR NET & GATE Mathematics.",
+    siteName: "math4code",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "math4code - Mathematics Learning Platform",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "mathentics - Master IIT JEE & JAM",
-    description: "Expert-curated courses and test series for IIT JEE and JAM preparation",
+    title: "math4code - Master IIT-JAM, CSIR NET & GATE Mathematics",
+    description: "Premium mathematics learning platform by Hiranmoy Mandal. AI-powered tutoring and expert courses for competitive exam preparation.",
+    creator: "@math4code",
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
     follow: true,
+    nocache: false,
     googleBot: {
       index: true,
       follow: true,
+      noimageindex: false,
       "max-video-preview": -1,
       "max-image-preview": "large",
       "max-snippet": -1,
     },
   },
+  alternates: {
+    canonical: "https://www.math4code.com",
+  },
+  category: "Education",
 }
 
 const config = {

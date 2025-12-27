@@ -109,7 +109,7 @@ function SignUpForm() {
               <span className="text-xl">Σ✨{'}'}</span>
             </div>
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-violet-600">
-              mathentics
+              math4code
             </h1>
           </div>
         </Link>

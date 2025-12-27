@@ -90,7 +90,7 @@ export default async function CourseLandingPage({
                 instructor={(course.profiles as any)?.full_name}
                 price={course.price}
                 image={course.thumbnail_url}
-                url={`https://www.mathentics.com/courses/${courseId}`}
+                url={`https://www.math4code.com/courses/${courseId}`}
             />
             <main className="pb-20">
                 {/* Hero Section */}

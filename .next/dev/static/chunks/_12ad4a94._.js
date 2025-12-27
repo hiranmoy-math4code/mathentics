@@ -1,0 +1,22 @@
+(globalThis.TURBOPACK || (globalThis.TURBOPACK = [])).push([typeof document === "object" ? document.currentScript : undefined,
+"[project]/node_modules/react-player/dist/index.js [app-client] (ecmascript, next/dynamic entry, async loader)", ((__turbopack_context__) => {
+
+__turbopack_context__.v((parentImport) => {
+    return Promise.all([
+  "static/chunks/node_modules_f0a0137b._.js",
+  "static/chunks/node_modules_react-player_dist_689ec1e5._.js",
+  "static/chunks/node_modules_react-player_dist_index_6a090c80.js"
+].map((chunk) => __turbopack_context__.l(chunk))).then(() => {
+        return parentImport("[project]/node_modules/react-player/dist/index.js [app-client] (ecmascript, next/dynamic entry)");
+    });
+});
+}),
+"[project]/lib/responseCleanup.ts [app-client] (ecmascript, async loader)", ((__turbopack_context__) => {
+
+__turbopack_context__.v((parentImport) => {
+    return Promise.resolve().then(() => {
+        return parentImport("[project]/lib/responseCleanup.ts [app-client] (ecmascript)");
+    });
+});
+}),
+]);

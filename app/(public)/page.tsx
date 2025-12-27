@@ -5,6 +5,7 @@ import { Hero } from '@/components/landing/Hero';
 import { FeaturesStrip } from '@/components/landing/FeaturesStrip';
 import { CoursesSection } from '@/components/landing/CoursesSection';
 import { ExamSeriesSection } from '@/components/landing/ExamSeriesSection';
+import { AIMentorSection } from '@/components/landing/AIMentorSection';
 import { DemoSection } from '@/components/landing/DemoSection';
 import { Testimonials } from '@/components/landing/Testimonials';
 import { CTA } from '@/components/landing/CTA';
@@ -18,6 +19,7 @@ export default function App() {
       <FeaturesStrip />
       <ExamSeriesSection />
       <CoursesSection />
+      <AIMentorSection />
       <DemoSection />
       <Testimonials />
       <CTA />

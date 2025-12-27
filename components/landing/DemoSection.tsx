@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Loader2, Sparkles, Bot, X } from "lucide-react";
+import { Check, Loader2, Sparkles, Bot, X, ArrowRight, Zap } from "lucide-react";
 import { callGemini } from "@/components/landing/AIMentor";
 
 // --- KaTeX Components (same as AIMentor) ---
@@ -33,27 +33,17 @@ const LatexSpan = ({ content }: { content: string }) => {
 // Helper to parse and render LaTeX in text
 const renderMathText = (text: string) => {
     if (!text) return null;
-
-    // First, split by explicit $ delimiters
     const parts = text.split(/(\$[^\$]+\$)/g);
-
     return parts.map((part, i) => {
-        // Handle explicit $...$ notation
         if (part.startsWith('$') && part.endsWith('$')) {
             return <LatexSpan key={`math-${i}`} content={part.slice(1, -1)} />;
         }
-
-        // For non-$ parts, check if they contain LaTeX commands
-        // Split by common LaTeX patterns while preserving them
         const latexPattern = /(\\frac\{[^}]+\}\{[^}]+\}|\\sqrt\{[^}]+\}|\\[a-zA-Z]+\{[^}]*\}|[a-zA-Z]\^[\{0-9]+\}?|[a-zA-Z]_[\{0-9]+\}?)/g;
         const subParts = part.split(latexPattern);
-
         return subParts.map((subPart, j) => {
-            // If it contains LaTeX commands, render as LaTeX
             if (subPart && (subPart.includes('\\') || /[a-zA-Z][\^_]/.test(subPart))) {
                 return <LatexSpan key={`math-${i}-${j}`} content={subPart} />;
             }
-            // Otherwise, render as plain text
             return <span key={`text-${i}-${j}`}>{subPart}</span>;
         });
     });
@@ -69,15 +59,11 @@ export const DemoSection: React.FC = () => {
 
     const handleExplainMath = async () => {
         setIsModalOpen(true);
-
-        // Check if we already have the explanation in localStorage
         const cachedExplanation = localStorage.getItem(cacheKey);
         if (cachedExplanation) {
             setExplanation(cachedExplanation);
             return;
         }
-
-        // If not cached, fetch from AI
         setLoading(true);
         try {
             const response = await callGemini(
@@ -85,7 +71,6 @@ export const DemoSection: React.FC = () => {
                 "You are a mathematics tutor specializing in IIT-JAM, CSIR NET & GATE Mathematics preparation. Explain clearly and concisely using proper LaTeX notation for all mathematical expressions."
             );
             setExplanation(response);
-            // Save to localStorage for future use
             localStorage.setItem(cacheKey, response);
         } catch (e) {
             setExplanation("Could not load explanation. Please try again.");
@@ -95,84 +80,142 @@ export const DemoSection: React.FC = () => {
     };
 
     return (
-        <section id="demo" className="py-24 bg-[#1F2A6B] text-white overflow-hidden">
-            <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
-                <div>
-                    <h2 className="text-3xl lg:text-4xl font-extrabold mb-6">AI-Powered Math Learning</h2>
-                    <p className="text-indigo-200 text-lg mb-8">
-                        Get instant, step-by-step solutions to complex mathematical problems. mathentics' AI mentor helps you understand concepts deeply, not just memorize formulas.
-                    </p>
-                    <ul className="space-y-4 mb-8">
-                        {['Instant step-by-step solutions', 'Concept explanations tailored to your level', 'Practice problems with detailed feedback'].map((item, i) => (
-                            <li key={i} className="flex items-center gap-3">
-                                <div className="bg-[#14B8A6] rounded-full p-1">
-                                    <Check size={12} strokeWidth={4} className="text-white" />
-                                </div>
-                                <span className="font-medium">{item}</span>
-                            </li>
-                        ))}
-                    </ul>
-                    <Link href="/courses">
-                        <button className="bg-white text-[#1F2A6B] px-8 py-3 rounded-lg font-bold hover:bg-indigo-50 transition-colors">
-                            Try Practice Problems
-                        </button>
-                    </Link>
-                </div>
+        <section id="demo" className="py-20 lg:py-24 bg-gradient-to-br from-white via-slate-50 to-blue-50/30 overflow-hidden relative">
+            {/* Background Decorations */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-100/20 to-purple-100/20 rounded-full blur-3xl -z-10" />
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-purple-100/20 to-pink-100/20 rounded-full blur-3xl -z-10" />
 
-                {/* Math Problem Card */}
-                <div className="relative rounded-xl overflow-hidden shadow-2xl bg-white border border-gray-200">
-                    <div className="bg-linear-to-r from-indigo-600 to-violet-600 px-6 py-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                                <span className="text-2xl">∫</span>
-                            </div>
-                            <div>
-                                <div className="text-white font-bold text-sm">Calculus Problem</div>
-                                <div className="text-indigo-100 text-xs">Differentiation</div>
-                            </div>
-                        </div>
-                        <div className="text-xs text-indigo-100 bg-white/10 px-3 py-1 rounded-full">Advanced Level</div>
-                    </div>
-
-                    <div className="p-6 text-gray-900 relative">
-                        {/* Problem Statement */}
-                        <div className="mb-6">
-                            <div className="text-sm text-gray-500 font-semibold mb-2">PROBLEM</div>
-                            <div className="text-lg font-bold text-gray-800 bg-gray-50 p-4 rounded-lg border-l-4 border-indigo-600">
-                                Find the derivative of<br />
-                                <div className="text-xl mt-2">
-                                    <LatexSpan content="f(x) = x^3 + 2x^2 - 5x + 3" />
-                                </div>
-                            </div>
+            <div className="max-w-7xl mx-auto px-6 lg:px-8">
+                <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                    {/* Left Content */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                    >
+                        {/* Badge */}
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 rounded-full mb-6">
+                            <Zap className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-semibold text-slate-700">AI-Powered Learning</span>
                         </div>
 
-                        {/* AI Explain Button */}
-                        <div className="mb-4">
-                            <button
-                                onClick={handleExplainMath}
-                                disabled={loading}
-                                className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white px-4 py-3 rounded-lg font-bold shadow-lg transition-all disabled:opacity-50"
+                        <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900 mb-4">
+                            Instant <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-teal-500">Step-by-Step</span> Solutions
+                        </h2>
+
+                        <p className="text-lg text-slate-600 mb-8 leading-relaxed">
+                            Get instant, detailed solutions to complex mathematical problems. Our AI mentor helps you understand concepts deeply, not just memorize formulas.
+                        </p>
+
+                        <ul className="space-y-3 md:space-y-4 mb-6 md:mb-8">
+                            {[
+                                { text: 'Instant step-by-step solutions', color: 'from-blue-500 to-blue-600' },
+                                { text: 'Concept explanations tailored to your level', color: 'from-purple-500 to-purple-600' },
+                                { text: 'Practice problems with detailed feedback', color: 'from-teal-500 to-teal-600' }
+                            ].map((item, i) => (
+                                <li key={i} className="flex items-center gap-3">
+                                    <div className={`w-6 h-6 rounded-full bg-gradient-to-r ${item.color} flex items-center justify-center flex-shrink-0`}>
+                                        <Check size={14} strokeWidth={3} className="text-white" />
+                                    </div>
+                                    <span className="text-slate-700 font-medium">{item.text}</span>
+                                </li>
+                            ))}
+                        </ul>
+
+                        <Link href="/courses">
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2 text-sm md:text-base"
                             >
-                                {loading ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} className="text-[#F6C85F]" />}
-                                {loading ? "Analyzing..." : "Get Step-by-Step Solution with AI"}
-                            </button>
-                        </div>
+                                <span>Try Practice Problems</span>
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                            </motion.button>
+                        </Link>
+                    </motion.div>
 
-                        {/* Solution Preview */}
-                        <div className="bg-linear-to-br from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
-                            <div className="text-sm font-bold text-green-800 mb-2">SOLUTION</div>
-                            <div className="text-gray-700 space-y-2">
-                                <div className="flex items-start gap-2">
-                                    <span className="text-green-600 font-bold">1.</span>
-                                    <span>Apply power rule: <LatexSpan content="\frac{d}{dx}(x^n) = nx^{n-1}" /></span>
+                    {/* Right - Math Problem Card */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                        className="relative max-w-lg mx-auto"
+                    >
+                        <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-white border-2 border-slate-200">
+                            {/* Header */}
+                            <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                        <span className="text-2xl text-white">∫</span>
+                                    </div>
+                                    <div>
+                                        <div className="text-white font-bold text-sm">Calculus Problem</div>
+                                        <div className="text-blue-100 text-xs">Differentiation</div>
+                                    </div>
                                 </div>
-                                <div className="flex items-start gap-2">
-                                    <span className="text-green-600 font-bold">2.</span>
-                                    <span><LatexSpan content="f'(x) = 3x^2 + 4x - 5" /></span>
+                                <div className="text-xs text-white bg-white/20 px-2.5 py-1 rounded-full font-semibold">Advanced</div>
+                            </div>
+
+                            <div className="p-5 text-slate-900">
+                                {/* Problem Statement */}
+                                <div className="mb-5">
+                                    <div className="text-xs text-slate-500 font-bold mb-2 uppercase tracking-wide">Problem</div>
+                                    <div className="bg-gradient-to-br from-slate-50 to-blue-50 p-4 rounded-xl border-l-4 border-blue-600">
+                                        <div className="text-xs text-slate-600 mb-1.5">Find the derivative of</div>
+                                        <div className="text-lg font-bold text-slate-900">
+                                            <LatexSpan content="f(x) = x^3 + 2x^2 - 5x + 3" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* AI Explain Button */}
+                                <div className="mb-5">
+                                    <button
+                                        onClick={handleExplainMath}
+                                        disabled={loading}
+                                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2.5 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 text-sm"
+                                    >
+                                        {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} className="text-yellow-300" />}
+                                        {loading ? "Analyzing..." : "Get AI Solution"}
+                                    </button>
+                                </div>
+
+                                {/* Solution Preview */}
+                                <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
+                                    <div className="text-xs font-bold text-green-800 mb-2.5 uppercase tracking-wide">Solution Preview</div>
+                                    <div className="text-slate-700 space-y-2.5">
+                                        <div className="flex items-start gap-2.5">
+                                            <span className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+                                            <span className="text-xs">Apply power rule: <LatexSpan content="\frac{d}{dx}(x^n) = nx^{n-1}" /></span>
+                                        </div>
+                                        <div className="flex items-start gap-2.5">
+                                            <span className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+                                            <span className="text-xs font-semibold text-green-900"><LatexSpan content="f'(x) = 3x^2 + 4x - 5" /></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+
+                        {/* Floating Badge */}
+                        <motion.div
+                            animate={{ y: [0, -10, 0] }}
+                            transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                            className="hidden md:block absolute -top-4 -right-4 bg-white rounded-2xl shadow-xl border-2 border-blue-200 p-3 z-10"
+                        >
+                            <div className="flex items-center gap-2">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                                    <Bot className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-slate-900">AI Powered</div>
+                                    <div className="text-[10px] text-slate-500">Instant Help</div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
                 </div>
             </div>
 
@@ -194,12 +237,12 @@ export const DemoSection: React.FC = () => {
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Modal Header */}
-                            <div className="bg-linear-to-r from-indigo-600 to-violet-600 px-6 py-4 flex items-center justify-between shrink-0">
+                            <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 flex items-center justify-between shrink-0">
                                 <div className="flex items-center gap-3">
                                     <Bot size={24} className="text-white" />
                                     <div>
                                         <div className="text-white font-bold text-lg">AI Step-by-Step Solution</div>
-                                        <div className="text-indigo-100 text-sm">Detailed Explanation</div>
+                                        <div className="text-blue-100 text-sm">Detailed Explanation</div>
                                     </div>
                                 </div>
                                 <button
@@ -214,11 +257,11 @@ export const DemoSection: React.FC = () => {
                             <div className="p-6 overflow-y-auto flex-1">
                                 {loading ? (
                                     <div className="flex flex-col items-center justify-center py-12">
-                                        <Loader2 size={48} className="animate-spin text-indigo-600 mb-4" />
-                                        <p className="text-gray-600">Generating detailed explanation...</p>
+                                        <Loader2 size={48} className="animate-spin text-blue-600 mb-4" />
+                                        <p className="text-slate-600">Generating detailed explanation...</p>
                                     </div>
                                 ) : (
-                                    <div className="prose prose-sm max-w-none text-gray-700">
+                                    <div className="prose prose-sm max-w-none text-slate-700">
                                         {renderMathText(explanation)}
                                     </div>
                                 )}

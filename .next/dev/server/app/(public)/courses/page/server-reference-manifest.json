@@ -1,0 +1,35 @@
+{
+  "node": {},
+  "edge": {
+    "780d64f65fac54c55def49046d2a33becf7ac8e4bd": {
+      "workers": {
+        "app/(public)/courses/page": {
+          "moduleId": "[project]/.next-internal/server/app/(public)/courses/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/rewardActions.ts [app-edge-rsc] (ecmascript)\" } [app-edge-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "awardCoins",
+          "filename": "app/actions/rewardActions.ts"
+        }
+      },
+      "layer": {
+        "app/(public)/courses/page": "action-browser"
+      },
+      "exportedName": "awardCoins",
+      "filename": "app/actions/rewardActions.ts"
+    },
+    "6062a646126ab86278ff8a9f9d5dd9c2cf55fa2b68": {
+      "workers": {
+        "app/(public)/courses/page": {
+          "moduleId": "[project]/.next-internal/server/app/(public)/courses/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/actions/rewardActions.ts [app-edge-rsc] (ecmascript)\" } [app-edge-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateMissionProgress",
+          "filename": "app/actions/rewardActions.ts"
+        }
+      },
+      "layer": {
+        "app/(public)/courses/page": "action-browser"
+      },
+      "exportedName": "updateMissionProgress",
+      "filename": "app/actions/rewardActions.ts"
+    }
+  }
+}

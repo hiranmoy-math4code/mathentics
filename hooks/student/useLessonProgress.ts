@@ -7,7 +7,6 @@ interface MarkLessonCompleteParams {
     courseId: string
 }
 
-import { awardCoins } from "@/app/actions/rewardActions";
 
 export function useMarkLessonComplete() {
     const queryClient = useQueryClient()
@@ -17,6 +16,7 @@ export function useMarkLessonComplete() {
             const supabase = createClient()
 
             // Upsert lesson progress
+            // ✅ This will trigger automatic progress update via database trigger!
             const { data, error } = await supabase
                 .from("lesson_progress")
                 .upsert(
@@ -38,25 +38,9 @@ export function useMarkLessonComplete() {
                 throw error;
             }
 
-            // Update last accessed lesson in enrollment
-            await supabase
-                .from("enrollments")
-                .update({
-                    last_accessed_lesson_id: lessonId,
-                    last_accessed_at: new Date().toISOString(),
-                })
-                .eq("user_id", userId)
-                .eq("course_id", courseId)
-
-            // --- REWARD TRIGGER ---
-            // Award generic lesson completion coins
-            // The Server Action handles duplicates/limits
-            try {
-                await awardCoins(userId, 'lesson_completion', lessonId, 'Completed a lesson');
-            } catch (err) {
-                // Silently fail - rewards are not critical
-            }
-            // ----------------------
+            // ✅ NO NEED for manual enrollment update - trigger handles it!
+            // ✅ NO NEED for manual reward - trigger handles it!
+            // ✅ NO NEED for manual mission update - trigger handles it!
 
             return data
         },

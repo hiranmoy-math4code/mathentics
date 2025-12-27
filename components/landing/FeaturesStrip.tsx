@@ -3,58 +3,83 @@
 import React from "react";
 import { motion } from "framer-motion";
 import {
-    GraduationCap, Terminal, Trophy, Sparkles
-} from "lucide-react";
+    FeatureIconStructuredLearning,
+    FeatureIconSmartAnalytics,
+    FeatureIconMockTests,
+    FeatureIconAIMentor
+} from "./Illustrations";
 
 export const FeaturesStrip: React.FC = () => {
     const features = [
         {
-            icon: <GraduationCap className="w-5 h-5 md:w-6 md:h-6" />,
+            icon: <FeatureIconStructuredLearning className="w-full h-full" />,
             title: "Structured Learning",
             desc: "Comprehensive curriculum covering all topics for IIT-JAM, CSIR NET & GATE Mathematics."
         },
         {
-            icon: <Terminal className="w-5 h-5 md:w-6 md:h-6" />,
+            icon: <FeatureIconSmartAnalytics className="w-full h-full" />,
             title: "Smart Analytics",
             desc: "Track your progress with detailed performance insights and topic-wise analysis."
         },
         {
-            icon: <Trophy className="w-5 h-5 md:w-6 md:h-6" />,
+            icon: <FeatureIconMockTests className="w-full h-full" />,
             title: "Mock Tests",
             desc: "Practice with exam-style tests and compete on leaderboards."
         },
         {
-            icon: <Sparkles className="w-5 h-5 md:w-6 md:h-6" />,
+            icon: <FeatureIconAIMentor className="w-full h-full" />,
             title: "AI Math Mentor",
             desc: "Get instant help with step-by-step solutions to complex mathematical problems."
         },
     ];
 
     return (
-        <div className="bg-white py-16 border-y border-gray-100 flex items-center">
-            <div className="max-w-7xl mx-auto px-6 w-full">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+        <section className="relative py-20 lg:py-24 bg-white border-y border-slate-100">
+            {/* Background decoration */}
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-white pointer-events-none" />
+
+            <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
                     {features.map((feature, idx) => (
                         <motion.div
                             key={idx}
-                            whileHover={{ y: -5 }}
-                            className="flex items-start gap-5 p-2 rounded-2xl transition-all group"
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.1, duration: 0.5 }}
+                            whileHover={{ y: -8, scale: 1.02 }}
+                            className="group relative"
                         >
-                            <div className="shrink-0 p-3.5 bg-indigo-50 text-[#1F2A6B] rounded-xl group-hover:bg-[#1F2A6B] group-hover:text-white group-hover:shadow-lg group-hover:shadow-indigo-100 transition-all duration-300">
-                                {feature.icon}
-                            </div>
-                            <div>
-                                <h3 className="font-extrabold text-[#1F2A6B] text-base mb-1.5 group-hover:text-[#14B8A6] transition-colors">
-                                    {feature.title}
-                                </h3>
-                                <p className="text-sm text-slate-500 leading-relaxed font-medium">
-                                    {feature.desc}
-                                </p>
+                            {/* Card */}
+                            <div className="relative h-full bg-gradient-to-br from-white to-slate-50 rounded-2xl p-6 lg:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300">
+                                {/* Gradient overlay on hover */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                                {/* Content */}
+                                <div className="relative z-10 space-y-4">
+                                    {/* Icon */}
+                                    <div className="w-16 h-16 lg:w-20 lg:h-20 p-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-md group-hover:shadow-lg">
+                                        {feature.icon}
+                                    </div>
+
+                                    {/* Text */}
+                                    <div className="space-y-2">
+                                        <h3 className="font-bold text-slate-900 text-lg lg:text-xl group-hover:text-blue-600 transition-colors">
+                                            {feature.title}
+                                        </h3>
+                                        <p className="text-sm lg:text-base text-slate-600 leading-relaxed">
+                                            {feature.desc}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Decorative corner element */}
+                                <div className="absolute top-4 right-4 w-2 h-2 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
                         </motion.div>
                     ))}
                 </div>
             </div>
-        </div>
+        </section>
     );
 };

@@ -1,0 +1,74 @@
+{
+  "sorted_middleware": [
+    "/(public)/test-series/page"
+  ],
+  "middleware": {},
+  "instrumentation": null,
+  "functions": {
+    "/(public)/test-series/page": {
+      "files": [
+        "server/middleware-build-manifest.js",
+        "server/interception-route-rewrite-manifest.js",
+        "server/next-font-manifest.js",
+        "server/server-reference-manifest.js",
+        "server/edge/chunks/ssr/node_modules_5bcf28f6._.js",
+        "server/edge/chunks/ssr/app_global-error_tsx_801376f2._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_1f0a1bdc._.js",
+        "server/edge/chunks/ssr/node_modules_@tanstack_query-devtools_build_34ea464c._.js",
+        "server/edge/chunks/ssr/node_modules_95d4de8a._.js",
+        "server/edge/chunks/ssr/_345b494a._.js",
+        "server/edge/chunks/ssr/app_error_tsx_af968275._.js",
+        "server/edge/chunks/ssr/[root-of-the-server]__6990005e._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_fa7b9474._.js",
+        "server/edge/chunks/ssr/node_modules_motion-dom_dist_es_df06ee9f._.js",
+        "server/edge/chunks/ssr/node_modules_framer-motion_dist_es_b0801d2c._.js",
+        "server/edge/chunks/ssr/node_modules_@supabase_realtime-js_dist_module_b534854a._.js",
+        "server/edge/chunks/ssr/node_modules_@supabase_storage-js_dist_module_eb490b9a._.js",
+        "server/edge/chunks/ssr/node_modules_@supabase_auth-js_dist_module_a7ad4d30._.js",
+        "server/edge/chunks/ssr/node_modules_57fefe2b._.js",
+        "server/app/(public)/test-series/page_client-reference-manifest.js",
+        "server/edge/chunks/ssr/node_modules_next_3b2d0a54._.js",
+        "server/edge/chunks/ssr/node_modules_@supabase_realtime-js_dist_module_532a41f0._.js",
+        "server/edge/chunks/ssr/node_modules_@supabase_storage-js_dist_module_e7e66961._.js",
+        "server/edge/chunks/ssr/node_modules_@supabase_auth-js_dist_module_a599926d._.js",
+        "server/edge/chunks/ssr/node_modules_e0237a34._.js",
+        "server/edge/chunks/ssr/[root-of-the-server]__80698078._.js",
+        "server/edge/chunks/ssr/[root-of-the-server]__2fd892de._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_esm_server_lib_febd0d4e._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_esm_server_app-render_22dac2a4._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_esm_server_73e49645._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_esm_shared_lib_5df823df._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_esm_lib_c88b031c._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_esm_client_ecf13210._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_esm_build_c880d475._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_esm_bf14793f._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_compiled_react-dom_59f36a62._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_compiled_react-server-dom-turbopack_032e2d0c._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_compiled_zod_index_cjs_ac500046._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_compiled_28829aa0._.js",
+        "server/edge/chunks/ssr/node_modules_next_dist_d58a94d7._.js",
+        "server/edge/chunks/ssr/edge-wrapper_a1292d52.js",
+        "server/edge/chunks/ssr/node_modules_982ce3bd._.js",
+        "server/edge/chunks/ssr/turbopack-edge-wrapper_fcac8a3f.js",
+        "server/app/(public)/test-series/page/react-loadable-manifest.js"
+      ],
+      "name": "app/(public)/test-series/page",
+      "page": "/(public)/test-series/page",
+      "matchers": [
+        {
+          "regexp": "^/test-series(?:/)?$",
+          "originalSource": "/test-series"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "development",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "i9s/C+GYgzIVaROt29gSOw98WMmfMNdgLdLZyzQRsU0=",
+        "__NEXT_PREVIEW_MODE_ID": "6964a20d2844d673cd8f1ea933a50f78",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "219eb89b0eef39f99d399ca8c8c4df1ad77f908965fff0a0cadea5c1f2ce8fbd",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "6bfcc2c4204ef27ce0e6ad330dc62f5362d21db80831d4eac6b4f23a3dfced84"
+      }
+    }
+  }
+}
