@@ -23,13 +23,13 @@ export const REWARD_KEYS = {
     streakHistory: (userId: string) => [...REWARD_KEYS.all, "streakHistory", userId] as const,
 };
 
-export function useRewards(userId?: string) {
+export function useRewards(userId?: string, tenantId?: string) {
     const queryClient = useQueryClient();
 
     // 1. Reward Status (Coins, Streak, XP)
     const { data: rewardStatus, isLoading: statusLoading } = useQuery({
         queryKey: REWARD_KEYS.status(userId || ""),
-        queryFn: () => userId ? getRewardStatus(userId) : null,
+        queryFn: () => userId ? getRewardStatus(userId, tenantId) : null,
         enabled: !!userId,
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
@@ -73,7 +73,7 @@ export function useRewards(userId?: string) {
     const awardCoinsMutation = useMutation({
         mutationFn: async ({ action, entityId, description }: { action: any, entityId?: string, description?: string }) => {
             if (!userId) throw new Error("User ID required");
-            return await awardCoins(userId, action, entityId, description);
+            return await awardCoins(userId, action, entityId, description, tenantId);
         },
         onSuccess: () => {
             // Invalidate relevant queries to refresh data
@@ -90,7 +90,7 @@ export function useRewards(userId?: string) {
     const checkStreakMutation = useMutation({
         mutationFn: async () => {
             if (!userId) throw new Error("User ID required");
-            return await checkStreak(userId);
+            return await checkStreak(userId, tenantId);
         },
         onSuccess: () => {
             if (userId) {

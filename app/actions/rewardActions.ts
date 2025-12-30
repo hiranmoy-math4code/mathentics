@@ -22,22 +22,28 @@ const REWARD_RULES = {
 const DAILY_COIN_CAP = 100;
 
 // ============================================================================
-// HELPER: Get Tenant ID from Headers
+// HELPER: Get Tenant ID from Headers (Fallback for server-side calls)
 // ============================================================================
-async function getTenantId(): Promise<string | null> {
-    const { headers } = await import('next/headers');
-    const headersList = await headers();
-    return headersList.get('x-tenant-id');
+async function getTenantIdFromHeaders(): Promise<string | null> {
+    try {
+        const { headers } = await import('next/headers');
+        const headersList = await headers();
+        return headersList.get('x-tenant-id');
+    } catch (error) {
+        // Headers not available (e.g., called from client-side)
+        console.warn('⚠️ Headers not available in getTenantIdFromHeaders');
+        return null;
+    }
 }
 
 // ============================================================================
 // Get User Reward Status (Using Database Function)
 // ============================================================================
-export async function getRewardStatus(userId: string) {
+export async function getRewardStatus(userId: string, tenantId?: string) {
     const supabase = await createClient();
-    const tenantId = await getTenantId();
+    const finalTenantId = tenantId || await getTenantIdFromHeaders();
 
-    if (!tenantId) {
+    if (!finalTenantId) {
         console.warn('⚠️ No tenant ID in getRewardStatus');
         return null;
     }
@@ -45,7 +51,7 @@ export async function getRewardStatus(userId: string) {
     // Use database function - handles get/create automatically!
     const { data, error } = await supabase.rpc('get_user_rewards', {
         p_user_id: userId,
-        p_tenant_id: tenantId
+        p_tenant_id: finalTenantId
     });
 
     if (error) {
@@ -60,11 +66,11 @@ export async function getRewardStatus(userId: string) {
 // ============================================================================
 // Check User Streak (Using Database Function)
 // ============================================================================
-export async function checkStreak(userId: string) {
+export async function checkStreak(userId: string, tenantId?: string) {
     const supabase = await createClient();
-    const tenantId = await getTenantId();
+    const finalTenantId = tenantId || await getTenantIdFromHeaders();
 
-    if (!tenantId) {
+    if (!finalTenantId) {
         console.warn('⚠️ No tenant ID in checkStreak');
         return { streak: 0, message: null };
     }
@@ -72,7 +78,7 @@ export async function checkStreak(userId: string) {
     // Use database function
     const { data, error } = await supabase.rpc('get_user_streak', {
         p_user_id: userId,
-        p_tenant_id: tenantId
+        p_tenant_id: finalTenantId
     });
 
     if (error) {
@@ -90,12 +96,13 @@ export async function awardCoins(
     userId: string,
     action: ActionType,
     entityId?: string,
-    description?: string
+    description?: string,
+    tenantId?: string
 ) {
     const supabase = await createClient();
-    const tenantId = await getTenantId();
+    const finalTenantId = tenantId || await getTenantIdFromHeaders();
 
-    if (!tenantId) {
+    if (!finalTenantId) {
         console.warn('⚠️ No tenant ID in awardCoins');
         return { success: false, message: "No tenant context" };
     }
@@ -103,7 +110,7 @@ export async function awardCoins(
     // Use database function - handles everything!
     const { data, error } = await supabase.rpc('award_coins', {
         p_user_id: userId,
-        p_tenant_id: tenantId,
+        p_tenant_id: finalTenantId,
         p_action_type: action,
         p_entity_id: entityId || null,
         p_description: description || null
@@ -140,20 +147,26 @@ export async function getLeaderboard(type: 'weekly' | 'all_time' = 'all_time', l
     // ============================================================================
     const sortColumn = type === 'weekly' ? 'weekly_xp' : 'total_coins';
 
-    // Use RPC function for optimized query with JOIN
-    const { data, error } = await supabase.rpc('get_tenant_leaderboard', {
-        p_tenant_id: tenantId,
-        p_sort_column: sortColumn,
-        p_limit: limit
-    });
+    try {
+        // Use RPC function for optimized query with JOIN
+        const { data, error } = await supabase.rpc('get_tenant_leaderboard', {
+            p_tenant_id: tenantId,
+            p_sort_column: sortColumn,
+            p_limit: limit
+        });
 
-    if (error) {
-        console.error('Leaderboard RPC error:', error);
-        // Fallback to simple query if RPC doesn't exist
+        if (error) {
+            console.error('Leaderboard RPC error:', error);
+            // Fallback to simple query if RPC doesn't exist
+            return await getLeaderboardFallback(supabase, tenantId, type, limit);
+        }
+
+        return data || [];
+    } catch (err) {
+        console.error('Leaderboard error:', err);
+        // Final fallback to ensure leaderboard always works
         return await getLeaderboardFallback(supabase, tenantId, type, limit);
     }
-
-    return data || [];
 }
 
 // Fallback function (will be used until RPC is created)

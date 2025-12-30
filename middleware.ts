@@ -7,7 +7,12 @@ import { createServerClient } from "@supabase/ssr"
 // MULTI-TENANT: In-memory cache for tenant lookups (Cloudflare Pages optimization)
 // ============================================================================
 const tenantCache = new Map<string, { id: string; expiry: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Cache TTL: 15 minutes in production, 5 minutes in development
+// Longer cache in production reduces DB load significantly at scale
+const CACHE_TTL = process.env.NODE_ENV === 'production'
+  ? 15 * 60 * 1000  // 15 minutes (production)
+  : 5 * 60 * 1000;  // 5 minutes (development)
 
 async function getTenantFromHostname(hostname: string, supabase: any): Promise<string | null> {
   // Check cache first (reduces DB queries by ~90%)

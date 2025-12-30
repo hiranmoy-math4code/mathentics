@@ -4,8 +4,14 @@ import { cookies, headers } from "next/headers"
 export async function createClient() {
   const cookieStore = await cookies()
 
+  // Use connection pooler URL in production for better scalability
+  // Falls back to direct URL if pooler not configured
+  const supabaseUrl = process.env.SUPABASE_POOLER_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    "https://wzlcuzygjdzolcycogow.supabase.co";
+
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "https://wzlcuzygjdzolcycogow.supabase.co",
+    supabaseUrl,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "dummy_key_for_build_time_generation",
     {
       cookies: {
