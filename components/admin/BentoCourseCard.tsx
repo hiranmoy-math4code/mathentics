@@ -43,7 +43,7 @@ export function BentoCourseCard({ course, stats, className }: BentoCourseCardPro
             className
         )}>
             {/* Thumbnail Image */}
-            <div className="relative h-48 overflow-hidden bg-linear-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+            <div className="relative h-48 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
                 {course.thumbnail_url ? (
                     <Image
                         src={course.thumbnail_url}
@@ -131,7 +131,7 @@ export function BentoCourseCard({ course, stats, className }: BentoCourseCardPro
                         </Button>
                     </Link>
                     <Link href={`/admin/courses/${course.id}/edit`} className="flex-1">
-                        <Button className="w-full gap-2 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-200 dark:shadow-none">
+                        <Button className="w-full gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-200 dark:shadow-none">
                             <Edit className="w-4 h-4" />
                             Edit
                         </Button>
@@ -141,7 +141,7 @@ export function BentoCourseCard({ course, stats, className }: BentoCourseCardPro
 
             {/* Expiring Alert Banner */}
             {stats && stats.expiringCount > 0 && (
-                <div className="absolute bottom-0 left-0 right-0 bg-linear-to-r from-amber-500 to-orange-500 text-white px-4 py-2 flex items-center gap-2 text-xs font-bold">
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 flex items-center gap-2 text-xs font-bold">
                     <AlertCircle className="w-4 h-4 animate-pulse" />
                     {stats.expiringCount} {stats.expiringCount === 1 ? 'subscription' : 'subscriptions'} expiring soon!
                 </div>

@@ -18,6 +18,32 @@ export default async function MarketplacePage({
     const { q, category } = await searchParams;
     const supabase = await createClient();
 
+    // Get tenant from domain
+    const { headers } = await import('next/headers');
+    const headersList = await headers();
+    const host = headersList.get('host') || '';
+
+    // Lookup tenant by domain
+    const { data: tenant } = await supabase
+        .from('tenants')
+        .select('id')
+        .eq('custom_domain', host)
+        .eq('is_active', true)
+        .maybeSingle();
+
+    // If no tenant found, use default
+    let tenantId = tenant?.id;
+    if (!tenantId) {
+        const { data: defaultTenant } = await supabase
+            .from('tenants')
+            .select('id')
+            .eq('slug', 'math4code')
+            .eq('is_active', true)
+            .maybeSingle();
+        tenantId = defaultTenant?.id;
+    }
+
+    // Build query with tenant filtering
     let query = supabase
         .from("courses")
         .select("*, profiles:creator_id(full_name)")
@@ -25,6 +51,11 @@ export default async function MarketplacePage({
         .eq("course_type", "course")
         .order("created_at", { ascending: false })
         .range(0, 19);
+
+    // Add tenant filter
+    if (tenantId) {
+        query = query.eq("tenant_id", tenantId);
+    }
 
     if (q) {
         query = query.ilike("title", `%${q}%`);
@@ -51,11 +82,11 @@ export default async function MarketplacePage({
             {/* Hero Section */}
             <div className="pt-28 pb-12 bg-[#0f172a] text-white relative overflow-hidden">
                 <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20"></div>
-                <div className="absolute inset-0 bg-linear-to-br from-indigo-500/10 via-transparent to-violet-500/10"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-violet-500/10"></div>
 
                 <div className="container max-w-[1200px] mx-auto px-4 md:px-6 relative z-10">
                     <div className="max-w-3xl">
-                        <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-linear-to-r from-indigo-400 to-violet-400">
+                        <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400">
                             Explore Our Courses
                         </h1>
                         <p className="text-lg text-slate-400 mb-8">

@@ -14,9 +14,22 @@ export const useSendMessage = (channelId: string) => {
                 throw new Error("Not authenticated");
             }
 
+            // Get tenant_id from user membership
+            const { data: membership } = await supabase
+                .from('user_tenant_memberships')
+                .select('tenant_id')
+                .eq('user_id', user.id)
+                .eq('is_active', true)
+                .single();
+
+            if (!membership) {
+                throw new Error("No active tenant membership found");
+            }
+
             const { data, error } = await supabase
                 .from("community_messages")
                 .insert({
+                    tenant_id: membership.tenant_id,  // ✅ Added tenant_id
                     channel_id: channelId,
                     user_id: user.id,
                     content,
@@ -111,6 +124,18 @@ export const useToggleReaction = () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("Not authenticated");
 
+            // Get tenant_id from user membership
+            const { data: membership } = await supabase
+                .from('user_tenant_memberships')
+                .select('tenant_id')
+                .eq('user_id', user.id)
+                .eq('is_active', true)
+                .single();
+
+            if (!membership) {
+                throw new Error("No active tenant membership found");
+            }
+
             // Check if reaction exists
             const { data: existing } = await supabase
                 .from("community_reactions")
@@ -132,6 +157,7 @@ export const useToggleReaction = () => {
                 const { error } = await supabase
                     .from("community_reactions")
                     .insert({
+                        tenant_id: membership.tenant_id,  // ✅ Added tenant_id
                         message_id: messageId,
                         user_id: user.id,
                         emoji,

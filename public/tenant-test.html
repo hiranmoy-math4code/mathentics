@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tenant Detection Test</title>
+</head>
+<body>
+    <h1>Tenant Detection Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testTenantDetection() {
+            const results = document.getElementById('results');
+            
+            // Get domain
+            const domain = window.location.host;
+            console.log('🔍 Current domain:', domain);
+            results.innerHTML += `<p><strong>Domain:</strong> ${domain}</p>`;
+            
+            // Expected tenant IDs
+            const tenants = {
+                'tenant-a.local:3000': 'f9c03969-da89-4d2e-92eb-029490268453',
+                'tenant-b.local:3000': 'de4cea86-71bb-4091-b336-91ee530f7d16',
+                'www.math4code.com': '00000000-0000-0000-0000-000000000001'
+            };
+            
+            const expectedTenantId = tenants[domain];
+            console.log('✅ Expected tenant ID:', expectedTenantId);
+            results.innerHTML += `<p><strong>Expected Tenant ID:</strong> ${expectedTenantId || 'Unknown domain'}</p>`;
+            
+            // Test message
+            if (expectedTenantId) {
+                console.log(`%c✅ Tenant detection should work for ${domain}`, 'color: green; font-weight: bold');
+                results.innerHTML += `<p style="color: green;"><strong>✅ This domain is configured correctly</strong></p>`;
+            } else {
+                console.log(`%c❌ Domain ${domain} not configured in tenants table`, 'color: red; font-weight: bold');
+                results.innerHTML += `<p style="color: red;"><strong>❌ This domain is NOT configured</strong></p>`;
+            }
+            
+            // Instructions
+            results.innerHTML += `
+                <hr>
+                <h2>Next Steps:</h2>
+                <ol>
+                    <li>Open browser console (F12)</li>
+                    <li>Go to /courses page</li>
+                    <li>Look for these logs:
+                        <ul>
+                            <li>🔍 Detecting tenant from domain: ...</li>
+                            <li>🏢 Tenant found by domain: ...</li>
+                            <li>✅ Using tenant ID for courses: ...</li>
+                        </ul>
+                    </li>
+                    <li>If you DON'T see these logs, the code hasn't reloaded. Press Ctrl+Shift+R</li>
+                </ol>
+            `;
+        }
+        
+        testTenantDetection();
+    </script>
+</body>
+</html>

@@ -194,7 +194,7 @@ export default function AdminExamReviewPage() {
 
                     {/* Stats Summary */}
                     <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <Card className="flex flex-col items-center justify-center p-6 bg-linear-to-br from-indigo-500 to-indigo-600 text-white border-none shadow-lg">
+                        <Card className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white border-none shadow-lg">
                             <p className="text-white/80 text-xs font-black uppercase mb-1">Percentage</p>
                             <h3 className="text-4xl font-black">{stats.percentage.toFixed(1)}%</h3>
                         </Card>

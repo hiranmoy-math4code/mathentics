@@ -77,7 +77,7 @@ export default function StudentManagementClient({ courses, testSeries }: any) {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
-                            <div className="p-2 rounded-xl bg-linear-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-200 dark:shadow-none">
+                            <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-200 dark:shadow-none">
                                 <Users className="w-6 h-6 text-white" />
                             </div>
                             Student Management
@@ -88,14 +88,14 @@ export default function StudentManagementClient({ courses, testSeries }: any) {
                     <div className="flex gap-3">
                         <Button
                             onClick={() => setAddStudentOpen(true)}
-                            className="bg-linear-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-lg shadow-violet-200 dark:shadow-none"
+                            className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-lg shadow-violet-200 dark:shadow-none"
                         >
                             <UserPlus className="w-4 h-4 mr-2" />
                             Add Student
                         </Button>
                         <Button
                             onClick={() => setGrantAccessOpen(true)}
-                            className="bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-200 dark:shadow-none"
+                            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-200 dark:shadow-none"
                         >
                             <Gift className="w-4 h-4 mr-2" />
                             Grant Access
@@ -207,7 +207,7 @@ export default function StudentManagementClient({ courses, testSeries }: any) {
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="w-10 h-10 border-2 border-slate-200 dark:border-slate-700">
                                                         <AvatarImage src={student.avatar_url} />
-                                                        <AvatarFallback className="bg-linear-to-br from-violet-500 to-purple-600 text-white font-bold">
+                                                        <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold">
                                                             {student.full_name?.charAt(0) || student.email.charAt(0).toUpperCase()}
                                                         </AvatarFallback>
                                                     </Avatar>

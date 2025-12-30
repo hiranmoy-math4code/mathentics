@@ -190,7 +190,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                             <Button
                                 onClick={handleStart}
                                 size="lg"
-                                className="w-full text-base font-bold uppercase tracking-wider py-6 bg-linear-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white shadow-lg shadow-orange-500/20 border-0 rounded-lg transition-all transform hover:scale-[1.01]"
+                                className="w-full text-base font-bold uppercase tracking-wider py-6 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white shadow-lg shadow-orange-500/20 border-0 rounded-lg transition-all transform hover:scale-[1.01]"
                             >
                                 {activeAttempt ? (
                                     <>
@@ -226,7 +226,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
 
                     <CardContent className="pt-6 relative">
                         {/* Decorative Top Accent */}
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500 via-purple-500 to-pink-500" />
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
 
                         {/* Timeline Line */}
                         <div className="absolute left-[38px] top-6 bottom-6 w-0.5 bg-border z-0" />

@@ -1,9 +1,9 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createTenantClient } from '@/lib/supabase/server';
 
 export async function getCourseAnalytics(courseId: string) {
-    const supabase = await createClient();
+    const supabase = await createTenantClient();
 
     // 1. Get Course Info
     const { data: course, error: courseError } = await supabase

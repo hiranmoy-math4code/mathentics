@@ -82,7 +82,7 @@ export default function StudentSettingsPage() {
         {/* Left Column: Profile Card */}
         <div className="lg:col-span-4 space-y-6">
           <Card className="border-border shadow-md overflow-hidden">
-            <div className="h-32 bg-linear-to-r from-indigo-500 to-purple-600"></div>
+            <div className="h-32 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
             <CardContent className="pt-0 relative px-6 pb-6">
               <div className="-mt-12 mb-4 flex justify-center">
                 <AvatarUpload currentUrl={(profile as any).avatar_url} />

@@ -151,9 +151,22 @@ export const useToggleBookmark = (channelId?: string) => {
                     return { action: 'added' };
                 }
 
+                // Get tenant_id from user membership
+                const { data: membership } = await supabase
+                    .from('user_tenant_memberships')
+                    .select('tenant_id')
+                    .eq('user_id', user.id)
+                    .eq('is_active', true)
+                    .single();
+
+                if (!membership) {
+                    throw new Error("No active tenant membership found");
+                }
+
                 const { error } = await supabase
                     .from('community_bookmarks')
                     .insert({
+                        tenant_id: membership.tenant_id,  // ✅ Added tenant_id
                         user_id: user.id,
                         message_id: messageId,
                     });

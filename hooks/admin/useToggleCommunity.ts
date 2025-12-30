@@ -1,18 +1,20 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { getTenantId } from "@/lib/tenant";
 import { toast } from "sonner";
-
-const supabase = createClient();
 
 export const useToggleCommunity = () => {
     const queryClient = useQueryClient();
+    const tenantId = getTenantId(); // ✅ Get tenant ID
 
     return useMutation({
         mutationFn: async ({ courseId, enabled }: { courseId: string; enabled: boolean }) => {
+            const supabase = createClient();
             const { error } = await supabase
                 .from("courses")
                 .update({ community_enabled: enabled })
-                .eq("id", courseId);
+                .eq("id", courseId)
+                .eq("tenant_id", tenantId); // ✅ SECURITY FIX
 
             if (error) throw error;
         },

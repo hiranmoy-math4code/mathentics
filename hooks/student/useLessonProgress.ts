@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
+import { getTenantId } from "@/lib/tenant"
 
 interface MarkLessonCompleteParams {
     userId: string
@@ -14,6 +15,7 @@ export function useMarkLessonComplete() {
     return useMutation({
         mutationFn: async ({ userId, lessonId, courseId }: MarkLessonCompleteParams) => {
             const supabase = createClient()
+            const tenantId = getTenantId(); // ✅ Get from environment (no DB query!)
 
             // Upsert lesson progress
             // ✅ This will trigger automatic progress update via database trigger!
@@ -24,6 +26,7 @@ export function useMarkLessonComplete() {
                         user_id: userId,
                         lesson_id: lessonId,
                         course_id: courseId,
+                        tenant_id: tenantId,  // ✅ Domain-based tenant
                         completed: true,
                         completed_at: new Date().toISOString(),
                     },
@@ -35,6 +38,7 @@ export function useMarkLessonComplete() {
                 .single()
 
             if (error) {
+                console.error("❌ Mark Complete Error:", error);
                 throw error;
             }
 
@@ -120,6 +124,7 @@ export function useMarkLessonIncomplete() {
     return useMutation({
         mutationFn: async ({ userId, lessonId, courseId }: MarkLessonCompleteParams) => {
             const supabase = createClient()
+            const tenantId = getTenantId(); // ✅ Get from environment (no DB query!)
 
             // Update lesson progress to incomplete
             const { data, error } = await supabase
@@ -131,10 +136,12 @@ export function useMarkLessonIncomplete() {
                 .eq("user_id", userId)
                 .eq("lesson_id", lessonId)
                 .eq("course_id", courseId)
+                .eq("tenant_id", tenantId)  // ✅ Domain-based tenant
                 .select()
                 .single()
 
             if (error) {
+                console.error("❌ Mark Incomplete Error:", error);
                 throw error;
             }
 

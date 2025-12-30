@@ -170,7 +170,7 @@ export default function StudentDashboard() {
 
   if (userLoading) {
     return (
-      <div className="p-6 md:p-10 space-y-8 bg-linear-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen">
+      <div className="p-6 md:p-10 space-y-8 bg-gradient-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen">
         {/* Welcome Skeleton */}
         <div className="rounded-3xl p-6 md:p-8 bg-white/60 dark:bg-slate-800/60 backdrop-blur-lg shadow-xl border border-slate-100 dark:border-slate-700 animate-pulse">
           <div className="h-8 w-64 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
@@ -219,7 +219,7 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="p-6 md:p-10 space-y-8 bg-linear-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen transition-colors duration-700">
+    <div className="p-6 md:p-10 space-y-8 bg-gradient-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen transition-colors duration-700">
       {/* Welcome Section */}
       <motion.div
         variants={fadeIn}
@@ -241,7 +241,7 @@ export default function StudentDashboard() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             onClick={handleContinueTest}
-            className="mt-4 md:mt-0 bg-linear-to-r from-green-500 to-emerald-600 text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 cursor-pointer"
+            className="mt-4 md:mt-0 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 cursor-pointer"
           >
             <PlayCircle className="w-5 h-5" />
             <span className="font-medium">Continue Last Test</span>
@@ -259,7 +259,7 @@ export default function StudentDashboard() {
             animate="visible"
             custom={i + 1}
             whileHover={{ scale: 1.03 }}
-            className={`p-5 rounded-2xl bg-linear-to-br ${stat.color} shadow-lg border border-slate-100 dark:border-slate-700 flex items-center justify-between`}
+            className={`p-5 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg border border-slate-100 dark:border-slate-700 flex items-center justify-between`}
           >
             <div>
               <p className="text-sm text-slate-600 dark:text-slate-300">{stat.title}</p>
@@ -344,7 +344,7 @@ export default function StudentDashboard() {
                     </div>
                     <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700">
                       <div
-                        className="h-2 rounded-full bg-linear-to-r from-indigo-500 to-purple-500"
+                        className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
                         style={{ width: `${course.progress_percentage}%` }}
                       />
                     </div>
@@ -379,7 +379,7 @@ export default function StudentDashboard() {
                     </div>
                     <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700">
                       <div
-                        className="h-2 rounded-full bg-linear-to-r from-indigo-500 to-purple-500"
+                        className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
                         style={{ width: `${test.progress}%` }}
                       />
                     </div>
@@ -440,7 +440,7 @@ export default function StudentDashboard() {
                   </div>
                   <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 mb-3">
                     <div
-                      className="h-2 rounded-full bg-linear-to-r from-indigo-500 to-purple-500"
+                      className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
                       style={{ width: `${course.progress_percentage}%` }}
                     />
                   </div>
@@ -449,7 +449,7 @@ export default function StudentDashboard() {
                       e.stopPropagation();
                       handleContinueCourse(course.id);
                     }}
-                    className="w-full bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
                   >
                     Continue Learning
                   </Button>
@@ -599,7 +599,7 @@ export default function StudentDashboard() {
                   </div>
                   <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 mb-3">
                     <div
-                      className="h-2 rounded-full bg-linear-to-r from-indigo-500 to-purple-500"
+                      className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
                       style={{ width: `${test.progress}%` }}
                     />
                   </div>
@@ -608,7 +608,7 @@ export default function StudentDashboard() {
                       e.stopPropagation();
                       handleContinueCourse(test.id);
                     }}
-                    className="w-full bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
                   >
                     Continue Learning
                   </Button>
@@ -715,7 +715,7 @@ export default function StudentDashboard() {
           initial="hidden"
           animate="visible"
           custom={6}
-          className="rounded-3xl bg-linear-to-br from-green-500 to-emerald-600 p-6 text-white shadow-xl"
+          className="rounded-3xl bg-gradient-to-br from-green-500 to-emerald-600 p-6 text-white shadow-xl"
         >
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>

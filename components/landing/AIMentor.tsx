@@ -366,7 +366,7 @@ function AIMentorContent() {
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-indigo-50 to-purple-50 text-indigo-200">
+                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-200">
                                             <Bot size={40} />
                                         </div>
                                     )}
@@ -552,7 +552,7 @@ function AIMentorContent() {
                                 {/* --- FOOTER INPUT --- */}
                                 <div className="p-4 bg-white z-10 border-t border-gray-50">
                                     <div className="relative group">
-                                        <div className={`absolute -inset-[1px] rounded-[24px] bg-linear-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-30 transition-opacity duration-300 ${query ? 'opacity-100' : 'group-hover:opacity-60 opacity-0'}`} />
+                                        <div className={`absolute -inset-[1px] rounded-[24px] bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-30 transition-opacity duration-300 ${query ? 'opacity-100' : 'group-hover:opacity-60 opacity-0'}`} />
 
                                         <div className="relative flex items-center bg-white border border-gray-200 rounded-[22px] px-4 py-2 shadow-sm focus-within:border-transparent">
                                             <button className="text-gray-400 hover:text-gray-600 transition-colors p-1" title="Attach file (Demo)">

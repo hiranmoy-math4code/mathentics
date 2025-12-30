@@ -17,7 +17,7 @@ export const StatsSection: React.FC = () => {
                 <p className="mt-2 text-slate-600">Real results from students using math4code</p>
 
                 <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className="rounded-2xl p-8 bg-linear-to-br from-indigo-500 to-violet-500 text-white shadow-xl">
+                    <div className="rounded-2xl p-8 bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-xl">
                         <div className="text-sm">Active Students</div>
                         <div className="mt-3 text-3xl font-bold"><CountUp end={12000} separator="," /></div>
                         <div className="mt-2 text-sm opacity-80">and growing every week</div>

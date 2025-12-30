@@ -68,10 +68,10 @@ export default function ResetPasswordPage() {
             <div className="mb-8 text-center">
                 <Link href="/" className="inline-block">
                     <div className="flex items-center justify-center gap-3">
-                        <div className="w-auto px-2 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20">
+                        <div className="w-auto px-2 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20">
                             <span className="text-xl">Σ✨{'}'}</span>
                         </div>
-                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-indigo-400 to-violet-400">
+                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400">
                             math4code
                         </h1>
                     </div>

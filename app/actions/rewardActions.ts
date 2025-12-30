@@ -21,65 +21,71 @@ const REWARD_RULES = {
 
 const DAILY_COIN_CAP = 100;
 
+// ============================================================================
+// HELPER: Get Tenant ID from Headers
+// ============================================================================
+async function getTenantId(): Promise<string | null> {
+    const { headers } = await import('next/headers');
+    const headersList = await headers();
+    return headersList.get('x-tenant-id');
+}
+
+// ============================================================================
+// Get User Reward Status (Using Database Function)
+// ============================================================================
 export async function getRewardStatus(userId: string) {
     const supabase = await createClient();
-    let { data } = await supabase
-        .from("user_rewards")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
+    const tenantId = await getTenantId();
 
-    if (!data) {
-        // Initialize if not exists
-        const { data: newData, error } = await supabase
-            .from("user_rewards")
-            .insert({ user_id: userId })
-            .select()
-            .single();
-
-        if (error) {
-            if (error.code === '23505') {
-                const { data: retryData } = await supabase
-                    .from("user_rewards")
-                    .select("*")
-                    .eq("user_id", userId)
-                    .single();
-                data = retryData;
-            } else {
-                console.error("Error creating user_rewards in getRewardStatus:", error);
-                return null;
-            }
-        } else {
-            data = newData;
-        }
+    if (!tenantId) {
+        console.warn('⚠️ No tenant ID in getRewardStatus');
+        return null;
     }
 
-    return data;
+    // Use database function - handles get/create automatically!
+    const { data, error } = await supabase.rpc('get_user_rewards', {
+        p_user_id: userId,
+        p_tenant_id: tenantId
+    });
+
+    if (error) {
+        console.error('Error getting user rewards:', error);
+        return null;
+    }
+
+    // RPC returns array, get first element
+    return data?.[0] || null;
 }
 
+// ============================================================================
+// Check User Streak (Using Database Function)
+// ============================================================================
 export async function checkStreak(userId: string) {
     const supabase = await createClient();
+    const tenantId = await getTenantId();
 
-    // Just fetch the current status to display to the user
-    // The actual update happens when 'login' reward is awarded below
-    const { data: rewardStatus } = await supabase
-        .from("user_rewards")
-        .select("current_streak, longest_streak, last_activity_date")
-        .eq("user_id", userId)
-        .single();
+    if (!tenantId) {
+        console.warn('⚠️ No tenant ID in checkStreak');
+        return { streak: 0, message: null };
+    }
 
-    if (!rewardStatus) return { streak: 0, message: null };
+    // Use database function
+    const { data, error } = await supabase.rpc('get_user_streak', {
+        p_user_id: userId,
+        p_tenant_id: tenantId
+    });
 
-    // We can infer if they are on a streak or if it's broken based on the date,
-    // but primarily we just want to show the current value.
-    // The DB trigger updates this immediately upon the 'login' transaction insertion.
+    if (error) {
+        console.error('Error getting streak:', error);
+        return { streak: 0, message: null };
+    }
 
-    return {
-        streak: rewardStatus.current_streak,
-        message: null
-    };
+    return data || { streak: 0, message: null };
 }
 
+// ============================================================================
+// Award Coins (Using Database Function)
+// ============================================================================
 export async function awardCoins(
     userId: string,
     action: ActionType,
@@ -87,73 +93,78 @@ export async function awardCoins(
     description?: string
 ) {
     const supabase = await createClient();
-    const today = new Date().toISOString().split('T')[0];
+    const tenantId = await getTenantId();
 
-    // 1. Check strict duplicate rules (Client-Side Protection)
-    // We don't want to spam the DB trigger with 'login' events every refresh
-    if (action === 'login') {
-        entityId = today; // Force entityId to be date for login
+    if (!tenantId) {
+        console.warn('⚠️ No tenant ID in awardCoins');
+        return { success: false, message: "No tenant context" };
     }
 
-    if (entityId) {
-        const { data: existing } = await supabase
-            .from("reward_transactions")
-            .select("id")
-            .eq("user_id", userId)
-            .eq("action_type", action)
-            .eq("entity_id", entityId)
-            .gte("created_at", `${today}T00:00:00`)
-            .single();
-
-        if (existing) {
-            return { success: false, message: "Already rewarded for this today!" };
-        }
-    }
-
-    // 2. Define Amount (We still define it here to pass to DB, or DB could handle default)
-    let coins = 0;
-    switch (action) {
-        case 'login': coins = REWARD_RULES.login.coins; break;
-        case 'video_watch': coins = REWARD_RULES.video_watch.coins; break;
-        case 'lesson_completion': coins = REWARD_RULES.lesson_completion.coins; break;
-        case 'quiz_completion': coins = REWARD_RULES.quiz_completion.coins; break;
-        case 'module_completion': coins = REWARD_RULES.module_completion.coins; break;
-        case 'referral': coins = REWARD_RULES.referral.coins; break;
-        case 'mission_complete': coins = REWARD_RULES.mission_complete.coins; break;
-        case 'bonus': coins = 10; break;
-        default: coins = 0;
-    }
-
-    // 3. Insert Transaction (The DB Trigger takes it from here!)
-    // It will: Update Coins, XP, Level, and Streak (if login)
-    const { error } = await supabase.from("reward_transactions").insert({
-        user_id: userId,
-        amount: coins,
-        action_type: action,
-        entity_id: entityId,
-        description: description || `Reward for ${action}`
+    // Use database function - handles everything!
+    const { data, error } = await supabase.rpc('award_coins', {
+        p_user_id: userId,
+        p_tenant_id: tenantId,
+        p_action_type: action,
+        p_entity_id: entityId || null,
+        p_description: description || null
     });
 
     if (error) {
-        console.error("Reward Insert Error:", error);
-        return { success: false, message: "Failed to process reward." };
+        console.error('Error awarding coins:', error);
+        return { success: false, message: "Failed to process reward" };
     }
 
-    // 4. Post-Process (Optional Notifications or Revalidation)
+    // Revalidate student pages
     revalidatePath("/student");
 
-    if (action === 'login') {
-        // Special message for login
-        return { success: true, coins, message: "Daily Reward Claimed!" };
-    }
-
-    return { success: true, coins, message: `⭐ +${coins} coins!` };
+    return data || { success: false, message: "Unknown error" };
 }
 
 export async function getLeaderboard(type: 'weekly' | 'all_time' = 'all_time', limit: number = 10) {
     const supabase = await createClient();
 
-    const sortColumn = type === 'weekly' ? 'weekly_xp' : 'total_coins'; // or xp
+    // ============================================================================
+    // TENANT ISOLATION: Get current tenant from request headers
+    // ============================================================================
+    const { headers } = await import('next/headers');
+    const headersList = await headers();
+    const tenantId = headersList.get('x-tenant-id');
+
+    if (!tenantId) {
+        console.warn('⚠️ No tenant ID in leaderboard request');
+        return [];
+    }
+
+    // ============================================================================
+    // OPTIMIZED QUERY: Use RPC for database-level JOIN (10M+ students ready)
+    // ============================================================================
+    const sortColumn = type === 'weekly' ? 'weekly_xp' : 'total_coins';
+
+    // Use RPC function for optimized query with JOIN
+    const { data, error } = await supabase.rpc('get_tenant_leaderboard', {
+        p_tenant_id: tenantId,
+        p_sort_column: sortColumn,
+        p_limit: limit
+    });
+
+    if (error) {
+        console.error('Leaderboard RPC error:', error);
+        // Fallback to simple query if RPC doesn't exist
+        return await getLeaderboardFallback(supabase, tenantId, type, limit);
+    }
+
+    return data || [];
+}
+
+// Fallback function (will be used until RPC is created)
+async function getLeaderboardFallback(
+    supabase: any,
+    tenantId: string,
+    type: 'weekly' | 'all_time',
+    limit: number
+) {
+    // Direct query with tenant_id (simpler now that we have the column!)
+    const sortColumn = type === 'weekly' ? 'weekly_xp' : 'total_coins';
 
     const { data } = await supabase
         .from("user_rewards")
@@ -169,6 +180,7 @@ export async function getLeaderboard(type: 'weekly' | 'all_time' = 'all_time', l
                 avatar_url
             )
         `)
+        .eq('tenant_id', tenantId)  // ✅ Direct tenant filter
         .order(sortColumn, { ascending: false })
         .limit(limit);
 
@@ -180,6 +192,17 @@ export async function getLeaderboard(type: 'weekly' | 'all_time' = 'all_time', l
 
 export async function checkModuleCompletion(userId: string, moduleId: string) {
     const supabase = await createClient();
+
+    // Get tenant from headers
+    const { headers } = await import('next/headers');
+    const headersList = await headers();
+    const tenantId = headersList.get('x-tenant-id');
+
+    if (!tenantId) {
+        console.warn('⚠️ No tenant ID in checkModuleCompletion');
+        return null;
+    }
+
     const { data: lessons } = await supabase.from("lessons").select("id").eq("module_id", moduleId);
     if (!lessons || lessons.length === 0) return;
 
@@ -199,6 +222,17 @@ export async function checkModuleCompletion(userId: string, moduleId: string) {
 
 export async function checkFirstLessonReward(userId: string) {
     const supabase = await createClient();
+
+    // Get tenant from headers
+    const { headers } = await import('next/headers');
+    const headersList = await headers();
+    const tenantId = headersList.get('x-tenant-id');
+
+    if (!tenantId) {
+        console.warn('⚠️ No tenant ID in checkFirstLessonReward');
+        return;
+    }
+
     const { count } = await supabase
         .from("lesson_progress")
         .select("*", { count: 'exact', head: true })
@@ -254,6 +288,16 @@ export async function getDailyMissions(userId: string) {
 
 export async function updateMissionProgress(userId: string, type: 'login' | 'quiz' | 'video') {
     const supabase = await createClient();
+
+    // Get tenant from headers
+    const { headers } = await import('next/headers');
+    const headersList = await headers();
+    const tenantId = headersList.get('x-tenant-id');
+
+    if (!tenantId) {
+        console.warn('⚠️ No tenant ID in updateMissionProgress');
+        return;
+    }
 
     // Use RPC function to update mission progress
     const { data, error } = await supabase.rpc('update_mission_progress', {

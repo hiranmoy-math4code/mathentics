@@ -250,7 +250,7 @@ export default function Header({
                 priority
               />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
                 {profile?.full_name?.[0] || "A"}
               </div>
             )}

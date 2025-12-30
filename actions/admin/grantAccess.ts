@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createTenantClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 
 /**
@@ -12,7 +12,7 @@ export async function grantCourseAccess(data: {
     expiresAt?: Date | null;
     notes?: string;
 }) {
-    const supabase = await createClient();
+    const supabase = await createTenantClient();
 
     // Get admin user
     const { data: { user } } = await supabase.auth.getUser();
@@ -111,7 +111,7 @@ export async function grantTestSeriesAccess(data: {
     expiresAt?: Date | null;
     notes?: string;
 }) {
-    const supabase = await createClient();
+    const supabase = await createTenantClient();
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
@@ -207,7 +207,7 @@ export async function revokeAccess(data: {
     type: 'course';
     reason: string;
 }) {
-    const supabase = await createClient();
+    const supabase = await createTenantClient();
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
@@ -261,7 +261,7 @@ export async function extendAccess(data: {
     newExpiryDate: Date;
     notes?: string;
 }) {
-    const supabase = await createClient();
+    const supabase = await createTenantClient();
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
@@ -405,7 +405,7 @@ export async function extendAccess(data: {
  * Get expiring subscriptions (within specified days)
  */
 export async function getExpiringSubscriptions(daysAhead: number = 7) {
-    const supabase = await createClient();
+    const supabase = await createTenantClient();
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
@@ -429,7 +429,7 @@ export async function getExpiringSubscriptions(daysAhead: number = 7) {
  * Get recent enrollment logs
  */
 export async function getRecentAccessLogs(limit: number = 50) {
-    const supabase = await createClient();
+    const supabase = await createTenantClient();
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };

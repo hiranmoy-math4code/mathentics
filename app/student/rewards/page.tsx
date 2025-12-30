@@ -35,7 +35,7 @@ export default function StudentRewardsPage() {
         <div className="container max-w-6xl py-8 space-y-8">
             {/* Header Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card className="bg-linear-to-br from-indigo-500 to-violet-600 text-white border-none shadow-lg">
+                <Card className="bg-gradient-to-br from-indigo-500 to-violet-600 text-white border-none shadow-lg">
                     <CardContent className="p-6 flex flex-col justify-between h-full">
                         <div>
                             <p className="text-indigo-100 font-medium mb-1">Total Coins</p>
@@ -58,7 +58,7 @@ export default function StudentRewardsPage() {
                     For now, I'll keep the simple card for consistency with the grid layout, but maybe make it clickable to scroll to calendar? 
                     Actually, let's keep it as is for quick stats.
                 */}
-                <Card className="bg-linear-to-br from-orange-400 to-amber-500 text-white border-none shadow-lg">
+                <Card className="bg-gradient-to-br from-orange-400 to-amber-500 text-white border-none shadow-lg">
                     <CardContent className="p-6 flex flex-col justify-between h-full">
                         <div>
                             <p className="text-orange-100 font-medium mb-1">Current Streak</p>

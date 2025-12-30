@@ -48,7 +48,7 @@ export const MessageList = ({ channelId }: MessageListProps) => {
 
     if (isLoading) {
         return (
-            <div className="flex-1 flex items-center justify-center bg-linear-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-900/50 dark:to-slate-950/50">
+            <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950">
                 <div className="flex flex-col items-center gap-3">
                     <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
                     <p className="text-sm text-slate-600 dark:text-slate-400">Loading messages...</p>
@@ -64,10 +64,10 @@ export const MessageList = ({ channelId }: MessageListProps) => {
     const regularMessages = allMessages.filter(m => !m.is_pinned && !m.is_announcement);
 
     return (
-        <div className="flex-1 flex flex-col min-h-0 bg-linear-to-br from-slate-50/50 to-slate-100/50 dark:from-slate-900/50 dark:to-slate-950/50">
+        <div className="flex-1 flex flex-col min-h-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950">
             {/* Pinned/Announcement Messages - Fixed at top */}
             {pinnedMessages.length > 0 && (
-                <div className="flex-none bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border-b border-blue-200 dark:border-blue-900/50 backdrop-blur-sm shadow-sm z-10">
+                <div className="flex-none bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border-b border-blue-200 dark:border-blue-900/50 backdrop-blur-sm shadow-sm z-10">
                     <div className="px-4 py-2 flex items-center gap-2 border-b border-blue-200/50 dark:border-blue-900/30">
                         <Pin className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                         <span className="text-xs font-bold text-blue-900 dark:text-blue-100 uppercase tracking-wide">
@@ -95,7 +95,7 @@ export const MessageList = ({ channelId }: MessageListProps) => {
 
                 {regularMessages.length === 0 && pinnedMessages.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center px-4 py-12">
-                        <div className="w-16 h-16 rounded-full bg-linear-to-br from-emerald-100 to-blue-100 dark:from-emerald-900/30 dark:to-blue-900/30 flex items-center justify-center mb-4">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-100 to-blue-100 dark:from-emerald-900/30 dark:to-blue-900/30 flex items-center justify-center mb-4">
                             <span className="text-3xl">💬</span>
                         </div>
                         <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">

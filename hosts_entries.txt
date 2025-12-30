@@ -1,0 +1,11 @@
+# Add these lines to your hosts file
+# File location: C:\Windows\System32\drivers\etc\hosts
+# (Open Notepad as Administrator to edit)
+
+127.0.0.1 tenant-a.local
+127.0.0.1 tenant-b.local
+
+# After adding, save the file
+# Then you can access:
+# - http://tenant-a.local:3000 (Tenant A)
+# - http://tenant-b.local:3000 (Tenant B)

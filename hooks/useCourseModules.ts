@@ -7,7 +7,7 @@ export interface ModuleWithLessons extends Module {
     lessons: Lesson[];
 }
 
-export const useCourseModules = (courseId: string, initialData: ModuleWithLessons[]) => {
+export const useCourseModules = (courseId: string, tenantId: string, initialData: ModuleWithLessons[]) => {
     const supabase = createClient();
     const queryClient = useQueryClient();
     const queryKey = ["course-modules", courseId];
@@ -60,7 +60,12 @@ export const useCourseModules = (courseId: string, initialData: ModuleWithLesson
 
             const { data, error } = await supabase
                 .from("modules")
-                .insert({ course_id: courseId, title, module_order: newOrder })
+                .insert({
+                    course_id: courseId,
+                    tenant_id: tenantId, // MULTI-TENANT: Include tenant_id
+                    title,
+                    module_order: newOrder
+                })
                 .select()
                 .single();
 
@@ -198,9 +203,15 @@ export const useCourseModules = (courseId: string, initialData: ModuleWithLesson
 
     const addLessonMutation = useMutation({
         mutationFn: async (lessonData: Partial<Lesson>) => {
+            // MULTI-TENANT: Automatically include tenant_id
+            const dataWithTenant = {
+                ...lessonData,
+                tenant_id: tenantId
+            };
+
             const { data, error } = await supabase
                 .from("lessons")
-                .insert(lessonData)
+                .insert(dataWithTenant)
                 .select()
                 .single();
             if (error) throw error;

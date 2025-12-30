@@ -3,23 +3,19 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { getTenantId } from "@/lib/tenant";
 
-export default function useExams() {
+export const useExams = () => {
   const supabase = createClient();
+  const tenantId = getTenantId(); // ✅ Get tenant ID
 
   return useQuery({
-    queryKey: ["admin", "exams"],
+    queryKey: ["exams", tenantId], // ✅ Include tenant
     queryFn: async () => {
-      // get user
-      const { data: userData, error: userErr } = await supabase.auth.getUser();
-      if (userErr) throw userErr;
-      const userId = userData?.user?.id;
-      if (!userId) return [];
-
       const { data, error } = await supabase
         .from("exams")
         .select("*")
-        .eq("admin_id", userId)
+        .eq("tenant_id", tenantId) // ✅ SECURITY FIX
         .order("created_at", { ascending: false });
 
       if (error) throw error;

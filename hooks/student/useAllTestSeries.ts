@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { getTenantId } from "@/lib/tenant";
 import { useCurrentUser } from "./useCurrentUser";
 
 interface TestSeries {
@@ -25,26 +26,68 @@ export function useAllTestSeries() {
         queryKey: ["all-test-series", user?.id],
         queryFn: async (): Promise<TestSeries[]> => {
             const supabase = createClient();
+            const tenantId = getTenantId(); // ✅ Get from environment (no DB query!)
 
-            // Use RPC function for optimized query
+            if (!tenantId) {
+                return [];
+            }
+
+            // Fetch test series with tenant filtering
             const { data, error } = await supabase
-                .rpc('get_published_courses_with_meta', {
-                    target_user_id: user?.id || null,
-                    p_limit: 50,
-                    p_offset: 0
-                });
+                .from('courses')
+                .select(`
+                    id,
+                    title,
+                    description,
+                    thumbnail_url,
+                    price,
+                    course_type,
+                    is_published,
+                    created_at,
+                    creator_id,
+                    profiles:creator_id (full_name)
+                `)
+                .eq('tenant_id', tenantId)
+                .eq('is_published', true)
+                .eq('course_type', 'test_series')
+                .order('created_at', { ascending: false })
+                .limit(50);
 
             if (error) {
                 console.error('Error fetching test series:', error);
                 throw error;
             }
 
-            // Filter for test series only
-            const testSeries = (data || []).filter((item: any) => item.course_type === 'test_series');
+            // Check enrollment status if user is logged in
+            let enrolledSeriesIds = new Set<string>();
+            if (user?.id) {
+                const { data: enrollments } = await supabase
+                    .from('enrollments')
+                    .select('course_id')
+                    .eq('user_id', user.id)
+                    .eq('tenant_id', tenantId)
+                    .eq('status', 'active');
+
+                enrolledSeriesIds = new Set(enrollments?.map(e => e.course_id) || []);
+            }
+
+            // Format response
+            const testSeries = (data || []).map((series: any) => ({
+                id: series.id,
+                title: series.title,
+                description: series.description,
+                thumbnail_url: series.thumbnail_url,
+                price: series.price,
+                course_type: series.course_type,
+                is_published: series.is_published,
+                created_at: series.created_at,
+                instructor_name: series.profiles?.full_name || 'Admin',
+                is_enrolled: enrolledSeriesIds.has(series.id),
+                total_lessons: 0
+            }));
 
             return testSeries as TestSeries[];
         },
-        // Remove enabled condition - should work even without user
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 }

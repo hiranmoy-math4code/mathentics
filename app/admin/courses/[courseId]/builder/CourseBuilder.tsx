@@ -55,7 +55,7 @@ export default function CourseBuilder({ course, initialModules }: CourseBuilderP
         reorderModules,
         reorderLessons,
         isAddingModule
-    } = useCourseModules(course.id, initialModules);
+    } = useCourseModules(course.id, course.tenant_id, initialModules);
 
     // Course metadata hooks
     const { updateTitle, uploadThumbnail, deleteThumbnail } = useCourseMetadata();
@@ -265,6 +265,7 @@ export default function CourseBuilder({ course, initialModules }: CourseBuilderP
                     .from("modules")
                     .insert({
                         course_id: course.id,
+                        tenant_id: course.tenant_id, // MULTI-TENANT: Include tenant_id
                         title: moduleData.title,
                         module_order: currentOrder,
                     })
@@ -277,6 +278,7 @@ export default function CourseBuilder({ course, initialModules }: CourseBuilderP
                 if (moduleData.lessons && moduleData.lessons.length > 0) {
                     const lessonsToInsert = moduleData.lessons.map((lesson: any, index: number) => ({
                         module_id: module.id,
+                        tenant_id: course.tenant_id, // MULTI-TENANT: Include tenant_id
                         title: lesson.title,
                         content_type: lesson.content_type || "text",
                         lesson_order: index + 1,

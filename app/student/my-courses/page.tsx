@@ -44,7 +44,7 @@ export default function MyCourses() {
 
     if (coursesLoading) {
         return (
-            <div className="p-6 md:p-10 space-y-8 bg-linear-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen">
+            <div className="p-6 md:p-10 space-y-8 bg-gradient-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen">
                 <div className="rounded-3xl p-6 md:p-8 bg-white/60 dark:bg-slate-800/60 backdrop-blur-lg shadow-xl border border-slate-100 dark:border-slate-700 animate-pulse">
                     <div className="h-8 w-64 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
                     <div className="h-4 w-96 bg-slate-100 dark:bg-slate-600 rounded" />
@@ -63,7 +63,7 @@ export default function MyCourses() {
     }
 
     return (
-        <div className="p-6 md:p-10 space-y-8 bg-linear-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen">
+        <div className="p-6 md:p-10 space-y-8 bg-gradient-to-br from-sky-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 min-h-screen">
             {/* Header */}
             <motion.div
                 variants={fadeIn}
@@ -128,7 +128,7 @@ export default function MyCourses() {
                                 </div>
                                 <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 mb-3">
                                     <div
-                                        className="h-2 rounded-full bg-linear-to-r from-indigo-500 to-purple-500"
+                                        className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
                                         style={{ width: `${course.progress_percentage}%` }}
                                     />
                                 </div>
@@ -137,7 +137,7 @@ export default function MyCourses() {
                                         e.stopPropagation();
                                         handleContinueCourse(course.id);
                                     }}
-                                    className="w-full bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
                                 >
                                     <PlayCircle className="w-4 h-4 mr-2" />
                                     Continue Learning

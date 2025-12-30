@@ -97,9 +97,9 @@ export const ChannelSidebar = ({
                 )}
             >
                 {/* Header */}
-                <div className="p-5 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between bg-linear-to-r from-emerald-500/10 to-blue-500/10 dark:from-emerald-500/5 dark:to-blue-500/5">
+                <div className="p-5 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between bg-gradient-to-r from-emerald-500/10 to-blue-500/10 dark:from-emerald-500/5 dark:to-blue-500/5">
                     <h2 className="font-bold text-xl tracking-tight flex items-center gap-2 text-slate-900 dark:text-slate-100">
-                        <div className="w-8 h-8 rounded-lg bg-linear-to-br from-emerald-500 to-blue-600 flex items-center justify-center shadow-lg">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-blue-600 flex items-center justify-center shadow-lg">
                             <MessageSquare className="w-5 h-5 text-white" />
                         </div>
                         Community
@@ -137,7 +137,7 @@ export const ChannelSidebar = ({
                                             className={cn(
                                                 "flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-all duration-200",
                                                 isActive
-                                                    ? "bg-linear-to-r from-emerald-500/15 to-blue-500/15 dark:from-emerald-500/10 dark:to-blue-500/10 shadow-sm"
+                                                    ? "bg-gradient-to-r from-emerald-500/15 to-blue-500/15 dark:from-emerald-500/10 dark:to-blue-500/10 shadow-sm"
                                                     : "hover:bg-slate-100 dark:hover:bg-slate-800"
                                             )}
                                         >
@@ -238,28 +238,28 @@ const ForYouSection = ({
             <div className="space-y-1">
                 <button
                     onClick={() => handleNavigation('mentions')}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 text-slate-700 dark:text-slate-300 hover:bg-linear-to-r hover:from-blue-50 hover:to-transparent dark:hover:from-blue-900/20 group"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-transparent dark:hover:from-blue-900/20 group"
                 >
-                    <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
                         <AtSign className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <span className="font-semibold">Mentions</span>
                     {mentions.length > 0 && (
-                        <span className="ml-auto text-xs bg-linear-to-r from-blue-500 to-blue-600 text-white px-2 py-0.5 rounded-full font-bold shadow-sm">
+                        <span className="ml-auto text-xs bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-0.5 rounded-full font-bold shadow-sm">
                             {mentions.length}
                         </span>
                     )}
                 </button>
                 <button
                     onClick={() => handleNavigation('bookmarks')}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 text-slate-700 dark:text-slate-300 hover:bg-linear-to-r hover:from-amber-50 hover:to-transparent dark:hover:from-amber-900/20 group"
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 text-slate-700 dark:text-slate-300 hover:bg-gradient-to-r hover:from-amber-50 hover:to-transparent dark:hover:from-amber-900/20 group"
                 >
-                    <div className="w-8 h-8 rounded-lg bg-linear-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-900/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-900/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
                         <Bookmark className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                     </div>
                     <span className="font-semibold">Bookmarks</span>
                     {bookmarks.length > 0 && (
-                        <span className="ml-auto text-xs bg-linear-to-r from-amber-500 to-amber-600 text-white px-2 py-0.5 rounded-full font-bold shadow-sm">
+                        <span className="ml-auto text-xs bg-gradient-to-r from-amber-500 to-amber-600 text-white px-2 py-0.5 rounded-full font-bold shadow-sm">
                             {bookmarks.length}
                         </span>
                     )}

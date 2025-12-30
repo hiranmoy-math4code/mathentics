@@ -149,7 +149,7 @@ export function CommunityModal() {
                         <X className="h-4 w-4" />
                     </Button>
                     <div className="text-center space-y-4">
-                        <div className="w-24 h-24 rounded-full bg-linear-to-br from-emerald-100 to-emerald-50 dark:from-emerald-900/30 dark:to-emerald-900/10 flex items-center justify-center mx-auto">
+                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-900/30 dark:to-emerald-900/10 flex items-center justify-center mx-auto">
                             <span className="text-5xl">📚</span>
                         </div>
                         <h2 className="text-2xl font-bold">No Community Channels</h2>
@@ -198,7 +198,7 @@ export function CommunityModal() {
                             <Menu className="h-5 w-5" />
                         </Button>
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
                                 <AtSign className="w-5 h-5 text-white" />
                             </div>
                             <div>
@@ -217,7 +217,7 @@ export function CommunityModal() {
                             </div>
                         ) : mentions.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                                <div className="w-24 h-24 rounded-full bg-linear-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/10 flex items-center justify-center mb-4">
+                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-900/10 flex items-center justify-center mb-4">
                                     <AtSign className="w-12 h-12 text-blue-500 dark:text-blue-400" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">No Mentions Yet</h3>
@@ -250,7 +250,7 @@ export function CommunityModal() {
                             <Menu className="h-5 w-5" />
                         </Button>
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg">
                                 <Bookmark className="w-5 h-5 text-white fill-white" />
                             </div>
                             <div>
@@ -269,7 +269,7 @@ export function CommunityModal() {
                             </div>
                         ) : bookmarks.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                                <div className="w-24 h-24 rounded-full bg-linear-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-900/10 flex items-center justify-center mb-4">
+                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-900/10 flex items-center justify-center mb-4">
                                     <Bookmark className="w-12 h-12 text-amber-500 dark:text-amber-400" />
                                 </div>
                                 <h3 className="text-xl font-bold mb-2">No Bookmarks Yet</h3>
@@ -365,7 +365,7 @@ export function CommunityModal() {
 
     return (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="absolute inset-0 flex bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 animate-in slide-in-from-bottom duration-300">
+            <div className="absolute inset-0 flex bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 animate-in slide-in-from-bottom duration-300">
                 <ChannelSidebar
                     channels={visibleChannels}
                     activeChannelId={activeChannelId}

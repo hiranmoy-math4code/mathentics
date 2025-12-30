@@ -77,10 +77,25 @@ export default function CreateCoursePage() {
                 return;
             }
 
+            // MULTI-TENANT: Get tenant ID from user's membership
+            const { data: membership } = await supabase
+                .from('user_tenant_memberships')
+                .select('tenant_id')
+                .eq('user_id', user.id)
+                .eq('is_active', true)
+                .limit(1)
+                .single();
+
+            if (!membership) {
+                toast.error("No tenant membership found. Please contact support.");
+                return;
+            }
+
             const { data, error } = await supabase
                 .from("courses")
                 .insert([
                     {
+                        tenant_id: membership.tenant_id, // MULTI-TENANT: Required for RLS
                         creator_id: user.id,
                         title: values.title,
                         description: values.description,

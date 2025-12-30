@@ -14,7 +14,7 @@ function PaymentVerifyContent() {
     const errorParam = searchParams.get("error");
 
     const [status, setStatus] = useState<"loading" | "success" | "failed">("loading");
-    const [message, setMessage] = useState("Verifying payment...");
+    const [message, setMessage] = useState("Verifying payment... (v2)");
 
     useEffect(() => {
         if (!txnId) {
@@ -38,8 +38,8 @@ function PaymentVerifyContent() {
                 const maxAttempts = 5;
 
                 const checkStatus = async () => {
-                    // Call our new status check API
-                    const response = await fetch("/api/phonepe/check-status", {
+                    // Call our new generic status check API
+                    const response = await fetch("/api/payments/verify", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ transactionId: txnId }),
@@ -51,7 +51,7 @@ function PaymentVerifyContent() {
                         setStatus("success");
                         setMessage("Payment successful! Redirecting to course...");
                         setTimeout(() => {
-                            router.push("/student/dashboard?tab=my-courses");
+                            window.location.href = "/student/dashboard?tab=my-courses";
                         }, 2000);
                         return true;
                     } else if (data.status === "failed") {
@@ -107,7 +107,7 @@ function PaymentVerifyContent() {
                 </CardContent>
                 <CardFooter className="flex justify-center">
                     {status !== "loading" && (
-                        <Button onClick={() => router.push("/student/dashboard")}>
+                        <Button onClick={() => window.location.href = "/student/dashboard"}>
                             Go to Dashboard
                         </Button>
                     )}

@@ -63,7 +63,7 @@ export const MagicSection: React.FC = () => {
 
                 <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
                     <div className="rounded-2xl overflow-hidden border border-slate-100 shadow-xl">
-                        <div className="p-6 bg-linear-to-br from-indigo-600 to-violet-600 text-white">
+                        <div className="p-6 bg-gradient-to-br from-indigo-600 to-violet-600 text-white">
                             <div className="text-sm">Progress snapshot</div>
                             <div className="mt-3 text-2xl font-semibold">Week 4 — Personalized Plan</div>
                             <div className="mt-4 grid grid-cols-2 gap-4">

@@ -177,10 +177,25 @@ export async function importExamLatex(file: File, adminId: string) {
   const supabase = createClient();
   const exam = await parseExamLatex(file);
 
-  // Insert exam
+  // Get tenant ID from user's active tenant membership
+  const { data: membership } = await supabase
+    .from('user_tenant_memberships')
+    .select('tenant_id')
+    .eq('user_id', adminId)
+    .eq('is_active', true)
+    .single();
+
+  const tenantId = membership?.tenant_id;
+
+  if (!tenantId) {
+    throw new Error('No active tenant found for user');
+  }
+
+  // Insert exam with tenant_id
   const { data: examRow, error: examErr } = await supabase
     .from("exams")
     .insert({
+      tenant_id: tenantId,  // ✅ Added tenant_id
       admin_id: adminId,
       title: exam.title,
       description: exam.description,
@@ -206,6 +221,7 @@ export async function importExamLatex(file: File, adminId: string) {
     const { data: secRow, error: secErr } = await supabase
       .from("sections")
       .insert({
+        tenant_id: tenantId,  // ✅ Added tenant_id
         exam_id: examId,
         title: sec.title,
         duration_minutes: 0, // optional to extend
@@ -223,6 +239,7 @@ export async function importExamLatex(file: File, adminId: string) {
       const { data: qbRow, error: qbErr } = await supabase
         .from("question_bank")
         .insert({
+          tenant_id: tenantId,  // ✅ Added tenant_id
           admin_id: adminId,
           title: q.title,
           question_text: q.question_text,
@@ -244,6 +261,7 @@ export async function importExamLatex(file: File, adminId: string) {
       if (q.options.length) {
         await supabase.from("question_bank_options").insert(
           q.options.map((o, i) => ({
+            tenant_id: tenantId,  // ✅ Added tenant_id
             question_id: qbId,
             option_text: o.text,
             option_order: i + 1,
@@ -256,6 +274,7 @@ export async function importExamLatex(file: File, adminId: string) {
       const { data: qRow, error: qErr } = await supabase
         .from("questions")
         .insert({
+          tenant_id: tenantId,  // ✅ Added tenant_id
           section_id: secId,
           question_text: q.question_text,
           question_type: q.question_type,
@@ -273,6 +292,7 @@ export async function importExamLatex(file: File, adminId: string) {
       if (q.options.length) {
         await supabase.from("options").insert(
           q.options.map((o, i) => ({
+            tenant_id: tenantId,  // ✅ Added tenant_id
             question_id: qId,
             option_text: o.text,
             option_order: i + 1,

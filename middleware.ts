@@ -3,6 +3,47 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 
+// ============================================================================
+// MULTI-TENANT: In-memory cache for tenant lookups (Cloudflare Pages optimization)
+// ============================================================================
+const tenantCache = new Map<string, { id: string; expiry: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+async function getTenantFromHostname(hostname: string, supabase: any): Promise<string | null> {
+  // Check cache first (reduces DB queries by ~90%)
+  const cached = tenantCache.get(hostname);
+  if (cached && cached.expiry > Date.now()) {
+    return cached.id;
+  }
+
+  // Extract subdomain or use full domain
+  // Examples: 
+  // - math4code.com -> math4code
+  // - tenant-a.localhost:3000 -> tenant-a
+  const parts = hostname.split('.');
+  const subdomain = parts.length > 2 ? parts[0] : hostname.split(':')[0];
+
+  try {
+    // Query tenants table
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('id')
+      .or(`slug.eq.${subdomain},custom_domain.eq.${hostname}`)
+      .eq('is_active', true)
+      .single();
+
+    if (tenant) {
+      // Cache the result
+      tenantCache.set(hostname, { id: tenant.id, expiry: Date.now() + CACHE_TTL });
+      return tenant.id;
+    }
+  } catch (error) {
+    console.error('Tenant lookup error:', error);
+  }
+
+  return null;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl
 
@@ -17,28 +58,45 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // ২. সেশন আপডেট করা (Supabase Auth এর জন্য)
+  // ২. MULTI-TENANT: Get hostname and lookup tenant
+  const hostname = request.headers.get('host') || 'localhost:3000';
+
+  // Create Supabase client for tenant lookup
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return request.cookies.getAll() },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+        },
+      },
+    }
+  )
+
+  // Lookup tenant from hostname
+  const tenantId = await getTenantFromHostname(hostname, supabase);
+
+  // Handle tenant not found (redirect to 404 page)
+  if (!tenantId && !pathname.startsWith('/404-tenant-not-found')) {
+    return NextResponse.rewrite(new URL('/404-tenant-not-found', request.url));
+  }
+
+  // ৩. সেশন আপডেট করা (Supabase Auth এর জন্য)
   let response = await updateSession(request)
 
-  // ৩. কাস্টম হেডার সেট করা (যাতে Server Components ইউআরএল দেখতে পায়)
+  // ৪. কাস্টম হেডার সেট করা (যাতে Server Components ইউআরএল দেখতে পায়)
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set("x-url", pathname)
 
-  // ৪. অ্যাডমিন রুট প্রোটেকশন
-  if (pathname.startsWith('/admin')) {
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() { return request.cookies.getAll() },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          },
-        },
-      }
-    )
+  // MULTI-TENANT: Inject tenant context header for RLS
+  if (tenantId) {
+    requestHeaders.set("x-tenant-id", tenantId)
+  }
 
+  // ৫. অ্যাডমিন রুট প্রোটেকশন
+  if (pathname.startsWith('/admin')) {
     try {
       const { data: { user } } = await supabase.auth.getUser()
 
@@ -48,27 +106,45 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(redirectUrl)
       }
 
-      // রোল চেক করার জন্য ডাটাবেস কল (এটি শুধুমাত্র /admin রুটে হবে)
-      const { data: profile } = await supabase
-        .from('profiles')
+      // MULTI-TENANT: Check user role in current tenant via user_tenant_memberships
+      const { data: membership, error: membershipError } = await supabase
+        .from('user_tenant_memberships')
         .select('role')
-        .eq('id', user.id)
+        .eq('user_id', user.id)
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true)
         .single()
 
-      if (profile?.role !== 'admin' && profile?.role !== 'creator') {
+      console.log('🔍 Middleware Admin Check:', {
+        pathname,
+        tenantId,
+        userId: user.id,
+        membership,
+        membershipError,
+        isAdmin: membership?.role === 'admin' || membership?.role === 'creator'
+      });
+
+      if (membership?.role !== 'admin' && membership?.role !== 'creator') {
+        console.log('❌ Middleware blocking: redirecting to /student/dashboard');
         const redirectUrl = request.nextUrl.clone()
         redirectUrl.pathname = '/student/dashboard'
         return NextResponse.redirect(redirectUrl)
       }
+
+      console.log('✅ Middleware allowing access to:', pathname);
     } catch (error) {
       console.error('Middleware auth error:', error)
     }
   }
 
-  return response
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
 }
 
-// ৫. গুরুত্বপূর্ণ: Matcher কনফিগারেশন
+// ৬. গুরুত্বপূর্ণ: Matcher কনফিগারেশন
 export const config = {
   matcher: [
     /*

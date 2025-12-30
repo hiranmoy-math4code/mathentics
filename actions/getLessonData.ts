@@ -1,9 +1,9 @@
 'use server'
 
-import { createClient } from "@/lib/supabase/server";
+import { createTenantClient } from "@/lib/supabase/server";
 
 export async function getLessonData(lessonId: string, courseId: string) {
-    const supabase = await createClient();
+    const supabase = await createTenantClient(); // Multi-tenant aware
 
     // 1. Get Core Lesson Details to determine type
     const { data: lesson, error } = await supabase

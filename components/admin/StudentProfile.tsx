@@ -154,12 +154,12 @@ export function StudentProfile({ studentId }: StudentProfileProps) {
 
             {/* 👤 Profile Overview Card */}
             <Card className="overflow-hidden border-none shadow-xl shadow-slate-200/50 dark:shadow-none bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl">
-                <div className="h-24 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 dark:opacity-40" />
+                <div className="h-24 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 dark:opacity-40" />
                 <CardContent className="relative pt-0 px-6 pb-6">
                     <div className="flex flex-col md:flex-row gap-6 -mt-12 md:items-end">
                         <Avatar className="w-24 h-24 border-4 border-white dark:border-slate-800 shadow-xl">
                             <AvatarImage src={student.avatar_url} />
-                            <AvatarFallback className="text-2xl bg-linear-to-br from-indigo-500 to-purple-600 text-white font-bold">
+                            <AvatarFallback className="text-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold">
                                 {student.full_name?.charAt(0) || student.email.charAt(0).toUpperCase()}
                             </AvatarFallback>
                         </Avatar>

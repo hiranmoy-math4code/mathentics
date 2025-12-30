@@ -5,7 +5,7 @@
 
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createTenantClient } from '@/lib/supabase/server';
 
 export interface EnrollmentStatus {
     hasAccess: boolean;
@@ -20,7 +20,7 @@ export interface EnrollmentStatus {
  * Check if student has active course access
  */
 export async function checkCourseAccess(courseId: string): Promise<EnrollmentStatus> {
-    const supabase = await createClient();
+    const supabase = await createTenantClient(); // Multi-tenant aware
 
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -101,7 +101,7 @@ export async function checkCourseAccess(courseId: string): Promise<EnrollmentSta
  * Get all user's enrollments with expiry status
  */
 export async function getUserEnrollmentsWithExpiry() {
-    const supabase = await createClient();
+    const supabase = await createTenantClient(); // Multi-tenant aware
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { enrollments: [] };

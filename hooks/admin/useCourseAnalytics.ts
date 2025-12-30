@@ -2,10 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { getTenantId } from "@/lib/tenant";
 
 export function useCourseAnalytics(courseId: string) {
+    const tenantId = getTenantId(); // ✅ Get tenant ID from environment
+
     return useQuery({
-        queryKey: ["course-analytics", courseId],
+        queryKey: ["course-analytics", courseId, tenantId], // ✅ Include tenant in cache key
         queryFn: async () => {
             const supabase = createClient();
 
@@ -14,6 +17,7 @@ export function useCourseAnalytics(courseId: string) {
                 .from('courses')
                 .select('*')
                 .eq('id', courseId)
+                .eq('tenant_id', tenantId) // ✅ SECURITY FIX: Filter by tenant
                 .single();
 
             if (courseError) throw courseError;
@@ -22,13 +26,15 @@ export function useCourseAnalytics(courseId: string) {
             const { count: totalLearners } = await supabase
                 .from('enrollments')
                 .select('*', { count: 'exact', head: true })
-                .eq('course_id', courseId);
+                .eq('course_id', courseId)
+                .eq('tenant_id', tenantId); // ✅ SECURITY FIX: Filter by tenant
 
             // 3. Get Revenue Stats
             const { data: payments } = await supabase
                 .from('course_payments')
                 .select('amount, created_at')
                 .eq('course_id', courseId)
+                .eq('tenant_id', tenantId) // ✅ SECURITY FIX: Filter by tenant
                 .eq('status', 'success');
 
             const totalRevenue = payments?.reduce((sum, p) => sum + p.amount, 0) || 0;
@@ -41,6 +47,7 @@ export function useCourseAnalytics(courseId: string) {
                 .from('enrollments')
                 .select('created_at')
                 .eq('course_id', courseId)
+                .eq('tenant_id', tenantId) // ✅ SECURITY FIX: Filter by tenant
                 .gte('created_at', thirtyDaysAgo.toISOString());
 
             // 5. Lesson Progress Stats

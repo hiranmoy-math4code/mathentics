@@ -1,6 +1,6 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
+import { createTenantClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 
@@ -13,7 +13,7 @@ export async function updateCourseMetadata(data: {
     thumbnailUrl?: string;
 }) {
     try {
-        const supabase = await createClient();
+        const supabase = await createTenantClient();
 
         // Check authentication
         const { data: { user } } = await supabase.auth.getUser();
@@ -79,7 +79,7 @@ export async function uploadCourseThumbnail(data: {
     file: File;
 }) {
     try {
-        const supabase = await createClient();
+        const supabase = await createTenantClient();
 
         // Check authentication
         const { data: { user } } = await supabase.auth.getUser();
@@ -186,7 +186,7 @@ export async function uploadCourseThumbnail(data: {
  */
 export async function deleteCourseThumbnail(courseId: string) {
     try {
-        const supabase = await createClient();
+        const supabase = await createTenantClient();
 
         // Check authentication
         const { data: { user } } = await supabase.auth.getUser();

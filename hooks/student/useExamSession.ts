@@ -134,9 +134,18 @@ export function useExamSession(examId: string, userId: string | null, retakeAtte
                 const hasAttemptsRemaining = !maxAttempts || submittedAttempts.length < maxAttempts
 
                 if (hasAttemptsRemaining) {
+                    // Get tenant_id from exam
+                    const tenantId = (exam as any).tenant_id;
+
                     const { data: newAttempt, error: createError } = await supabase
                         .from("exam_attempts")
-                        .insert({ exam_id: examId, student_id: userId, status: "in_progress", total_time_spent: 0 })
+                        .insert({
+                            tenant_id: tenantId,  // ✅ Added tenant_id
+                            exam_id: examId,
+                            student_id: userId,
+                            status: "in_progress",
+                            total_time_spent: 0
+                        })
                         .select()
                         .single()
 
@@ -219,7 +228,17 @@ export function useSubmitExam() {
             // Although we auto-saved, sending final state is safer.
             // However, for pure speed, we assume auto-save worked or we do a bulk upsert here first.
 
+            // Get tenant_id from exam_attempts
+            const { data: attemptData } = await supabase
+                .from('exam_attempts')
+                .select('tenant_id')
+                .eq('id', attemptId)
+                .single();
+
+            const tenantId = attemptData?.tenant_id;
+
             const entries = Object.entries(responses).map(([qid, ans]) => ({
+                tenant_id: tenantId,  // ✅ Added tenant_id
                 attempt_id: attemptId,
                 question_id: qid,
                 student_answer: Array.isArray(ans) ? JSON.stringify(ans) : String(ans),
@@ -272,7 +291,17 @@ export function useSaveAnswer() {
     const supabase = createClient()
     return useMutation({
         mutationFn: async ({ attemptId, questionId, answer }: { attemptId: string, questionId: string, answer: any }) => {
+            // Get tenant_id from exam_attempts
+            const { data: attemptData } = await supabase
+                .from('exam_attempts')
+                .select('tenant_id')
+                .eq('id', attemptId)
+                .single();
+
+            const tenantId = attemptData?.tenant_id;
+
             const { error } = await supabase.from("responses").upsert({
+                tenant_id: tenantId,  // ✅ Added tenant_id
                 attempt_id: attemptId,
                 question_id: questionId,
                 student_answer: Array.isArray(answer) ? JSON.stringify(answer) : String(answer),

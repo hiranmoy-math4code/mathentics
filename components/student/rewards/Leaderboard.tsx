@@ -11,10 +11,8 @@ interface LeaderboardEntry {
     weekly_xp: number;
     xp: number;
     level: number;
-    profiles: {
-        full_name: string;
-        avatar_url: string;
-    };
+    full_name: string;  // ✅ Flat structure from RPC
+    avatar_url: string;  // ✅ Flat structure from RPC
 }
 
 export default function Leaderboard({
@@ -66,12 +64,12 @@ export default function Leaderboard({
                                                     `#${index + 1}`}
                                     </div>
                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage src={entry.profiles?.avatar_url} />
-                                        <AvatarFallback>{entry.profiles?.full_name?.charAt(0) || 'U'}</AvatarFallback>
+                                        <AvatarImage src={entry.avatar_url} />
+                                        <AvatarFallback>{entry.full_name?.charAt(0) || 'U'}</AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 min-w-0">
                                         <p className={`text-sm font-medium truncate ${isMe ? "text-indigo-700 dark:text-indigo-300" : ""}`}>
-                                            {entry.profiles?.full_name || "Unknown User"}
+                                            {entry.full_name || "Unknown User"}
                                             {isMe && " (You)"}
                                         </p>
                                         <p className="text-xs text-muted-foreground">Level {entry.level || 1}</p>

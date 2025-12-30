@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { getTenantId } from "@/lib/tenant";
 
 const supabase = createClient();
 
@@ -35,8 +36,10 @@ export const useCoursePayments = ({
     pageSize = 10,
     search = "",
 }: UseCoursePaymentsOptions = {}) => {
+    const tenantId = getTenantId(); // ✅ Get tenant ID
+
     return useQuery({
-        queryKey: ["admin", "course-payments", page, pageSize, search],
+        queryKey: ["admin", "course-payments", page, pageSize, search, tenantId], // ✅ Include tenant
         queryFn: async () => {
             const start = (page - 1) * pageSize;
             const end = start + pageSize - 1;
@@ -47,7 +50,7 @@ export const useCoursePayments = ({
             } = await supabase.auth.getUser();
             if (!user) throw new Error("User not found");
 
-            // 1. Fetch payments with courses and enrollments
+            // 1. Fetch payments with courses and enrollments (tenant-filtered)
             // Filter by creator_id using inner join on courses
             let query = supabase
                 .from("course_payments")
@@ -60,6 +63,7 @@ export const useCoursePayments = ({
                     { count: "exact" }
                 )
                 .eq("courses.creator_id", user.id)
+                .eq("tenant_id", tenantId) // ✅ SECURITY FIX
                 .order("created_at", { ascending: false })
                 .range(start, end);
 
@@ -78,12 +82,13 @@ export const useCoursePayments = ({
                 return { data: [], count: 0 };
             }
 
-            // 2. Fetch profiles for these users manually
+            // 2. Fetch profiles for these users manually (tenant-filtered)
             const userIds = Array.from(new Set(payments.map((p) => p.user_id)));
             const { data: profiles, error: profilesError } = await supabase
                 .from("profiles")
                 .select("id, full_name, email")
-                .in("id", userIds);
+                .in("id", userIds)
+                .eq("tenant_id", tenantId); // ✅ SECURITY FIX
 
             if (profilesError) {
                 console.error("Error fetching profiles:", profilesError);

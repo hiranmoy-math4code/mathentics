@@ -5,7 +5,7 @@ const MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID;
 const CLIENT_ID = process.env.PHONEPE_CLIENT_ID || MERCHANT_ID;
 const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET;
 const CLIENT_VERSION = parseInt(process.env.PHONEPE_CLIENT_VERSION || "1");
-const DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000";
+const DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || "https://www.math4code.com";
 
 // Environment Configuration
 const envVar = (process.env.PHONEPE_ENV || "").toLowerCase();

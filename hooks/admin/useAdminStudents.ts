@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getStudentsWithEnrollments, addStudent, resetStudentSessions } from '@/actions/admin/students';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { getTenantId } from '@/lib/tenant';
 
 export function useAdminStudents(filters?: { status?: 'all' | 'active' | 'expired'; expiringWithinDays?: number }) {
     return useQuery({
@@ -22,85 +23,15 @@ export function useStudentDetails(userId: string) {
         queryFn: async () => {
             if (!userId) return null;
 
-            const supabase = createClient();
+            // Call server action (runs server-side with admin client)
+            const { getStudentDetailsAction } = await import('@/actions/admin/students');
+            const result = await getStudentDetailsAction(userId);
 
-            // Get student profile
-            const { data: student, error: studentError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', userId)
-                .single();
+            if (result.error) {
+                throw new Error(result.error);
+            }
 
-            if (studentError) throw new Error(`Failed to fetch student: ${studentError.message}`);
-            if (!student) throw new Error('Student not found');
-
-            // Get enrollments
-            const { data: enrollments } = await supabase
-                .from('enrollments')
-                .select(`
-                    *,
-                    courses (
-                        id,
-                        title,
-                        thumbnail_url,
-                        price,
-                        course_type
-                    ),
-                    granted_by_profile:profiles!enrollments_granted_by_fkey (
-                        id,
-                        full_name
-                    )
-                `)
-                .eq('user_id', userId);
-
-            // Get exam attempts
-            const { data: rawAttempts, error } = await supabase
-                .from('exam_attempts')
-                .select(`
-                    *,
-                    exams (id, title, total_marks),
-                    results (percentage, obtained_marks)
-                `)
-                .eq('student_id', userId)
-                .order('created_at', { ascending: false });
-            const attempts = rawAttempts?.map((attempt: any) => ({
-                ...attempt,
-                exam_title: attempt.exams?.title,
-                total_marks: attempt.exams?.total_marks,
-                percentage: attempt.results?.[0]?.percentage,
-                obtained_marks: attempt.results?.[0]?.obtained_marks
-            })) || [];
-
-
-            // Get activity logs
-            const { data: logs } = await supabase
-                .from('enrollment_logs')
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false })
-                .limit(50);
-
-            // Calculate stats
-            const stats = {
-                totalEnrollments: enrollments?.length || 0,
-                activeEnrollments: enrollments?.filter((e: any) => e.status === 'active').length || 0,
-                totalAttempts: attempts.length,
-                averageScore: attempts.length > 0
-                    ? Math.round(attempts.reduce((sum: number, a: any) => sum + (a.percentage || 0), 0) / attempts.length)
-                    : 0,
-                avgPercentage: attempts.length > 0
-                    ? Math.round(attempts.reduce((sum: number, a: any) => sum + (a.percentage || 0), 0) / attempts.length)
-                    : 0,
-                activeSessions: 0 // Will be populated from device_sessions if needed
-            };
-
-            return {
-                student,
-                enrollments: enrollments || [],
-                attempts,
-                logs: logs || [],
-                stats
-            };
+            return result.data;
         },
         enabled: !!userId,
         staleTime: 1000 * 60 * 5, // 5 minutes

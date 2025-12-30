@@ -60,7 +60,7 @@ export default function ResultsPage() {
 
 
   return (
-    <div className="p-6 md:p-10 bg-linear-to-br from-indigo-50 via-sky-50 to-white dark:from-slate-900 dark:via-slate-900 dark:to-black min-h-screen transition-colors duration-300">
+    <div className="p-6 md:p-10 bg-gradient-to-br from-indigo-50 via-sky-50 to-white dark:from-slate-900 dark:via-slate-900 dark:to-black min-h-screen transition-colors duration-300">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-extrabold text-slate-800 dark:text-white">
@@ -104,7 +104,7 @@ export default function ResultsPage() {
           {results && results.length > 0 ? (
             <Table className="min-w-full">
               <TableHeader>
-                <TableRow className="bg-linear-to-r from-indigo-100 via-sky-100 to-blue-100 dark:from-slate-700 dark:via-slate-700 dark:to-slate-800">
+                <TableRow className="bg-gradient-to-r from-indigo-100 via-sky-100 to-blue-100 dark:from-slate-700 dark:via-slate-700 dark:to-slate-800">
                   <TableHead className="font-semibold text-slate-800 dark:text-slate-200">
                     Exam
                   </TableHead>
@@ -130,7 +130,7 @@ export default function ResultsPage() {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
-                    className="hover:bg-linear-to-r hover:from-indigo-50 hover:to-sky-50 dark:hover:from-slate-700 dark:hover:to-slate-800 transition-all"
+                    className="hover:bg-gradient-to-r hover:from-indigo-50 hover:to-sky-50 dark:hover:from-slate-700 dark:hover:to-slate-800 transition-all"
                   >
                     {/* Exam Title */}
                     <TableCell className="font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
@@ -139,7 +139,7 @@ export default function ResultsPage() {
 
                     {/* Score */}
                     <TableCell className="text-center">
-                      <Badge className="bg-linear-to-r from-emerald-500 to-teal-500 text-white px-3 py-1 text-sm rounded-full shadow-md">
+                      <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3 py-1 text-sm rounded-full shadow-md">
                         <Trophy className="w-3 h-3 mr-1" />
                         {result.obtained_marks}/{result.total_marks}
                       </Badge>
@@ -149,10 +149,10 @@ export default function ResultsPage() {
                     <TableCell className="text-center">
                       <Badge
                         className={`px-3 py-1 text-sm rounded-full shadow-md ${result.percentage >= 80
-                          ? "bg-linear-to-r from-green-500 to-emerald-600 text-white"
+                          ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
                           : result.percentage >= 60
-                            ? "bg-linear-to-r from-yellow-400 to-orange-500 text-white"
-                            : "bg-linear-to-r from-rose-500 to-pink-600 text-white"
+                            ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
+                            : "bg-gradient-to-r from-rose-500 to-pink-600 text-white"
                           }`}
                       >
                         <Percent className="w-3 h-3 mr-1" />
@@ -163,7 +163,7 @@ export default function ResultsPage() {
                     {/* Rank */}
                     <TableCell className="text-center">
                       {result.rank ? (
-                        <Badge className="bg-linear-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 text-sm rounded-full shadow-md">
+                        <Badge className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 text-sm rounded-full shadow-md">
                           <Award className="w-3 h-3 mr-1" /> #{result.rank}
                         </Badge>
                       ) : (

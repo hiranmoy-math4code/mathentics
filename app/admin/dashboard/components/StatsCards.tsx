@@ -86,7 +86,7 @@ export default function StatsCards({ userId }: Props) {
         initial="hidden"
         animate="visible"
         custom={0}
-        className="relative overflow-hidden rounded-3xl p-8 bg-linear-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-100 dark:border-slate-700 shadow-xl"
+        className="relative overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-100 dark:border-slate-700 shadow-xl"
       >
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>

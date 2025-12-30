@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CommunityChannel } from "@/types/community";
+import { getTenantId } from "@/lib/tenant";
 
 export const useUpdateChannel = () => {
     const queryClient = useQueryClient();
@@ -35,6 +36,33 @@ export const useUpdateChannel = () => {
 };
 
 import { AdminCourseWithChannels } from "./useAdminCoursesWithChannels";
+
+export function useAdminChannels(courseId?: string) {
+    const supabase = createClient();
+    const tenantId = getTenantId(); // ✅ Get tenant ID
+
+    return useQuery<CommunityChannel[], Error>({
+        queryKey: ["admin-channels", courseId, tenantId], // ✅ Include tenant
+        queryFn: async () => {
+            let query = supabase
+                .from("community_channels")
+                .select('*')
+                .eq('tenant_id', tenantId) // ✅ SECURITY FIX
+                .order('created_at', { ascending: false });
+
+            if (courseId) {
+                query = query.eq('course_id', courseId);
+            }
+
+            const { data, error } = await query;
+
+            if (error) {
+                throw new Error(error.message);
+            }
+            return data;
+        },
+    });
+}
 
 export const useDeleteChannel = () => {
     const queryClient = useQueryClient();

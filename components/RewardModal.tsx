@@ -33,7 +33,7 @@ export function RewardModal({ isOpen, onClose, userRewards, userProfile }: Rewar
                 <DialogTitle className="sr-only">Rewards & Leaderboard</DialogTitle>
                 <div className="grid md:grid-cols-2 h-[600px] md:h-[500px]">
                     {/* Left: User Summary */}
-                    <div className="bg-linear-to-br from-indigo-600 to-violet-700 p-6 text-white flex flex-col items-center justify-center relative overflow-hidden">
+                    <div className="bg-gradient-to-br from-indigo-600 to-violet-700 p-6 text-white flex flex-col items-center justify-center relative overflow-hidden">
                         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-3xl -ml-16 -mb-16"></div>
@@ -48,7 +48,7 @@ export function RewardModal({ isOpen, onClose, userRewards, userProfile }: Rewar
                                 </Avatar>
                                 <div className="absolute -bottom-2 -right-2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full border-2 border-indigo-600 shadow-lg flex items-center gap-1">
                                     <Trophy className="w-3 h-3" />
-                                    <span>Rank #{leaderboard.findIndex(u => u.user_id === userRewards?.user_id) + 1 || "-"}</span>
+                                    <span>Rank #{leaderboard.findIndex((u: any) => u.user_id === userRewards?.user_id) + 1 || "-"}</span>
                                 </div>
                             </div>
 
@@ -100,7 +100,7 @@ export function RewardModal({ isOpen, onClose, userRewards, userProfile }: Rewar
                                 </div>
                             ) : (
                                 <div className="space-y-2">
-                                    {leaderboard.map((user, index) => (
+                                    {leaderboard.map((user: any, index: number) => (
                                         <motion.div
                                             key={user.user_id}
                                             initial={{ opacity: 0, y: 10 }}
@@ -115,14 +115,14 @@ export function RewardModal({ isOpen, onClose, userRewards, userProfile }: Rewar
                                                 {getRankIcon(index)}
                                             </div>
                                             <Avatar className="w-10 h-10 border border-slate-200 dark:border-slate-700">
-                                                <AvatarImage src={user.profiles?.avatar_url} />
+                                                <AvatarImage src={user.avatar_url} />
                                                 <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs">
-                                                    {user.profiles?.full_name?.[0] || "U"}
+                                                    {user.full_name?.[0] || "U"}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div className="flex-1 min-w-0">
                                                 <p className={`text-sm font-medium truncate ${user.user_id === userRewards?.user_id ? "text-indigo-700 dark:text-indigo-300" : ""}`}>
-                                                    {user.profiles?.full_name || "Anonymous"}
+                                                    {user.full_name || "Anonymous"}
                                                 </p>
                                                 <div className="flex items-center gap-2 text-xs text-slate-500">
                                                     <span className="flex items-center gap-0.5">

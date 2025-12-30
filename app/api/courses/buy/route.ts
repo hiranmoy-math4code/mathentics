@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createPayment } from "@/lib/phonepe";
+import { initiatePayment } from "@/lib/payments/gateway-factory";
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 export const runtime = 'edge';
@@ -63,6 +63,37 @@ export async function POST(req: Request) {
             return NextResponse.json(
                 { error: "Unauthorized" },
                 { status: 401, headers: corsHeaders }
+            );
+        }
+
+        // Get tenant context from request domain (not user membership!)
+        // CRITICAL: Use domain to determine tenant, not user's membership
+        const host = req.headers.get('host') || '';
+
+        const { data: tenant } = await supabase
+            .from('tenants')
+            .select('id')
+            .eq('custom_domain', host)
+            .eq('is_active', true)
+            .maybeSingle();
+
+        let tenantId = tenant?.id;
+
+        // Fallback to default tenant if not found
+        if (!tenantId) {
+            const { data: defaultTenant } = await supabase
+                .from('tenants')
+                .select('id')
+                .eq('slug', 'math4code')
+                .eq('is_active', true)
+                .maybeSingle();
+            tenantId = defaultTenant?.id;
+        }
+
+        if (!tenantId) {
+            return NextResponse.json(
+                { error: "Tenant not found" },
+                { status: 400, headers: corsHeaders }
             );
         }
 
@@ -136,12 +167,10 @@ export async function POST(req: Request) {
             );
         }
 
-        // For Paid Courses - Initiate Payment FIRST, then create enrollment
+        // For Paid Courses - Initiate Payment with Multi-Gateway
 
 
         // Create a unique Merchant Transaction ID
-        // Format: MT_{timestamp}_{random} to ensure uniqueness and no special chars
-        // We use the same format as the initiate API for consistency
         const merchantTransactionId = `MT${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
 
@@ -153,9 +182,9 @@ export async function POST(req: Request) {
                 user_id: user.id,
                 course_id: courseId,
                 amount: course.price,
-                transaction_id: merchantTransactionId, // Store the exact ID
+                transaction_id: merchantTransactionId,
                 status: "pending",
-                payment_method: "PHONEPE"
+                tenant_id: tenantId,
             });
 
         if (paymentError) {
@@ -166,39 +195,66 @@ export async function POST(req: Request) {
             }, { status: 500, headers: corsHeaders });
         }
 
-        // Initiate Payment using shared utility
-        // Pass the EXACT merchantTransactionId we just stored AND the userId
-        const paymentResponse = await createPayment(merchantTransactionId, course.price, user.id, isMobile);
+        // Get user profile for payment
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name, email, phone")
+            .eq("id", user.id)
+            .single();
+
+        // Initiate Payment using Multi-Gateway Factory
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_DOMAIN || "http://tenant-a.local:3000";
+
+        const paymentRequest = {
+            orderId: merchantTransactionId,
+            amount: course.price,
+            customerName: profile?.full_name || "Student",
+            customerEmail: profile?.email || user.email || "",
+            customerPhone: profile?.phone || "9999999999",
+            returnUrl: `${baseUrl}/student/payment/verify?txnId=${merchantTransactionId}`,
+            callbackUrl: `${baseUrl}/api/payments/callback`,
+        };
+
+        console.log('💳 Initiating payment:', { tenantId, ...paymentRequest });
+
+        const paymentResponse = await initiatePayment(tenantId, paymentRequest);
+
+        console.log('💳 Payment response:', paymentResponse);
 
 
 
-        if (!paymentResponse.success || !paymentResponse.data?.redirectUrl) {
+        if (!paymentResponse.success || !paymentResponse.paymentUrl) {
 
 
             // Update payment status to failed
             await supabase
                 .from("course_payments")
-                .update({ status: "failed", metadata: paymentResponse })
+                .update({ status: "failed", error_message: paymentResponse.error })
                 .eq("transaction_id", merchantTransactionId);
 
+            console.error('❌ Payment initiation failed:', paymentResponse);
+
             return NextResponse.json({
-                error: paymentResponse.error || "Payment initiation failed. Please check your PhonePe configuration.",
+                error: paymentResponse.error || "Payment initiation failed",
                 details: paymentResponse
             }, { status: 500, headers: corsHeaders });
         }
 
-        let finalUrl = paymentResponse.data.redirectUrl;
+        let finalUrl = paymentResponse.paymentUrl;
 
-        // If Mobile, wrap in Bridge URL to ensure Referer header is sent (Fixes INTERNAL_SECURITY_BLOCK_1)
+        // If Mobile, wrap in Bridge URL to ensure Referer header is sent
         if (isMobile) {
-            const domain = process.env.NEXT_PUBLIC_DOMAIN || 'https://www..com';
+            const domain = process.env.NEXT_PUBLIC_DOMAIN || baseUrl;
             finalUrl = `${domain}/mobile-payment?target=${encodeURIComponent(finalUrl)}`;
         }
 
         return NextResponse.json(
             {
                 url: finalUrl,
-                transactionId: merchantTransactionId
+                transactionId: merchantTransactionId,
+                paymentSessionId: paymentResponse.paymentSessionId, // Forward Session ID
+                environment: paymentResponse.environment, // Forward Environment
+                returnUrl: paymentRequest.returnUrl, // ✅ Explicitly return the Verify URL
             },
             { headers: corsHeaders }
         );

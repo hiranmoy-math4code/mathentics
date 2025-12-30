@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { CommunityChannel } from "@/types/community";
+import { getTenantId } from "@/lib/tenant";
 
 const supabase = createClient();
 
@@ -18,7 +19,10 @@ export const useEnrolledCourses = (userId?: string) => {
         queryFn: async () => {
             if (!userId) throw new Error("User ID is required");
 
-            // Fetch enrollments with course details
+            const supabase = createClient();
+            const tenantId = getTenantId(); // ✅ Get tenant ID
+
+            // Fetch enrollments with course details (tenant-filtered)
             const { data: enrollments, error: enrollmentsError } = await supabase
                 .from("enrollments")
                 .select(`
@@ -30,7 +34,8 @@ export const useEnrolledCourses = (userId?: string) => {
             community_enabled
           )
         `)
-                .eq("user_id", userId);
+                .eq("user_id", userId)
+                .eq("tenant_id", tenantId); // ✅ SECURITY FIX
 
             if (enrollmentsError) throw enrollmentsError;
 
@@ -39,13 +44,14 @@ export const useEnrolledCourses = (userId?: string) => {
                 ?.map((e: any) => e.courses)
                 .filter((c: any) => c && c.community_enabled) || [];
 
-            // Fetch channels for each course
+            // Fetch channels for each course (tenant-filtered)
             const coursesWithChannels = await Promise.all(
                 coursesWithCommunity.map(async (course: any) => {
                     const { data: channels } = await supabase
                         .from("community_channels")
                         .select("*")
                         .eq("course_id", course.id)
+                        .eq("tenant_id", tenantId) // ✅ SECURITY FIX
                         .order("created_at", { ascending: true });
 
                     return {

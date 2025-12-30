@@ -8,7 +8,7 @@ import ExamsTableSkeleton from "./components/ExamsTableSkeleton";
 import ImportExam from "./ImportExam";
 import { motion } from "framer-motion";
 import { Plus, FileText, TrendingUp } from "lucide-react";
-import useExams from "@/hooks/admin/exams/useExams";
+import { useExams } from "@/hooks/admin/exams/useExams";
 
 function ExamsHeader() {
   const { data: exams } = useExams();
@@ -22,7 +22,7 @@ function ExamsHeader() {
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-2xl bg-linear-to-br from-indigo-600 via-purple-600 to-pink-600 p-8 text-white shadow-2xl"
+      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-8 text-white shadow-2xl"
     >
       {/* Decorative elements */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />

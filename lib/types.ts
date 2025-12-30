@@ -1,17 +1,51 @@
 export type UserRole = "admin" | "student" | "creator"
 
-export interface User {
+// ============================================================================
+// MULTI-TENANT TYPES
+// ============================================================================
+
+export interface Tenant {
   id: string
-  email: string
-  full_name: string | null
-  role: UserRole
+  name: string
+  slug: string
+  custom_domain: string | null
+  is_active: boolean
+  settings: Record<string, any>
   created_at: string
   updated_at: string
 }
 
+export interface UserTenantMembership {
+  id: string
+  user_id: string
+  tenant_id: string
+  role: UserRole
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+// ============================================================================
+// USER TYPES (GLOBAL - NO tenant_id)
+// ============================================================================
+
+export interface User {
+  id: string
+  email: string
+  full_name: string | null
+  role: UserRole // Default role from profiles table
+  created_at: string
+  updated_at: string
+}
+
+// ============================================================================
+// EXAM TYPES (WITH tenant_id)
+// ============================================================================
+
 export interface Exam {
   id: string
   admin_id: string
+  tenant_id: string // ✅ Multi-tenant
   title: string
   description: string | null
   created_by: string | null
@@ -32,6 +66,7 @@ export interface Exam {
 export interface Section {
   id: string
   exam_id: string
+  tenant_id: string // ✅ Multi-tenant
   title: string
   description: string | null
   duration: number
@@ -45,6 +80,7 @@ export interface Section {
 export interface Question {
   id: string
   section_id: string
+  tenant_id: string // ✅ Multi-tenant
   question_text: string
   question_type: "mcq" | "msq" | "nat"
   marks: number
@@ -59,6 +95,7 @@ export interface Question {
 export interface Option {
   id: string
   question_id: string
+  tenant_id: string // ✅ Multi-tenant
   option_text: string
   option_order: number
   is_correct: boolean
@@ -69,6 +106,7 @@ export interface ExamAttempt {
   id: string
   exam_id: string
   student_id: string
+  tenant_id: string // ✅ Multi-tenant
   start_time: string
   end_time: string | null
   status: "in_progress" | "submitted" | "abandoned"
@@ -81,6 +119,7 @@ export interface Response {
   id: string
   attempt_id: string
   question_id: string
+  tenant_id: string // ✅ Multi-tenant
   selected_options: string[]
   nat_answer: string | null
   is_marked_for_review: boolean
@@ -95,6 +134,7 @@ export interface Result {
   attempt_id: string
   exam_id: string
   student_id: string
+  tenant_id: string // ✅ Multi-tenant
   total_questions: number
   attempted: number
   correct: number
@@ -114,6 +154,7 @@ export interface SectionResult {
   id: string
   result_id: string
   section_id: string
+  tenant_id: string // ✅ Multi-tenant
   total_questions: number
   attempted: number
   correct: number
@@ -125,11 +166,14 @@ export interface SectionResult {
   created_at: string
 }
 
-// LMS Types
+// ============================================================================
+// LMS TYPES (WITH tenant_id)
+// ============================================================================
 
 export interface Course {
   id: string
   creator_id: string
+  tenant_id: string // ✅ Multi-tenant
   title: string
   description: string | null
   price: number
@@ -144,6 +188,7 @@ export interface Course {
 export interface Module {
   id: string
   course_id: string
+  tenant_id: string // ✅ Multi-tenant
   title: string
   description: string | null
   module_order: number
@@ -154,6 +199,7 @@ export interface Module {
 export interface Lesson {
   id: string
   module_id: string
+  tenant_id: string // ✅ Multi-tenant
   title: string
   content_type: "video" | "text" | "pdf" | "quiz"
   content_url: string | null
@@ -190,6 +236,7 @@ export interface Enrollment {
   id: string
   user_id: string
   course_id: string
+  tenant_id: string // ✅ Multi-tenant
   enrolled_at: string
   status: "active" | "completed" | "refunded"
   progress: number
@@ -199,6 +246,7 @@ export interface Review {
   id: string
   course_id: string
   user_id: string
+  tenant_id: string // ✅ Multi-tenant
   rating: number
   comment: string | null
   created_at: string

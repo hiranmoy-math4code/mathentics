@@ -159,7 +159,7 @@ export const Header = () => {
                                                     priority
                                                 />
                                             ) : (
-                                                <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-md hover:shadow-lg transition-shadow">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-md hover:shadow-lg transition-shadow">
                                                     {user.email?.[0].toUpperCase()}
                                                 </div>
                                             )}
@@ -178,7 +178,7 @@ export const Header = () => {
                                                         className="w-10 h-10 rounded-full object-cover shadow-md"
                                                     />
                                                 ) : (
-                                                    <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
                                                         {user.email?.[0].toUpperCase()}
                                                     </div>
                                                 )}
@@ -225,7 +225,7 @@ export const Header = () => {
                                     </Button>
                                 </Link>
                                 <Link href="/auth/sign-up">
-                                    <Button className="bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/20 rounded-full px-6">
+                                    <Button className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/20 rounded-full px-6">
                                         Sign up
                                     </Button>
                                 </Link>
@@ -286,7 +286,7 @@ export const Header = () => {
                                             </Button>
                                         </Link>
                                         <Link href="/auth/sign-up" onClick={() => setIsMobileMenuOpen(false)}>
-                                            <Button className="w-full justify-center bg-linear-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20">
+                                            <Button className="w-full justify-center bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20">
                                                 Sign up
                                             </Button>
                                         </Link>

@@ -211,14 +211,14 @@ export default function LessonContentClient({
                             <div className="w-full max-w-xl bg-white/95 dark:bg-card/95 backdrop-blur-sm p-12 rounded-3xl border border-slate-200/80 dark:border-border shadow-2xl shadow-slate-300/40 dark:shadow-none text-center relative overflow-hidden">
 
                                 {/* Decorative Top Accent */}
-                                <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500 via-purple-500 to-pink-500" />
+                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
 
                                 {/* Icon Container - Multi-layer Design */}
                                 <div className="relative inline-flex items-center justify-center mb-8">
                                     {/* Outer glow */}
-                                    <div className="absolute inset-0 bg-linear-to-br from-orange-400 to-amber-500 rounded-2xl blur-2xl opacity-20 animate-pulse" />
+                                    <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl blur-2xl opacity-20 animate-pulse" />
                                     {/* Main icon background */}
-                                    <div className="relative w-20 h-20 bg-linear-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300">
+                                    <div className="relative w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300">
                                         <Clock className="h-10 w-10 text-white" strokeWidth={2.5} />
                                     </div>
                                     {/* Sparkle accent */}
@@ -228,7 +228,7 @@ export default function LessonContentClient({
                                 </div>
 
                                 {/* Heading with Gradient */}
-                                <h3 className="text-2xl md:text-3xl font-bold mb-4 bg-linear-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-slate-100 dark:via-slate-200 dark:to-slate-100 bg-clip-text text-transparent">
+                                <h3 className="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-slate-100 dark:via-slate-200 dark:to-slate-100 bg-clip-text text-transparent">
                                     Test in Preparation
                                 </h3>
 

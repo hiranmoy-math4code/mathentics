@@ -124,7 +124,7 @@ export const MessageInput = ({ channelId }: MessageInputProps) => {
                             >
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage src={user.avatar_url} />
-                                    <AvatarFallback className="bg-linear-to-br from-emerald-500 to-blue-600 text-white text-xs">
+                                    <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-blue-600 text-white text-xs">
                                         {user.full_name?.substring(0, 2).toUpperCase()}
                                     </AvatarFallback>
                                 </Avatar>
@@ -170,7 +170,7 @@ export const MessageInput = ({ channelId }: MessageInputProps) => {
                         className={cn(
                             "h-10 w-10 rounded-xl transition-all duration-200 shadow-md",
                             content.trim() && !isPending
-                                ? "bg-linear-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white shadow-emerald-500/50 dark:shadow-emerald-500/30 hover:shadow-lg hover:scale-105"
+                                ? "bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white shadow-emerald-500/50 dark:shadow-emerald-500/30 hover:shadow-lg hover:scale-105"
                                 : "bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-500 cursor-not-allowed opacity-60"
                         )}
                     >

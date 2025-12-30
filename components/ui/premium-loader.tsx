@@ -20,7 +20,7 @@ export const PremiumLoader: React.FC<PremiumLoaderProps> = ({
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50/30">
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
             <div className="relative">
                 {/* Animated background circles */}
                 <motion.div
@@ -97,7 +97,7 @@ export const PremiumLoader: React.FC<PremiumLoaderProps> = ({
                         {/* Text */}
                         <div className="text-center space-y-2">
                             <motion.h3
-                                className="text-lg font-semibold bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-violet-600"
+                                className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600"
                                 animate={{ opacity: [0.5, 1, 0.5] }}
                                 transition={{
                                     duration: 2,

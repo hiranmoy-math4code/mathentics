@@ -41,6 +41,26 @@ function SignUpForm() {
     }
 
     try {
+      // MULTI-TENANT: Detect tenant from hostname
+      const hostname = window.location.hostname;
+      let tenantSlug = 'math4code'; // default
+
+      // Extract tenant from hostname
+      if (hostname === 'tenant-a.local') {
+        tenantSlug = 'tenant-a';
+      } else if (hostname === 'tenant-b.local') {
+        tenantSlug = 'tenant-b';
+      } else if (hostname === 'localhost') {
+        tenantSlug = 'localhost';
+      } else if (hostname.includes('math4code')) {
+        tenantSlug = 'math4code';
+      } else if (hostname.includes('mathentics')) {
+        tenantSlug = 'mathentics';
+      }
+      // Add more domain mappings as needed
+
+      console.log('🔍 Signup Debug:', { hostname, tenantSlug }); // Debug log
+
       const emailRedirectTo = new URL(
         process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/auth/callback`
       );
@@ -48,7 +68,7 @@ function SignUpForm() {
         emailRedirectTo.searchParams.set("next", next);
       }
 
-      const { error } = await supabase.auth.signUp({
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -57,10 +77,28 @@ function SignUpForm() {
             full_name: fullName,
             role: role,
             referred_by_code: referralCode,
+            tenant_slug: tenantSlug, // Pass tenant info
           },
         },
       });
+
       if (error) throw error;
+
+      // MULTI-TENANT: Manually assign user to tenant via RPC
+      // This ensures the user is added to the correct tenant immediately
+      if (data.user) {
+        try {
+          await supabase.rpc('assign_user_to_tenant', {
+            p_user_id: data.user.id,
+            p_tenant_slug: tenantSlug,
+            p_role: role // Pass the selected role
+          });
+          console.log('✅ User assigned to tenant:', tenantSlug, 'with role:', role);
+        } catch (rpcError) {
+          console.error('⚠️ Failed to assign tenant, will use trigger fallback:', rpcError);
+        }
+      }
+
       router.push("/auth/sign-up-success");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
@@ -105,10 +143,10 @@ function SignUpForm() {
       <div className="mb-8 text-center">
         <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
           <div className="flex items-center justify-center gap-3">
-            <div className="w-auto px-2 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20">
+            <div className="w-auto px-2 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20">
               <span className="text-xl">Σ✨{'}'}</span>
             </div>
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-linear-to-r from-indigo-600 to-violet-600">
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">
               math4code
             </h1>
           </div>
@@ -117,7 +155,7 @@ function SignUpForm() {
       </div>
 
       <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group">
-        <div className="absolute inset-0 bg-linear-to-br from-indigo-50/50 to-violet-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-violet-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
         <form onSubmit={handleSignUp} className="space-y-5 relative z-10">
           {/* Full Name */}
@@ -269,7 +307,7 @@ function SignUpForm() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 py-3.5 px-4 bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed transform active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed transform active:scale-[0.98]"
           >
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
