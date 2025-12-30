@@ -36,6 +36,7 @@ export const chatKeys = {
 
 
 
+// --- SERVER ACTION WRAPPER ---
 export const callGemini = async (prompt: string, systemInstruction: string = "") => {
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
     if (!apiKey) {
@@ -88,7 +89,15 @@ const LatexSpan = ({ content }: { content: string }) => {
     const katexLoaded = useKaTeX();
     useEffect(() => {
         if (katexLoaded && spanRef.current && (window as any).katex) {
-            try { (window as any).katex.render(content, spanRef.current, { throwOnError: false, output: 'mathml' }); } catch (e) { spanRef.current.innerText = content; }
+            try {
+                (window as any).katex.render(content, spanRef.current, {
+                    throwOnError: false,
+                    output: 'html',
+                    displayMode: false
+                });
+            } catch (e) {
+                spanRef.current.innerText = content;
+            }
         }
     }, [content, katexLoaded]);
     if (!katexLoaded) return <span className="font-mono text-pink-600">{content}</span>;
@@ -96,7 +105,14 @@ const LatexSpan = ({ content }: { content: string }) => {
 };
 
 // --- MAIN CHAT COMPONENT ---
-// --- MAIN CHAT COMPONENT ---
+// --- CONSTANTS ---
+const SUGGESTED_QUESTIONS = [
+    "Tell me about IIT-JAM courses.",
+    "Which test series is best for GATE Maths?",
+    "How can I improve my Linear Algebra?",
+    "Show me some courses under $50."
+];
+
 function AIMentorContent() {
     const [isOpen, setIsOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -126,36 +142,39 @@ function AIMentorContent() {
 
     // Initialize Unique User ID for Browser-wise History
     useEffect(() => {
-        const initUserId = async () => {
-            // 1. Try to get logged in user first
-            const { data: { user } } = await supabaseClient.auth.getUser();
+        const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (session?.user) {
+                setUserId(session.user.id);
+                setIsGuest(false);
+            } else {
+                let id = localStorage.getItem('chat_browser_id');
+                if (!id) {
+                    id = crypto.randomUUID?.() || 'chat-' + Math.random().toString(36).substring(2, 9);
+                    localStorage.setItem('chat_browser_id', id);
+                }
+                setUserId(id);
+                setIsGuest(true);
+            }
+        });
 
+        const initUser = async () => {
+            const { data: { user } } = await supabaseClient.auth.getUser();
             if (user) {
                 setUserId(user.id);
                 setIsGuest(false);
-                return;
-            }
-
-            // 2. Fallback to browser ID for anonymous chat
-            let id = localStorage.getItem('chat_browser_id');
-            if (!id) {
-                // Generate a valid UUID v4 format even if crypto.randomUUID is missing
-                if (crypto.randomUUID) {
-                    id = crypto.randomUUID();
-                } else {
-                    // Simple UUID-v4-like string generator
-                    id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                        const r = Math.random() * 16 | 0;
-                        const v = c === 'x' ? r : (r & 0x3 | 0x8);
-                        return v.toString(16);
-                    });
+            } else {
+                let id = localStorage.getItem('chat_browser_id');
+                if (!id) {
+                    id = crypto.randomUUID?.() || 'chat-' + Math.random().toString(36).substring(2, 9);
+                    localStorage.setItem('chat_browser_id', id);
                 }
-                localStorage.setItem('chat_browser_id', id);
+                setUserId(id);
+                setIsGuest(true);
             }
-            setUserId(id);
-            setIsGuest(true);
         };
-        initUserId();
+        initUser();
+
+        return () => subscription.unsubscribe();
     }, []);
 
     // React Query Hooks
@@ -181,25 +200,27 @@ function AIMentorContent() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
 
-    // Construct Dynamic Knowledge Base from Real Data
     const knowledgeBase = useMemo(() => {
-        if (coursesLoading || testsLoading) return "Catalog loading...";
+        if (coursesLoading || testsLoading || !courses || !testSeries) return "Catalog data is being updated. Ask the user to wait a moment if they need specific course details.";
 
-        return JSON.stringify({
-            courses: courses?.map(c => ({
-                id: c.id,
-                title: c.title,
-                price: c.price,
-                description: c.description || "No description available",
-                category: c.category
-            })) || [],
-            test_series: testSeries?.map(t => ({
-                id: t.id,
-                title: t.title,
-                price: t.price,
-                description: t.description || "No description available"
-            })) || []
-        });
+        const coursesData = courses.slice(0, 50).map(c => ({
+            id: c.id,
+            title: c.title,
+            price: c.price,
+            category: c.category
+        }));
+
+        const testsData = testSeries.slice(0, 50).map(t => ({
+            id: t.id,
+            title: t.title,
+            price: t.price
+        }));
+
+        return `
+            COURSES: ${JSON.stringify(coursesData)}
+            TEST SERIES: ${JSON.stringify(testsData)}
+            INSTRUCTION: Use the above IDs in {{id}} format when recommending.
+        `;
     }, [courses, testSeries, coursesLoading, testsLoading]);
 
     // Sync Messages (Local or Server)
@@ -240,7 +261,7 @@ function AIMentorContent() {
         try {
             let activeSessionId = currentSessionId;
             if (!activeSessionId) {
-                if (!userId) throw new Error("User ID not initialized");
+                if (!userId) throw new Error("Initializing session... please try again.");
 
                 if (isGuest) {
                     const newSession: ChatSession = {
@@ -264,16 +285,16 @@ function AIMentorContent() {
             }
 
             const systemPrompt = `
-                You are math4code Ai expert, an expert AI tutor for math4code.
+                You are math4code Ai expert, an expert AI tutor for math4code platform.
                 
-                CATALOG DATA: ${knowledgeBase}
+                KNOWLEDGE BASE: ${knowledgeBase}
                 
                 CRITICAL RULES:
-                1. Answer user questions based on the catalog data above.
-                2. If you recommend a specific Course or Test Series, you MUST append its exact ID wrapped in double curly braces {{id}} immediately after the name.
-                3. Use **bold** markdown for course titles/prices.
-                4. Use LaTeX format enclosed in single $ symbols for ANY math expressions.
-                Keep answers helpful, concise, and friendly.
+                1. Answer user questions based on the knowledge base above.
+                2. If you recommend a specific Course or Test Series, you MUST append its exact ID wrapped in double curly braces {{id}} immediately after the name (e.g., Course Name {{course-id-123}}).
+                3. Use **bold** markdown for course titles and prices.
+                4. Use LaTeX format enclosed in single $ symbols for math expressions.
+                5. Keep answers helpful, concise, and academic.
             `;
 
             const aiResponseText = await callGemini(userText, systemPrompt);
@@ -288,19 +309,22 @@ function AIMentorContent() {
             }
 
         } catch (e: any) {
-            console.error("Chat Error Detailed:", {
-                message: e.message || "Unknown error",
-                details: e.details,
-                hint: e.hint,
-                code: e.code,
-                stack: e.stack,
-                error: e
-            });
-            const errorMsg: Message = { role: 'ai', content: "Sorry, I'm having trouble connecting to the server.", created_at: new Date().toISOString() };
+            console.error("Chat Error:", e);
+            const errorMsg: Message = { role: 'ai', content: "Sorry, I'm having trouble. Please check your internet or try again later.", created_at: new Date().toISOString() };
             setMessages(prev => prev ? [...prev, errorMsg] : [errorMsg]);
         } finally {
             setIsGenerating(false);
+            setTimeout(() => document.getElementById('chat-input')?.focus(), 100);
         }
+    };
+
+    const handleSuggestedQuestion = (question: string) => {
+        setQuery(question);
+        // We need to wait for state to update or just pass it directly
+        setTimeout(() => {
+            const btn = document.getElementById('chat-send-btn');
+            btn?.click();
+        }, 10);
     };
 
     const handleBuy = (productId: string) => {
@@ -414,12 +438,12 @@ function AIMentorContent() {
                         className="fixed bottom-24 right-6 w-[90vw] md:w-[400px] h-[500px] max-h-[80vh] bg-white rounded-3xl shadow-2xl border border-gray-100 z-[9999] overflow-hidden flex flex-col font-sans"
                     >
                         {/* --- HEADER --- */}
-                        <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-50 z-20">
+                        <div className="flex items-center justify-between px-4 py-3 bg-white/80 backdrop-blur-md border-b border-gray-100 z-40 sticky top-0">
                             <button
                                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600"
+                                className="p-2 hover:bg-gray-100/80 rounded-full transition-colors text-gray-600 active:scale-90"
                             >
-                                <ChevronsRight size={20} />
+                                <ChevronsRight size={20} className={`${isSidebarOpen ? 'rotate-180' : ''} transition-transform duration-300`} />
                             </button>
 
                             <div className="flex items-center gap-2">
@@ -496,16 +520,29 @@ function AIMentorContent() {
                             <div className="flex-1 flex flex-col bg-white w-full">
                                 <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-gray-200">
 
-                                    {/* Empty State */}
                                     {!messages && !isMessagesLoading && (
-                                        <div className="h-full flex flex-col items-center justify-center text-center opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]">
-                                            <div className="w-16 h-16 rounded-full bg-linear-to-tr from-pink-500 to-orange-400 flex items-center justify-center mb-6 shadow-lg shadow-pink-200">
+                                        <div className="h-full flex flex-col items-center justify-center p-4">
+                                            <div className="w-16 h-16 rounded-full bg-linear-to-tr from-indigo-500 to-purple-500 flex items-center justify-center mb-6 shadow-xl shadow-indigo-100 animate-bounce">
                                                 <Bot size={32} className="text-white" />
                                             </div>
-                                            <h2 className="text-xl font-medium text-gray-800">Hello! How can I assist you today?</h2>
-                                            <p className="text-sm text-gray-400 mt-2">
-                                                {coursesLoading ? "Loading catalog..." : "Ask about courses, test series, or math problems."}
+                                            <h2 className="text-xl font-bold text-gray-800">Hi! I'm your Math Mentor</h2>
+                                            <p className="text-sm text-gray-500 mt-2 mb-8 text-center max-w-[280px]">
+                                                {coursesLoading ? "Updating my catalog..." : "Ask me anything about IIT-JAM, GATE, or our platform."}
                                             </p>
+
+                                            <div className="w-full space-y-2">
+                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1 mb-2">TRY ASKING</p>
+                                                {SUGGESTED_QUESTIONS.map((q, i) => (
+                                                    <button
+                                                        key={i}
+                                                        onClick={() => handleSuggestedQuestion(q)}
+                                                        className="w-full text-left p-3 rounded-xl bg-gray-50 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-xs text-gray-600 border border-gray-100 flex items-center group"
+                                                    >
+                                                        <span className="flex-1">{q}</span>
+                                                        <Send size={12} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
 
@@ -516,24 +553,44 @@ function AIMentorContent() {
                                         </div>
                                     )}
 
-                                    {/* Messages List */}
                                     {messages && messages.map((msg, idx) => (
-                                        <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            key={idx}
+                                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                        >
                                             {msg.role === 'ai' && (
-                                                <div className="w-8 h-8 rounded-full bg-linear-to-tr from-pink-500 to-orange-400 flex items-center justify-center mr-2 shrink-0 mt-1 shadow-sm">
+                                                <div className="w-8 h-8 rounded-full bg-linear-to-tr from-indigo-500 to-purple-500 flex items-center justify-center mr-2 shrink-0 mt-1 shadow-sm border border-white">
                                                     <Bot size={16} className="text-white" />
                                                 </div>
                                             )}
                                             <div
-                                                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm
+                                                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm relative group/msg transition-all duration-300
                                                 ${msg.role === 'user'
-                                                        ? 'bg-gray-100 text-gray-800 rounded-tr-sm'
-                                                        : 'bg-white border border-gray-100 text-gray-700'
+                                                        ? 'bg-[#1F2A6B] text-white rounded-tr-sm'
+                                                        : msg.content.includes("Sorry, I'm having trouble")
+                                                            ? 'bg-red-50 border border-red-100 text-red-700'
+                                                            : 'bg-white border border-gray-100 text-gray-700'
                                                     }`}
                                             >
                                                 {renderMessageContent(msg.content)}
+                                                {msg.role === 'ai' && msg.content.includes("Sorry, I'm having trouble") && (
+                                                    <button
+                                                        onClick={() => {
+                                                            const lastUserMsg = [...messages!].reverse().find(m => m.role === 'user');
+                                                            if (lastUserMsg) {
+                                                                setQuery(lastUserMsg.content);
+                                                                setTimeout(() => document.getElementById('chat-send-btn')?.click(), 50);
+                                                            }
+                                                        }}
+                                                        className="mt-2 text-[10px] font-bold uppercase tracking-wider text-red-600 hover:text-red-800 flex items-center gap-1 transition-colors"
+                                                    >
+                                                        <Plus size={10} className="rotate-45" /> Retry Now
+                                                    </button>
+                                                )}
                                             </div>
-                                        </div>
+                                        </motion.div>
                                     ))}
 
                                     {isGenerating && (
@@ -560,6 +617,7 @@ function AIMentorContent() {
                                             </button>
 
                                             <input
+                                                id="chat-input"
                                                 value={query}
                                                 onChange={(e) => setQuery(e.target.value)}
                                                 onKeyDown={(e) => {
@@ -579,6 +637,7 @@ function AIMentorContent() {
                                                     </button>
                                                 )}
                                                 <button
+                                                    id="chat-send-btn"
                                                     onClick={handleSend}
                                                     disabled={!query.trim() || isGenerating}
                                                     className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 

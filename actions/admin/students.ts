@@ -325,94 +325,120 @@ export async function getStudentAttempts(userId: string) {
  * Get detailed info for a single student with stats (NEW - uses admin client)
  */
 export async function getStudentDetailsAction(userId: string) {
-    console.log(`🔍 [getStudentDetailsAction] Starting for userId: ${userId}`);
+    const trace: string[] = [];
+    const log = (msg: string) => {
+        const timestamp = new Date().toISOString();
+        const entry = `[${timestamp}] ${msg}`;
+        trace.push(entry);
+        console.log(entry);
+    };
+
+    log(`🚀 Starting student details fetch for: ${userId}`);
+
     try {
-        // Auth check
+        // 1. Auth check
+        log("Step 1: Auth checking...");
         const { createClient: createServerClient } = await import('@/lib/supabase/server');
         const authClient = await createServerClient();
-        const { data: { user: currentUser } } = await authClient.auth.getUser();
-        if (!currentUser) {
-            console.error('❌ [getStudentDetailsAction] Unauthorized access attempt');
-            return { error: 'Unauthorized' };
+        const { data: { user: currentUser }, error: authError } = await authClient.auth.getUser();
+
+        if (authError || !currentUser) {
+            log(`❌ Auth failure: ${authError?.message || 'No user session'}`);
+            return { error: 'Unauthorized: Please log in again.', trace };
+        }
+        log(`✅ Auth successful as: ${currentUser.email}`);
+
+        // 2. Tenant resolution
+        log("Step 2: Resolving tenant...");
+        const headerTenantId = await getTenantIdFromHeaders();
+        const envTenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+        const tenantId = headerTenantId || envTenantId;
+
+        log(`📍 resolved tenantId: ${tenantId} (Source: ${headerTenantId ? 'Header' : 'Env Fallback'})`);
+
+        if (!tenantId) {
+            log("❌ Tenant ID resolution failed (missing both header and env)");
+            return { error: 'Tenant context is missing. Please refresh or contact support.', trace };
         }
 
         const supabase = createAdminClient();
-        // Prioritize dynamic header resolution for multi-tenant support
-        const tenantId = await getTenantIdFromHeaders() || process.env.NEXT_PUBLIC_TENANT_ID;
 
-        console.log(`🏢 [getStudentDetailsAction] Using tenantId: ${tenantId}`);
-
-        if (!tenantId) {
-            console.error('❌ [getStudentDetailsAction] Tenant ID not found');
-            return { error: 'Tenant ID not configured' };
-        }
-
-        // Verify user belongs to this tenant
-        console.log(`🕵️ [getStudentDetailsAction] Verifying membership for ${userId} in ${tenantId}`);
+        // 3. Membership verification
+        log("Step 3: Checking tenant membership...");
         const { data: membership, error: membershipError } = await supabase
             .from('user_tenant_memberships')
-            .select('user_id, role')
+            .select('user_id, role, tenant_id')
             .eq('user_id', userId)
             .eq('tenant_id', tenantId)
-            // .eq('is_active', true) // Don't restrict to active if admin needs to see details
             .maybeSingle();
 
         if (membershipError) {
-            console.error('❌ [getStudentDetailsAction] Membership check error:', membershipError);
-            return { error: `Membership check failed: ${membershipError.message}` };
+            log(`❌ Membership query error: ${membershipError.message}`);
+            return { error: `Database error checking membership: ${membershipError.message}`, trace };
         }
 
         if (!membership) {
-            console.warn(`⚠️ [getStudentDetailsAction] No membership found for user ${userId} in tenant ${tenantId}`);
-            return { error: 'Student not found in this tenant' };
+            log(`⚠️ Membership not found for ${userId} in ${tenantId}`);
+            return { error: 'Student not found in your current tenant scope.', trace };
         }
+        log(`✅ Membership verified (Role: ${membership.role})`);
 
-        console.log(`✅ [getStudentDetailsAction] Membership verified. Role: ${membership.role}`);
-
-        // Get student profile
+        // 4. Fetch Core Profile
+        log("Step 4: Fetching student profile...");
         const { data: student, error: studentError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', userId)
-            .single();
+            .maybeSingle();
 
         if (studentError) {
-            console.error('❌ [getStudentDetailsAction] Profile fetch error:', studentError);
-            return { error: `Failed to fetch student profile: ${studentError.message}` };
+            log(`❌ Profile fetch error: ${studentError.message}`);
+            return { error: `Failed to load student profile: ${studentError.message}`, trace };
         }
+        if (!student) {
+            log(`❌ Profile record missing for ID: ${userId}`);
+            return { error: 'Student profile record not found.', trace };
+        }
+        log(`👤 Profile found: ${student.email}`);
 
-        console.log(`👤 [getStudentDetailsAction] Student profile fetched: ${student.email}`);
-
-        // Get enrollments
-        console.log(`📚 [getStudentDetailsAction] Fetching enrollments...`);
+        // 5. Fetch Enrollments with safer join syntax
+        log("Step 5: Fetching enrollments...");
         const { data: enrollments, error: enrollmentsError } = await supabase
             .from('enrollments')
             .select(`
                 *,
-                courses (
-                    id,
-                    title,
-                    thumbnail_url,
-                    price,
-                    course_type
+                courses!enrollments_course_id_fkey (
+                    id, title, thumbnail_url, price, course_type
                 ),
-                granted_by_profile:profiles!enrollments_granted_by_fkey (
-                    id,
-                    full_name
+                profiles!enrollments_granted_by_fkey (
+                    id, full_name
                 )
             `)
             .eq('user_id', userId)
             .eq('tenant_id', tenantId);
 
         if (enrollmentsError) {
-            console.error('❌ [getStudentDetailsAction] Enrollments fetch error:', enrollmentsError);
-            // Don't fail the whole action if only enrollments fail, just log it
+            log(`⚠️ Enrollments query failed: ${enrollmentsError.message}. Retrying without aliases...`);
+            // Fallback to simpler query if specific aliases fail
+            const { data: simpleEnrollments, error: simpleError } = await supabase
+                .from('enrollments')
+                .select('*, courses(id, title, thumbnail_url, price, course_type)')
+                .eq('user_id', userId)
+                .eq('tenant_id', tenantId);
+
+            if (simpleError) {
+                log(`❌ Critical: Simple enrollments fetch also failed: ${simpleError.message}`);
+            } else {
+                log(`✅ Successfully fetched ${simpleEnrollments?.length || 0} enrollments via fallback query`);
+                // Adapt fallback data structure to match expected (granted_by_profile might be missing but page won't crash)
+                (enrollments as any) = simpleEnrollments;
+            }
         } else {
-            console.log(`✅ [getStudentDetailsAction] Fetched ${enrollments?.length || 0} enrollments`);
+            log(`✅ Successfully fetched ${enrollments?.length || 0} enrollments`);
         }
 
-        // Get exam attempts
-        console.log(`📝 [getStudentDetailsAction] Fetching exam attempts...`);
+        // 6. Fetch Exam Attempts
+        log("Step 6: Fetching exam attempts...");
         const { data: rawAttempts, error: attemptsError } = await supabase
             .from('exam_attempts')
             .select(`
@@ -425,9 +451,9 @@ export async function getStudentDetailsAction(userId: string) {
             .order('created_at', { ascending: false });
 
         if (attemptsError) {
-            console.error('❌ [getStudentDetailsAction] Attempts fetch error:', attemptsError);
+            log(`⚠️ Attempts query failed: ${attemptsError.message}`);
         } else {
-            console.log(`✅ [getStudentDetailsAction] Fetched ${rawAttempts?.length || 0} attempts`);
+            log(`✅ Fetched ${rawAttempts?.length || 0} exam attempts`);
         }
 
         const attempts = rawAttempts?.map(att => ({
@@ -435,19 +461,18 @@ export async function getStudentDetailsAction(userId: string) {
             results: Array.isArray(att.results) ? att.results[0] : att.results
         })) || [];
 
-        // Get enrollment logs
-        const enrollmentIds = enrollments?.map(e => e.id) || [];
+        // 7. Fetch Activity Logs
+        log("Step 7: Fetching activity logs...");
+        const enrollmentIds = (enrollments as any)?.map((e: any) => e.id) || [];
         let logs: any[] = [];
 
         if (enrollmentIds.length > 0) {
-            console.log(`📜 [getStudentDetailsAction] Fetching logs for ${enrollmentIds.length} enrollments...`);
             const { data: logData, error: logsError } = await supabase
                 .from('enrollment_logs')
                 .select(`
                     *,
-                    performed_by_profile:profiles!enrollment_logs_performed_by_fkey (
-                        id,
-                        full_name
+                    profiles!enrollment_logs_performed_by_fkey (
+                        id, full_name
                     )
                 `)
                 .in('enrollment_id', enrollmentIds)
@@ -455,20 +480,28 @@ export async function getStudentDetailsAction(userId: string) {
                 .limit(50);
 
             if (logsError) {
-                console.error('❌ [getStudentDetailsAction] Logs fetch error:', logsError);
+                log(`⚠️ Log query failed: ${logsError.message}. Retrying simple logs...`);
+                const { data: simpleLogs } = await supabase
+                    .from('enrollment_logs')
+                    .select('*')
+                    .in('enrollment_id', enrollmentIds)
+                    .order('created_at', { ascending: false })
+                    .limit(50);
+                logs = simpleLogs || [];
             } else {
-                console.log(`✅ [getStudentDetailsAction] Fetched ${logData?.length || 0} logs`);
+                logs = logData || [];
+                log(`✅ Fetched ${logs.length} activity logs`);
             }
-            logs = logData || [];
         }
 
-        // Calculate stats
+        // 8. Final Assembly
+        log("Step 8: Calculating final stats...");
         const submittedAttempts = attempts.filter(a => a.status === 'submitted');
         const avgPercentage = submittedAttempts.length > 0
             ? submittedAttempts.reduce((acc, curr) => acc + (curr.results?.percentage || 0), 0) / submittedAttempts.length
             : 0;
 
-        console.log(`🏁 [getStudentDetailsAction] All data fetched successfully for ${userId}`);
+        log("🏁 All steps completed successfully!");
 
         return {
             success: true,
@@ -479,16 +512,22 @@ export async function getStudentDetailsAction(userId: string) {
                 logs,
                 activeSessions: 0,
                 stats: {
-                    totalEnrollments: enrollments?.length || 0,
+                    totalEnrollments: (enrollments as any)?.length || 0,
                     totalAttempts: attempts?.length || 0,
                     avgPercentage: Math.round(avgPercentage * 10) / 10,
                     activeSessions: 0
                 }
-            }
+            },
+            trace
         };
+
     } catch (error: any) {
-        console.error('💥 [getStudentDetailsAction] UNEXPECTED error:', error);
-        return { error: error?.message || 'Failed to fetch student details' };
+        log(`💥 FATAL CRASH: ${error.message}`);
+        console.error('getStudentDetailsAction UNEXPECTED error:', error);
+        return {
+            error: `Unexpected System Error: ${error.message}. Contact admin with trace ID: ${Date.now()}`,
+            trace
+        };
     }
 }
 

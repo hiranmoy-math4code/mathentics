@@ -617,16 +617,42 @@ function StudentProfileSkeleton() {
 }
 
 function StudentProfileError({ message }: { message: string }) {
+    const [mainError, trace] = message.split('\nTrace:');
+
     return (
-        <div className="p-8 text-center max-w-md mx-auto">
+        <div className="p-8 text-center max-w-2xl mx-auto">
             <div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-6">
                 <ShieldCheck className="w-10 h-10 text-rose-500 opacity-50" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Failed to load student</h3>
-            <p className="text-slate-500 mb-6">{message}</p>
-            <Link href="/admin/students">
-                <Button className="w-full">Back to Student List</Button>
-            </Link>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Failed to load student</h3>
+            <p className="text-rose-600 font-medium mb-4">{mainError}</p>
+
+            {trace && (
+                <div className="mt-6 mb-8 text-left">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Execution Trace</p>
+                    <div className="bg-slate-900 rounded-xl p-4 overflow-x-auto border border-slate-800 shadow-2xl">
+                        <pre className="text-[10px] leading-relaxed text-indigo-300 font-mono">
+                            {trace.trim()}
+                        </pre>
+                    </div>
+                    <p className="mt-2 text-[10px] text-slate-500 italic">
+                        This trace helps developers identify where the process failed on Cloudflare Pages.
+                    </p>
+                </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-3">
+                <Link href="/admin/students" className="flex-1">
+                    <Button variant="outline" className="w-full">Back to Student List</Button>
+                </Link>
+                <Button
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+                    onClick={() => window.location.reload()}
+                >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Retry Now
+                </Button>
+            </div>
         </div>
     );
 }

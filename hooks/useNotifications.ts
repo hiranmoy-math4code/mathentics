@@ -27,9 +27,9 @@ export const useNotifications = (userId?: string) => {
             const { data, error } = await supabase
                 .from("notifications")
                 .select("*")
-                .eq("user_id", userId)
+                .or(`user_id.eq.${userId},is_global.eq.true`)
                 .order("created_at", { ascending: false })
-                .limit(50); // Limit to last 50 notifications
+                .limit(50);
 
             if (error) {
                 throw error;

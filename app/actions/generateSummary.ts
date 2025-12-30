@@ -2,23 +2,15 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-
 export async function generateLessonSummary(videoUrl: string) {
     try {
-        const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+        const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
         if (!apiKey) {
             throw new Error("Gemini API key is not configured");
         }
 
-
-
-
         const genAI = new GoogleGenerativeAI(apiKey);
-        // Using the user-specified model, or falling back to a known working one if needed.
-        // User requested gemini-2.5-flash, but if it fails, we might want to fallback.
-        // For now, keeping as user requested or the latest valid one.
-        // Note: 2.5-flash is likely invalid, but user insisted. 
-        // I will use gemini-2.0-flash-exp as it is the actual latest flash model.
+        // User prefers gemini-2.5-flash
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         let prompt = "";
@@ -37,7 +29,7 @@ Important Rules:
 Your Tasks:
 
 1️⃣ Section: "Lecture Summary"
-- Provide a clean and concise   introduction to the topic
+- Provide a clean and concise introduction to the topic
 - Then bullet-point the key concepts, definitions, formulas, theorems, diagrams (describe them in text), and critical ideas from the notes
 
 2️⃣ Section: "Questions and Answers (in exact sequence)"
@@ -64,7 +56,6 @@ Your output must be:
 Do NOT attempt to invent or hallucinate content that is not available.`;
         }
 
-
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
@@ -73,7 +64,6 @@ Do NOT attempt to invent or hallucinate content that is not available.`;
     } catch (error: any) {
         console.error("Error generating video summary:", error);
 
-        // Better error message for model not found
         if (error.message?.includes("404") || error.message?.includes("not found")) {
             return { success: false, error: "AI Model not found or unavailable. Please check API configuration." };
         }

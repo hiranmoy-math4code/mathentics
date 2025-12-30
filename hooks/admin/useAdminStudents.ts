@@ -28,7 +28,9 @@ export function useStudentDetails(userId: string) {
 
             if (result.error) {
                 console.error('getStudentDetailsAction error:', result.error);
-                throw new Error(result.error);
+                // Attach trace to error message for debugging
+                const traceMsg = result.trace ? `\nTrace:\n${result.trace.join('\n')}` : '';
+                throw new Error(`${result.error}${traceMsg}`);
             }
 
             return result.data;
