@@ -85,6 +85,8 @@ async function processRedirect(req: Request, transactionId: string) {
   }
 }
 
+export const runtime = 'edge';
+
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();

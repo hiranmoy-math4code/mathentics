@@ -10,6 +10,8 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
+export const runtime = 'edge';
+
 export async function OPTIONS() {
     return NextResponse.json({}, { headers: corsHeaders });
 }

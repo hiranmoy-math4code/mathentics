@@ -15,6 +15,8 @@ const corsHeaders = {
 
 
 // Handle OPTIONS request for CORS preflight
+export const runtime = 'edge';
+
 export async function OPTIONS(req: Request) {
     return NextResponse.json({}, { headers: corsHeaders });
 }
