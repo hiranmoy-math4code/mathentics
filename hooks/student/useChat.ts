@@ -69,16 +69,20 @@ export const useChatMessages = (sessionId: string | null) => {
     });
 };
 
-// 3. Create a New Session (Modified to include userId)
+// 3. Create a New Session (Modified to include userId and tenantId)
 export const useCreateSession = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ firstMessage, userId }: { firstMessage: string, userId: string }) => {
+        mutationFn: async ({ firstMessage, userId, tenantId }: { firstMessage: string, userId: string, tenantId: string }) => {
             const title = firstMessage.length > 40 ? firstMessage.substring(0, 40) + "..." : firstMessage;
             const { data, error } = await supabase
                 .from('chat_sessions')
-                .insert([{ title, user_id: userId }]) // Save with user ID
+                .insert([{
+                    title,
+                    user_id: userId,
+                    tenant_id: tenantId
+                }]) // Save with user ID and tenant ID
                 .select()
                 .single();
 

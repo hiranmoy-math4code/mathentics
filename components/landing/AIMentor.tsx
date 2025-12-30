@@ -11,6 +11,7 @@ import { useChatHistory, useChatMessages, useCreateSession, useSaveMessage } fro
 import { usePublicCourses } from "@/hooks/usePublicCourses";
 import { usePublicTestSeries } from "@/hooks/usePublicTestSeries";
 import { createClient } from "@/lib/supabase/client";
+import { useTenantId } from "@/hooks/useTenantId";
 import { useRouter } from "next/navigation";
 
 // --- TYPES ---
@@ -101,6 +102,7 @@ function AIMentorContent() {
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
     const [userId, setUserId] = useState<string | null>(null);
     const [isGuest, setIsGuest] = useState(true);
+    const tenantId = useTenantId();
     const supabaseClient = createClient();
 
     // Local Storage Helpers for Guest Mode
@@ -242,7 +244,7 @@ function AIMentorContent() {
         try {
             let activeSessionId = currentSessionId;
             if (!activeSessionId) {
-                if (!userId) throw new Error("Initializing session... please try again.");
+                if (!userId || !tenantId) throw new Error("Initializing session... please try again.");
 
                 if (isGuest) {
                     const newSession: ChatSession = {
@@ -253,7 +255,7 @@ function AIMentorContent() {
                     saveLocalSession(newSession);
                     activeSessionId = newSession.id;
                 } else {
-                    const newSession = await createSessionMutation.mutateAsync({ firstMessage: userText, userId });
+                    const newSession = await createSessionMutation.mutateAsync({ firstMessage: userText, userId, tenantId: tenantId! });
                     activeSessionId = newSession.id;
                 }
                 setCurrentSessionId(activeSessionId);

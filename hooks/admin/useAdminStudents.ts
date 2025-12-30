@@ -23,17 +23,21 @@ export function useStudentDetails(userId: string) {
         queryFn: async () => {
             if (!userId) return null;
 
-            // Call server action (runs server-side with admin client)
-            const result = await getStudentDetailsAction(userId);
-
-            if (result.error) {
-                console.error('getStudentDetailsAction error:', result.error);
-                // Attach trace to error message for debugging
-                const traceMsg = result.trace ? `\nTrace:\n${result.trace.join('\n')}` : '';
-                throw new Error(`${result.error}${traceMsg}`);
+            try {
+                // Try stable API route first (Standard GET)
+                const response = await fetch(`/api/admin/students/${userId}`);
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) return result.data;
+                }
+            } catch (err) {
+                console.warn("API route failed, falling back to Server Action:", err);
             }
 
-            return result.data;
+            // Fallback to Server Action
+            const result = await getStudentDetailsAction(userId);
+            if (result.success) return result.data;
+            throw new Error(result.error || "Failed to fetch student details");
         },
         enabled: !!userId,
         staleTime: 1000 * 60 * 5, // 5 minutes

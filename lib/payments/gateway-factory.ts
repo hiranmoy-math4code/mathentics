@@ -98,7 +98,16 @@ export async function initiatePayment(
 
         // PhonePe v2 OAuth
         if (data.gateway_type === 'phonepe') {
+            const phonePeConfig = {
+                merchantId: data.phonepe_merchant_id!,
+                clientId: data.phonepe_client_id!,
+                clientSecret: data.phonepe_client_secret!,
+                clientVersion: parseInt(data.phonepe_client_version || "1"),
+                environment: data.phonepe_environment as 'preprod' | 'production'
+            };
+
             const result = await createPhonePePayment(
+                phonePeConfig,
                 request.orderId,
                 request.amount,
                 request.customerEmail,
@@ -223,7 +232,15 @@ export async function verifyPayment(
 
         // PhonePe v2
         if (data.gateway_type === 'phonepe') {
-            const result = await checkPhonePeStatus(transactionId);
+            const phonePeConfig = {
+                merchantId: data.phonepe_merchant_id!,
+                clientId: data.phonepe_client_id!,
+                clientSecret: data.phonepe_client_secret!,
+                clientVersion: parseInt(data.phonepe_client_version || "1"),
+                environment: data.phonepe_environment as 'preprod' | 'production'
+            };
+
+            const result = await checkPhonePeStatus(phonePeConfig, transactionId);
             return {
                 success: result.success || false,
                 status: result.code,

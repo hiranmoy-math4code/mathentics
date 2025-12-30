@@ -1,46 +1,34 @@
 import { logger } from './logger';
 
-// Environment Variables
-const MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID;
-const CLIENT_ID = process.env.PHONEPE_CLIENT_ID || MERCHANT_ID;
-const CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET;
-const CLIENT_VERSION = parseInt(process.env.PHONEPE_CLIENT_VERSION || "1");
-const DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || "https://www.math4code.com";
-
-// Environment Configuration
-const envVar = (process.env.PHONEPE_ENV || "").toLowerCase();
-const isProd = envVar === "prod" || envVar === "production";
-
-// API Endpoints for Standard Checkout v2
-const API_BASE = isProd
-  ? 'https://api.phonepe.com/apis/pg'
-  : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
-
-const OAUTH_BASE = isProd
-  ? 'https://api.phonepe.com/apis/identity-manager'
-  : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
-
-// Validation
-// Validation
-if (!MERCHANT_ID || !CLIENT_SECRET) {
-  // During build time, these might be missing if not set in CI/CD.
-  // We log a warning instead of error to prevent build failure, 
-  // assumming they will be present at runtime or fetched from DB.
-  console.warn("⚠️ PhonePe Config: Missing Environment Variables (MERCHANT_ID or CLIENT_SECRET). This is expected during build if not needed.");
+// --- CONFIGURATION ---
+export interface PhonePeConfig {
+  merchantId: string;
+  clientId?: string;
+  clientSecret: string;
+  clientVersion?: number;
+  environment: 'preprod' | 'production' | 'prod';
 }
+
+// Default Domain for redirects
+const DEFAULT_DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || "https://www.math4code.com";
 
 /**
  * Get OAuth Token for Standard Checkout v2
  */
-async function getOAuthToken(): Promise<string | null> {
+async function getOAuthToken(config: PhonePeConfig): Promise<string | null> {
   try {
+    const isProd = config.environment === 'production' || config.environment === 'prod';
+    const OAUTH_BASE = isProd
+      ? 'https://api.phonepe.com/apis/identity-manager'
+      : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
+
     const url = `${OAUTH_BASE}/v1/oauth/token`;
 
     const params = new URLSearchParams({
       grant_type: 'client_credentials',
-      client_id: CLIENT_ID || "",
-      client_secret: CLIENT_SECRET || "",
-      client_version: CLIENT_VERSION.toString()
+      client_id: config.clientId || config.merchantId,
+      client_secret: config.clientSecret,
+      client_version: (config.clientVersion || 1).toString()
     });
 
     const response = await fetch(url, {
@@ -70,25 +58,31 @@ async function getOAuthToken(): Promise<string | null> {
  * Initiate Payment using Standard Checkout v2
  */
 export async function createPayment(
+  config: PhonePeConfig,
   merchantTransactionId: string,
   amount: number,
   userId: string,
   isMobile: boolean = false
 ) {
   try {
+    const isProd = config.environment === 'production' || config.environment === 'prod';
+    const API_BASE = isProd
+      ? 'https://api.phonepe.com/apis/pg'
+      : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
+
     // Get OAuth Token
-    const token = await getOAuthToken();
+    const token = await getOAuthToken(config);
     if (!token) {
       throw new Error("Failed to generate OAuth token");
     }
 
-    const redirectUrl = `${DOMAIN}/api/phonepe/redirect?transactionId=${merchantTransactionId}${isMobile ? '&source=mobile' : ''}`;
-    const callbackUrl = `${DOMAIN}/api/phonepe/callback`;
+    const redirectUrl = `${DEFAULT_DOMAIN}/api/phonepe/redirect?transactionId=${merchantTransactionId}${isMobile ? '&source=mobile' : ''}`;
+    const callbackUrl = `${DEFAULT_DOMAIN}/api/phonepe/callback`;
 
     // Build Payment Request for Standard Checkout v2
     const paymentPayload = {
       merchantOrderId: merchantTransactionId,
-      amount: amount * 100, // Convert to paise
+      amount: Math.round(amount * 100), // Convert to paise
       paymentFlow: {
         type: "PG_CHECKOUT",
         merchantUrls: {
@@ -130,7 +124,6 @@ export async function createPayment(
         success: false,
         error: data?.message || "Payment initiation failed",
         details: data
-
       };
     }
 
@@ -147,12 +140,17 @@ export async function createPayment(
 /**
  * Check Payment Status using Standard Checkout v2 (OAuth Flow)
  */
-export async function checkPaymentStatus(merchantTransactionId: string) {
+export async function checkPaymentStatus(config: PhonePeConfig, merchantTransactionId: string) {
   logger.log(`🔄 Checking Payment Status (v2 OAuth) for: ${merchantTransactionId}`);
 
   try {
+    const isProd = config.environment === 'production' || config.environment === 'prod';
+    const API_BASE = isProd
+      ? 'https://api.phonepe.com/apis/pg'
+      : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
+
     // Get OAuth Token
-    const token = await getOAuthToken();
+    const token = await getOAuthToken(config);
     if (!token) {
       throw new Error("Failed to generate OAuth token");
     }
@@ -169,7 +167,6 @@ export async function checkPaymentStatus(merchantTransactionId: string) {
     });
 
     const data = await response.json();
-
     return data;
 
   } catch (error: any) {
@@ -195,37 +192,39 @@ async function sha256(message: string): Promise<string> {
 
 /**
  * Initiate Refund using v1 API (checksum-based)
- * Note: Standard Checkout v2 doesn't support refunds yet, so we use v1
  */
 export async function refundTransaction(
+  config: PhonePeConfig,
   originalTransactionId: string,
   amount: number,
   userId: string
 ) {
   try {
+    const isProd = config.environment === 'production' || config.environment === 'prod';
+    const API_BASE = isProd
+      ? 'https://api.phonepe.com/apis/pg'
+      : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
+
     const newRefundTxnId = `RF${Date.now()}`;
 
     const refundPayload = {
-      merchantId: MERCHANT_ID,
+      merchantId: config.merchantId,
       merchantUserId: userId,
       originalTransactionId: originalTransactionId,
       merchantTransactionId: newRefundTxnId,
-      amount: amount * 100, // in paise
-      callbackUrl: `${DOMAIN}/api/phonepe/callback`
+      amount: Math.round(amount * 100), // in paise
+      callbackUrl: `${DEFAULT_DOMAIN}/api/phonepe/callback`
     };
 
     const payload = JSON.stringify(refundPayload);
-    // Buffer is available in Node.js and some Edge environments (like Cloudflare Workers)
-    // If Buffer is not available, we can use btoa/TextEncoder
-    const payloadBase64 = Buffer.from(payload).toString('base64');
+    const payloadBase64 = btoa(payload);
 
-    const saltKey = CLIENT_SECRET || "";
-    const saltIndex = CLIENT_VERSION || 1;
+    const saltKey = config.clientSecret;
+    const saltIndex = config.clientVersion || 1;
 
     const apiPath = "/pg/v1/refund";
     const stringToHash = payloadBase64 + apiPath + saltKey;
 
-    // Use Web Crypto API for hashing
     const sha256Hash = await sha256(stringToHash);
     const xVerify = `${sha256Hash}###${saltIndex}`;
 

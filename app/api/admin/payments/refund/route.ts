@@ -52,20 +52,56 @@ export async function POST(req: Request) {
         }
 
         // 2. Initiate Refund with PhonePe
-        const refundResult = await refundTransaction(transactionId, amount, userId);
+        // Fetch the tenant_id first to get the right credentials
+        const supabaseService = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
+        const table = type === 'test-series' ? 'payments' : 'course_payments';
+        const idColumn = type === 'test-series' ? 'phonepe_transaction_id' : 'transaction_id';
+
+        const { data: initialPayment } = await supabaseService
+            .from(table)
+            .select("tenant_id")
+            .eq(idColumn, transactionId)
+            .single();
+
+        if (!initialPayment?.tenant_id) {
+            return NextResponse.json({ error: "Tenant ID not found for transaction" }, { status: 404 });
+        }
+
+        // Fetch tenant-specific PhonePe settings
+        const { data: gatewaySettings } = await supabaseService
+            .from("payment_gateway_settings")
+            .select("*")
+            .eq("tenant_id", initialPayment.tenant_id)
+            .eq("gateway_type", "phonepe")
+            .eq("is_active", true)
+            .single();
+
+        if (!gatewaySettings) {
+            return NextResponse.json({ error: "PhonePe settings not configured for this tenant" }, { status: 400 });
+        }
+
+        const phonePeConfig = {
+            merchantId: gatewaySettings.phonepe_merchant_id!,
+            clientId: gatewaySettings.phonepe_client_id!,
+            clientSecret: gatewaySettings.phonepe_client_secret!,
+            clientVersion: parseInt(gatewaySettings.phonepe_client_version || "1"),
+            environment: gatewaySettings.phonepe_environment as 'preprod' | 'production'
+        };
+
+        const refundResult = await refundTransaction(phonePeConfig, transactionId, amount, userId);
 
         if (!refundResult.success) {
             return NextResponse.json({ error: refundResult.message }, { status: 400 });
         }
 
         // 3. Update Database (Service Role)
-        const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
+        const supabase = supabaseService;
 
         // Update Payment Record Status
-        const table = type === 'test-series' ? 'payments' : 'course_payments';
         // Note: For test series 'payments' table, transaction_id column might be named differently (phonepe_transaction_id)
         // Check existing code/schema or infer. Based on search, test series uses 'phonepe_transaction_id'.
 

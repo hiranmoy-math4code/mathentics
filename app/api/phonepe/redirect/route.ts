@@ -19,7 +19,58 @@ async function processRedirect(req: Request, transactionId: string) {
       supabase = await createClient();
     }
     // Check payment status from PhonePe
-    const statusResponse = await checkPaymentStatus(transactionId);
+    // First, fetch the tenant_id for this payment to get the right credentials
+    const { data: initialPayment } = await supabase
+      .from("course_payments")
+      .select("tenant_id")
+      .eq("transaction_id", transactionId)
+      .single();
+
+    if (!initialPayment?.tenant_id) {
+      throw new Error("Tenant ID not found for transaction");
+    }
+
+    // Fetch tenant-specific PhonePe settings
+    const { data: gatewaySettings } = await supabase
+      .from("payment_gateway_settings")
+      .select("*")
+      .eq("tenant_id", initialPayment.tenant_id)
+      .eq("gateway_type", "phonepe")
+      .eq("is_active", true)
+      .single();
+
+    if (!gatewaySettings) {
+      // Fallback to math4code default if needed? 
+      // For now, let's look for math4code default if tenant-specific fails (matching gateway-factory logic)
+      const { data: math4codeTenant } = await supabase.from("tenants").select("id").eq("slug", "math4code").single();
+      if (math4codeTenant) {
+        const { data: defaultSettings } = await supabase
+          .from("payment_gateway_settings")
+          .select("*")
+          .eq("tenant_id", math4codeTenant.id)
+          .eq("gateway_type", "phonepe")
+          .eq("is_active", true)
+          .single();
+
+        if (defaultSettings) {
+          (gatewaySettings as any) = defaultSettings;
+        }
+      }
+    }
+
+    if (!gatewaySettings) {
+      throw new Error("PhonePe settings not found for tenant");
+    }
+
+    const phonePeConfig = {
+      merchantId: gatewaySettings.phonepe_merchant_id!,
+      clientId: gatewaySettings.phonepe_client_id!,
+      clientSecret: gatewaySettings.phonepe_client_secret!,
+      clientVersion: parseInt(gatewaySettings.phonepe_client_version || "1"),
+      environment: gatewaySettings.phonepe_environment as 'preprod' | 'production'
+    };
+
+    const statusResponse = await checkPaymentStatus(phonePeConfig, transactionId);
     const state = statusResponse.state;
     let status = "pending";
     if (state === "COMPLETED" || state === "PAYMENT_SUCCESS") status = "success";
