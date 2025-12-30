@@ -12,7 +12,7 @@ import {
   IconUserBolt,
 } from "@tabler/icons-react";
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export default async function AdminLayout({
   children,

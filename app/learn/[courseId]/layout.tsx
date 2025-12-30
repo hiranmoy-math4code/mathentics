@@ -5,7 +5,7 @@ import { CoursePlayerClient } from "@/components/CoursePlayerClient";
 import { CommunityModalProvider } from "@/context/CommunityModalContext";
 import { CommunityModal } from "@/components/community/CommunityModal";
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export default async function CourseLayout({
     children,

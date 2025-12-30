@@ -8,7 +8,7 @@ import { CommunityModal } from "@/components/community/CommunityModal";
 import { useCurrentUser } from "@/hooks/student/useCurrentUser";
 import { StudentAppContainer } from "@/components/StudentAppContainer";
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();

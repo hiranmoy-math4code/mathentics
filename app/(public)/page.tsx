@@ -1,5 +1,5 @@
 "use client"
-export const runtime = 'edge';
+// export const runtime = 'edge';
 import React from 'react';
 import { Hero } from '@/components/landing/Hero';
 import { FeaturesStrip } from '@/components/landing/FeaturesStrip';
