@@ -127,17 +127,19 @@ export async function awardCoins(
     return data || { success: false, message: "Unknown error" };
 }
 
-export async function getLeaderboard(type: 'weekly' | 'all_time' = 'all_time', limit: number = 10) {
+export async function getLeaderboard(
+    type: 'weekly' | 'all_time' = 'all_time',
+    limit: number = 10,
+    tenantId?: string
+) {
     const supabase = await createClient();
 
     // ============================================================================
-    // TENANT ISOLATION: Get current tenant from request headers
+    // TENANT ISOLATION: Get current tenant
     // ============================================================================
-    const { headers } = await import('next/headers');
-    const headersList = await headers();
-    const tenantId = headersList.get('x-tenant-id');
+    const finalTenantId = tenantId || await getTenantIdFromHeaders();
 
-    if (!tenantId) {
+    if (!finalTenantId) {
         console.warn('⚠️ No tenant ID in leaderboard request');
         return [];
     }
@@ -150,7 +152,7 @@ export async function getLeaderboard(type: 'weekly' | 'all_time' = 'all_time', l
     try {
         // Use RPC function for optimized query with JOIN
         const { data, error } = await supabase.rpc('get_tenant_leaderboard', {
-            p_tenant_id: tenantId,
+            p_tenant_id: finalTenantId,
             p_sort_column: sortColumn,
             p_limit: limit
         });
@@ -158,14 +160,14 @@ export async function getLeaderboard(type: 'weekly' | 'all_time' = 'all_time', l
         if (error) {
             console.error('Leaderboard RPC error:', error);
             // Fallback to simple query if RPC doesn't exist
-            return await getLeaderboardFallback(supabase, tenantId, type, limit);
+            return await getLeaderboardFallback(supabase, finalTenantId, type, limit);
         }
 
         return data || [];
     } catch (err) {
         console.error('Leaderboard error:', err);
         // Final fallback to ensure leaderboard always works
-        return await getLeaderboardFallback(supabase, tenantId, type, limit);
+        return await getLeaderboardFallback(supabase, finalTenantId, type, limit);
     }
 }
 
@@ -203,15 +205,11 @@ async function getLeaderboardFallback(
     })) || [];
 }
 
-export async function checkModuleCompletion(userId: string, moduleId: string) {
+export async function checkModuleCompletion(userId: string, moduleId: string, tenantId?: string) {
     const supabase = await createClient();
+    const finalTenantId = tenantId || await getTenantIdFromHeaders();
 
-    // Get tenant from headers
-    const { headers } = await import('next/headers');
-    const headersList = await headers();
-    const tenantId = headersList.get('x-tenant-id');
-
-    if (!tenantId) {
+    if (!finalTenantId) {
         console.warn('⚠️ No tenant ID in checkModuleCompletion');
         return null;
     }
@@ -228,20 +226,16 @@ export async function checkModuleCompletion(userId: string, moduleId: string) {
 
     const completedCount = completed?.length || 0;
     if (completedCount === lessons.length) {
-        return await awardCoins(userId, 'module_completion', moduleId, 'Completed a module!');
+        return await awardCoins(userId, 'module_completion', moduleId, 'Completed a module!', finalTenantId);
     }
     return null;
 }
 
-export async function checkFirstLessonReward(userId: string) {
+export async function checkFirstLessonReward(userId: string, tenantId?: string) {
     const supabase = await createClient();
+    const finalTenantId = tenantId || await getTenantIdFromHeaders();
 
-    // Get tenant from headers
-    const { headers } = await import('next/headers');
-    const headersList = await headers();
-    const tenantId = headersList.get('x-tenant-id');
-
-    if (!tenantId) {
+    if (!finalTenantId) {
         console.warn('⚠️ No tenant ID in checkFirstLessonReward');
         return;
     }
@@ -267,6 +261,7 @@ export async function checkFirstLessonReward(userId: string) {
         .from("reward_transactions")
         .select("*")
         .eq("user_id", referrerId)
+        .eq("tenant_id", finalTenantId)
         .eq("action_type", 'referral')
         .eq("entity_id", userId)
         .single();
@@ -274,7 +269,7 @@ export async function checkFirstLessonReward(userId: string) {
     if (existing) return;
 
     // Award referrer
-    await awardCoins(referrerId, 'referral', userId, `Referral bonus for user ${userId}`);
+    await awardCoins(referrerId, 'referral', userId, `Referral bonus for user ${userId}`, finalTenantId);
 
     // Check Badge for Referrer
     await checkBadgeUnlock(referrerId, 'social_butterfly');
@@ -299,15 +294,15 @@ export async function getDailyMissions(userId: string) {
 }
 
 
-export async function updateMissionProgress(userId: string, type: 'login' | 'quiz' | 'video') {
+export async function updateMissionProgress(
+    userId: string,
+    type: 'login' | 'quiz' | 'video',
+    tenantId?: string
+) {
     const supabase = await createClient();
+    const finalTenantId = tenantId || await getTenantIdFromHeaders();
 
-    // Get tenant from headers
-    const { headers } = await import('next/headers');
-    const headersList = await headers();
-    const tenantId = headersList.get('x-tenant-id');
-
-    if (!tenantId) {
+    if (!finalTenantId) {
         console.warn('⚠️ No tenant ID in updateMissionProgress');
         return;
     }
@@ -332,7 +327,7 @@ export async function updateMissionProgress(userId: string, type: 'login' | 'qui
     if (completedMission) {
         // Award mission bonus
         const today = new Date().toISOString().split('T')[0];
-        await awardCoins(userId, 'mission_complete', `${today}-${type}`, `Mission Complete: ${completedMission.title}`);
+        await awardCoins(userId, 'mission_complete', `${today}-${type}`, `Mission Complete: ${completedMission.title}`, finalTenantId);
     }
 
     revalidatePath("/student");
@@ -372,15 +367,20 @@ export async function getUserBadges(userId: string) {
     return data || [];
 }
 
-export async function getStreakHistory(userId: string) {
+export async function getStreakHistory(userId: string, tenantId?: string) {
     const supabase = await createClient();
+    const finalTenantId = tenantId || await getTenantIdFromHeaders();
 
-    // Fetch dates from reward_transactions
-    const { data } = await supabase
+    let query = supabase
         .from("reward_transactions")
         .select("created_at")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+        .eq("user_id", userId);
+
+    if (finalTenantId) {
+        query = query.eq("tenant_id", finalTenantId);
+    }
+
+    const { data } = await query.order("created_at", { ascending: false });
 
     if (!data) return [];
 

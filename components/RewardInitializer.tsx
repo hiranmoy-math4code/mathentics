@@ -33,7 +33,7 @@ export function RewardInitializer({ userId }: { userId: string }) {
             }
 
             // Update login mission progress
-            await updateMissionProgress(userId, 'login');
+            await updateMissionProgress(userId, 'login', tenantId);
         };
 
         // Run once on mount (session start)

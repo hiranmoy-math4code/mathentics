@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useQueryClient } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
+import { useTenantId } from "@/hooks/useTenantId"
 import { awardCoins } from "@/app/actions/rewardActions"
 import { useExamSession, useSubmitExam, useSaveAnswer, useUpdateTimer } from "@/hooks/student/useExamSession"
 import { useExamResult } from "@/hooks/useExamResult"
@@ -468,6 +469,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
     const [showPauseDialog, setShowPauseDialog] = useState(false)
     const [isPausing, setIsPausing] = useState(false)
     const { markComplete } = useLessonContext()
+    const tenantId = useTenantId()
 
     // Auth check
     useEffect(() => {
@@ -624,7 +626,6 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
         setMarked((m) => ({ ...m, [qid]: !m[qid] }))
     }, [])
 
-
     const performSubmit = useCallback(async () => {
         if (!sessionData?.attempt?.id || !sessionData?.exam) return
 
@@ -648,7 +649,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
                 // Award coins and mark complete
                 if (userId) {
                     try {
-                        const rewardRes = await awardCoins(userId, 'quiz_completion', examId, `Completed quiz: ${sessionData.exam.title}`);
+                        const rewardRes = await awardCoins(userId, 'quiz_completion', examId, `Completed quiz: ${sessionData.exam.title}`, tenantId || undefined);
                         if (rewardRes.success && rewardRes.message) {
                             toast.success(rewardRes.message, { icon: "🪙" });
                         }

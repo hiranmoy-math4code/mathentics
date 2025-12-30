@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTenantId } from "@/hooks/useTenantId";
 import {
     getRewardStatus,
     getDailyMissions,
@@ -25,12 +26,15 @@ export const REWARD_KEYS = {
 
 export function useRewards(userId?: string, tenantId?: string) {
     const queryClient = useQueryClient();
+    // Use passed tenantId or fall back to hook
+    const hookTenantId = useTenantId();
+    const finalTenantId = tenantId || hookTenantId;
 
     // 1. Reward Status (Coins, Streak, XP)
     const { data: rewardStatus, isLoading: statusLoading } = useQuery({
         queryKey: REWARD_KEYS.status(userId || ""),
-        queryFn: () => userId ? getRewardStatus(userId, tenantId) : null,
-        enabled: !!userId,
+        queryFn: () => userId ? getRewardStatus(userId, finalTenantId || undefined) : null,
+        enabled: !!userId && !!finalTenantId,
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 
@@ -56,10 +60,16 @@ export function useRewards(userId?: string, tenantId?: string) {
         queryFn: async () => {
             if (!userId) return [];
             const supabase = createClient();
-            const { data } = await supabase
+            let query = supabase
                 .from("reward_transactions")
                 .select("*")
-                .eq("user_id", userId)
+                .eq("user_id", userId);
+
+            if (finalTenantId) {
+                query = query.eq("tenant_id", finalTenantId);
+            }
+
+            const { data } = await query
                 .order("created_at", { ascending: false })
                 .limit(10);
             return data || [];
@@ -73,7 +83,7 @@ export function useRewards(userId?: string, tenantId?: string) {
     const awardCoinsMutation = useMutation({
         mutationFn: async ({ action, entityId, description }: { action: any, entityId?: string, description?: string }) => {
             if (!userId) throw new Error("User ID required");
-            return await awardCoins(userId, action, entityId, description, tenantId);
+            return await awardCoins(userId, action, entityId, description, finalTenantId || undefined);
         },
         onSuccess: () => {
             // Invalidate relevant queries to refresh data
@@ -90,7 +100,7 @@ export function useRewards(userId?: string, tenantId?: string) {
     const checkStreakMutation = useMutation({
         mutationFn: async () => {
             if (!userId) throw new Error("User ID required");
-            return await checkStreak(userId, tenantId);
+            return await checkStreak(userId, finalTenantId || undefined);
         },
         onSuccess: () => {
             if (userId) {
@@ -114,17 +124,20 @@ export function useRewards(userId?: string, tenantId?: string) {
 }
 
 export function useLeaderboard(type: 'weekly' | 'all_time' = 'weekly', limit: number = 10) {
+    const tenantId = useTenantId();
     return useQuery({
-        queryKey: [...REWARD_KEYS.leaderboard(type), limit],
-        queryFn: () => getLeaderboard(type, limit),
+        queryKey: [...REWARD_KEYS.leaderboard(type), limit, tenantId],
+        queryFn: () => getLeaderboard(type, limit, tenantId || undefined),
         staleTime: 1000 * 60 * 5, // 5 minutes
+        enabled: !!tenantId,
     });
 }
 
 export function useStreakHistory(userId: string) {
+    const tenantId = useTenantId();
     return useQuery({
-        queryKey: REWARD_KEYS.streakHistory(userId),
-        queryFn: () => getStreakHistory(userId),
-        enabled: !!userId,
+        queryKey: [...REWARD_KEYS.streakHistory(userId), tenantId],
+        queryFn: () => getStreakHistory(userId, tenantId || undefined),
+        enabled: !!userId && !!tenantId,
     });
 }

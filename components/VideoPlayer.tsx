@@ -10,6 +10,7 @@ import { awardCoins } from "@/app/actions/rewardActions";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useLessonContext } from "@/context/LessonContext";
+import { useTenantId } from "@/hooks/useTenantId";
 
 // Dynamically import ReactPlayer to avoid hydration errors
 const ReactPlayer = dynamic(() => import("react-player"), { ssr: false }) as any;
@@ -215,25 +216,42 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
 
     const onRPReady = () => { setIsReady(true); try { const d = rpRef.current?.getDuration(); if (d > 0) setDuration(d); } catch { } };
 
-    const onRPProgress = async (state: any) => {
-        if (!seeking) {
-            setSliderValue(state.played);
-            setCurrentTime(state.playedSeconds);
 
-            // Reward Logic
-            if (!rewarded && userId && state.played > 0.8) {
-                setRewarded(true);
-                const res = await awardCoins(userId, 'video_watch', url, `Watched video: ${url} `);
-                if (res.success && res.message) {
-                    toast.success(res.message, { icon: "🪙" });
-                }
+    // Tenant ID for rewards
+    const tenantId = useTenantId();
+
+    const onRPProgress = useCallback((state: any) => {
+        if (!isPlayingState) return; // Use isPlayingState instead of 'playing'
+        if (!duration) return;
+
+        // Update progress context (assuming updateProgress and setPlayed are defined elsewhere or not needed for this specific change)
+        // updateProgress(state.playedSeconds, duration);
+        // setPlayed(state.playedSeconds);
+        setCurrentTime(state.playedSeconds); // Update currentTime as per original logic
+        setSliderValue(state.played); // Update sliderValue as per original logic
+
+        // Check for reward (90% completion)
+        if (!rewarded && userId && state.playedSeconds / duration > 0.9) { // Use 'rewarded' and 'userId' from state
+            setRewarded(true);
+            // const user = getUser(); // getUser is not defined, use userId from state
+            if (userId) {
+                // Award coins for watching video
+                // const userId = user.id; // Already have userId from state
+                // We don't await here to avoid blocking playback
+                awardCoins(userId, 'video_watch', url, `Watched video: ${url}`, tenantId || undefined).then((res) => {
+                    if (res.success && res.message) {
+                        toast.success(res.message, { icon: "🎥" });
+                        // Trigger reward update
+                        window.dispatchEvent(new Event("rewards-updated"));
+                    }
+                });
                 // Mark lesson complete via context (if available)
                 if (markComplete) {
                     markComplete();
                 }
             }
         }
-    };
+    }, [isPlayingState, duration, rewarded, userId, url, tenantId, markComplete]); // Added dependencies for useCallback
     const onRPPause = () => { setIsPlayingState(false); setIsPaused(true); };
     const onRPPlay = () => { setIsPlayingState(true); setIsPaused(false); setShowCover(false); };
 
