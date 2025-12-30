@@ -14,8 +14,9 @@ export interface EnrolledCourseWithChannels {
 }
 
 export const useEnrolledCourses = (userId?: string) => {
+    const tenantId = getTenantId();
     return useQuery({
-        queryKey: ["enrolled-courses", userId],
+        queryKey: ["enrolled-courses", userId, tenantId],
         queryFn: async () => {
             if (!userId) throw new Error("User ID is required");
 

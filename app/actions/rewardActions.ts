@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { getTenantIdFromHeaders } from "@/lib/tenant";
 
 type ActionType = 'login' | 'video_watch' | 'lesson_completion' | 'quiz_completion' | 'module_completion' | 'referral' | 'bonus' | 'mission_complete';
 
@@ -20,21 +21,6 @@ const REWARD_RULES = {
 };
 
 const DAILY_COIN_CAP = 100;
-
-// ============================================================================
-// HELPER: Get Tenant ID from Headers (Fallback for server-side calls)
-// ============================================================================
-async function getTenantIdFromHeaders(): Promise<string | null> {
-    try {
-        const { headers } = await import('next/headers');
-        const headersList = await headers();
-        return headersList.get('x-tenant-id');
-    } catch (error) {
-        // Headers not available (e.g., called from client-side)
-        console.warn('⚠️ Headers not available in getTenantIdFromHeaders');
-        return null;
-    }
-}
 
 // ============================================================================
 // Get User Reward Status (Using Database Function)

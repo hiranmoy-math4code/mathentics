@@ -1,7 +1,8 @@
 'use server';
 
-import { createTenantClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
+import { getTenantIdFromHeaders } from '@/lib/tenant';
 
 /**
  * Grant course access to a student with optional expiry
@@ -12,30 +13,41 @@ export async function grantCourseAccess(data: {
     expiresAt?: Date | null;
     notes?: string;
 }) {
-    const supabase = await createTenantClient();
-
-    // Get admin user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: 'Unauthorized' };
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-    if (profile?.role !== 'admin') {
-        return { error: 'Admin access required' };
-    }
-
+    console.log(`🎁 [grantCourseAccess] Starting for user: ${data.userId}, course: ${data.courseId}`);
     try {
+        // Use createClient for auth check (Cloudflare compatible)
+        const { createClient } = await import('@/lib/supabase/server');
+        const authClient = await createClient();
+        const { data: { user } } = await authClient.auth.getUser();
+        if (!user) return { error: 'Unauthorized' };
+
+        const supabase = createAdminClient();
+        const tenantId = await getTenantIdFromHeaders() || process.env.NEXT_PUBLIC_TENANT_ID;
+
+        if (!tenantId) {
+            console.error('❌ [grantCourseAccess] Tenant ID not found');
+            return { error: 'Tenant ID not configured' };
+        }
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+        if (profile?.role !== 'admin' && profile?.role !== 'super_admin') {
+            console.warn(`⚠️ [grantCourseAccess] Unauthorized role: ${profile?.role}`);
+            return { error: 'Admin access required' };
+        }
+
         // Check if enrollment already exists
         const { data: existing } = await supabase
             .from('enrollments')
             .select('id, status, expires_at')
             .eq('user_id', data.userId)
             .eq('course_id', data.courseId)
-            .single();
+            .eq('tenant_id', tenantId)
+            .maybeSingle();
 
         let enrollment;
 
@@ -73,6 +85,7 @@ export async function grantCourseAccess(data: {
                 .insert({
                     user_id: data.userId,
                     course_id: data.courseId,
+                    tenant_id: tenantId,
                     status: 'active',
                     expires_at: data.expiresAt || null,
                     granted_by: user.id,
@@ -98,6 +111,7 @@ export async function grantCourseAccess(data: {
         revalidatePath('/admin/students');
         return { success: true, data: enrollment };
     } catch (error: any) {
+        console.error('❌ [grantCourseAccess] Error:', error);
         return { error: error.message };
     }
 }
@@ -111,29 +125,39 @@ export async function grantTestSeriesAccess(data: {
     expiresAt?: Date | null;
     notes?: string;
 }) {
-    const supabase = await createTenantClient();
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: 'Unauthorized' };
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-    if (profile?.role !== 'admin') {
-        return { error: 'Admin access required' };
-    }
-
+    console.log(`🏆 [grantTestSeriesAccess] Starting for user: ${data.userId}, series: ${data.testSeriesId}`);
     try {
+        const { createClient } = await import('@/lib/supabase/server');
+        const authClient = await createClient();
+        const { data: { user } } = await authClient.auth.getUser();
+        if (!user) return { error: 'Unauthorized' };
+
+        const supabase = createAdminClient();
+        const tenantId = await getTenantIdFromHeaders() || process.env.NEXT_PUBLIC_TENANT_ID;
+
+        if (!tenantId) {
+            console.error('❌ [grantTestSeriesAccess] Tenant ID not found');
+            return { error: 'Tenant ID not configured' };
+        }
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+        if (profile?.role !== 'admin' && profile?.role !== 'super_admin') {
+            return { error: 'Admin access required' };
+        }
+
         // Check if enrollment already exists
         const { data: existing } = await supabase
             .from('enrollments')
             .select('id, expires_at')
             .eq('user_id', data.userId)
             .eq('course_id', data.testSeriesId)
-            .single();
+            .eq('tenant_id', tenantId)
+            .maybeSingle();
 
         let enrollment;
 
@@ -170,6 +194,7 @@ export async function grantTestSeriesAccess(data: {
                 .insert({
                     user_id: data.userId,
                     course_id: data.testSeriesId,
+                    tenant_id: tenantId,
                     expires_at: data.expiresAt || null,
                     granted_by: user.id,
                     granted_at: new Date().toISOString(),
@@ -195,6 +220,7 @@ export async function grantTestSeriesAccess(data: {
         revalidatePath('/admin/students');
         return { success: true, data: enrollment };
     } catch (error: any) {
+        console.error('❌ [grantTestSeriesAccess] Error:', error);
         return { error: error.message };
     }
 }
@@ -207,47 +233,40 @@ export async function revokeAccess(data: {
     type: 'course';
     reason: string;
 }) {
-    const supabase = await createTenantClient();
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: 'Unauthorized' };
-
+    console.log(`🚫 [revokeAccess] Starting for enrollment: ${data.enrollmentId}`);
     try {
-        if (data.type === 'course') {
-            const { error } = await supabase
-                .from('enrollments')
-                .update({ status: 'refunded' }) // Using 'refunded' to indicate revoked
-                .eq('id', data.enrollmentId);
+        const { createClient } = await import('@/lib/supabase/server');
+        const authClient = await createClient();
+        const { data: { user } } = await authClient.auth.getUser();
+        if (!user) return { error: 'Unauthorized' };
 
-            if (error) throw error;
+        const supabase = createAdminClient();
+        const tenantId = await getTenantIdFromHeaders() || process.env.NEXT_PUBLIC_TENANT_ID;
 
-            // Log
-            await supabase.rpc('log_enrollment_action', {
-                p_action: 'revoked',
-                p_performed_by: user.id,
-                p_enrollment_id: data.enrollmentId,
-                p_notes: data.reason
-            });
-        } else {
-            const { error } = await supabase
-                .from('enrollments')
-                .update({ status: 'refunded' })
-                .eq('id', data.enrollmentId);
-
-            if (error) throw error;
-
-            // Log
-            await supabase.rpc('log_enrollment_action', {
-                p_action: 'revoked',
-                p_performed_by: user.id,
-                p_enrollment_id: data.enrollmentId,
-                p_notes: data.reason
-            });
+        if (!tenantId) {
+            return { error: 'Tenant ID not configured' };
         }
+
+        const { error } = await supabase
+            .from('enrollments')
+            .update({ status: 'refunded' }) // Using 'refunded' to indicate revoked
+            .eq('id', data.enrollmentId)
+            .eq('tenant_id', tenantId);
+
+        if (error) throw error;
+
+        // Log
+        await supabase.rpc('log_enrollment_action', {
+            p_action: 'revoked',
+            p_performed_by: user.id,
+            p_enrollment_id: data.enrollmentId,
+            p_notes: data.reason
+        });
 
         revalidatePath('/admin/students');
         return { success: true };
     } catch (error: any) {
+        console.error('❌ [revokeAccess] Error:', error);
         return { error: error.message };
     }
 }
@@ -257,146 +276,88 @@ export async function revokeAccess(data: {
  */
 export async function extendAccess(data: {
     enrollmentId: string;
-    type: 'course';
+    type: 'course' | 'test_series';
     newExpiryDate: Date;
     notes?: string;
 }) {
-    const supabase = await createTenantClient();
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: 'Unauthorized' };
-
-    console.log('[extendAccess] Starting update:', {
+    console.log(`⏳ [extendAccess] Starting update:`, {
         enrollmentId: data.enrollmentId,
         type: data.type,
         newExpiryDate: data.newExpiryDate,
-        isoDate: data.newExpiryDate.toISOString()
+        isoDate: data.newExpiryDate instanceof Date ? data.newExpiryDate.toISOString() : 'Invalid Date'
     });
 
     try {
-        let previousExpiry;
-        let updateError;
+        const { createClient } = await import('@/lib/supabase/server');
+        const authClient = await createClient();
+        const { data: { user } } = await authClient.auth.getUser();
+        if (!user) return { error: 'Unauthorized' };
 
-        if (data.type === 'course') {
-            // Get current enrollment
-            const { data: existing, error: fetchError } = await supabase
-                .from('enrollments')
-                .select('expires_at, user_id')
-                .eq('id', data.enrollmentId)
-                .single();
+        const supabase = createAdminClient();
+        const tenantId = await getTenantIdFromHeaders() || process.env.NEXT_PUBLIC_TENANT_ID;
 
-            if (fetchError) {
-                console.error('[extendAccess] Error fetching enrollment:', fetchError);
-                throw new Error(`Failed to find enrollment: ${fetchError.message}`);
-            }
-
-            console.log('[extendAccess] Current enrollment:', existing);
-            previousExpiry = existing?.expires_at;
-
-            // Update the expiry date
-            const { data: updated, error } = await supabase
-                .from('enrollments')
-                .update({
-                    expires_at: data.newExpiryDate.toISOString(),
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', data.enrollmentId)
-                .select();
-
-            updateError = error;
-            console.log('[extendAccess] Update result:', { updated, error });
-
-            if (error) throw error;
-
-            if (!updated || updated.length === 0) {
-                throw new Error('No rows were updated. Enrollment may not exist.');
-            }
-
-            // Verify the update
-            const { data: verified } = await supabase
-                .from('enrollments')
-                .select('expires_at')
-                .eq('id', data.enrollmentId)
-                .single();
-
-            console.log('[extendAccess] Verified expiry after update:', verified);
-
-            if (!verified?.expires_at) {
-                throw new Error('Update succeeded but expires_at is still null');
-            }
-
-            // Log the action
-            await supabase.rpc('log_enrollment_action', {
-                p_action: 'extended',
-                p_performed_by: user.id,
-                p_enrollment_id: data.enrollmentId,
-                p_previous_expiry: previousExpiry,
-                p_new_expiry: data.newExpiryDate.toISOString(),
-                p_notes: data.notes || 'Access period extended'
-            });
-        } else {
-            // Test series enrollment
-            const { data: existing, error: fetchError } = await supabase
-                .from('enrollments')
-                .select('expires_at, user_id')
-                .eq('id', data.enrollmentId)
-                .single();
-
-            if (fetchError) {
-                console.error('[extendAccess] Error fetching test series enrollment:', fetchError);
-                throw new Error(`Failed to find test series enrollment: ${fetchError.message}`);
-            }
-
-            console.log('[extendAccess] Current test series enrollment:', existing);
-            previousExpiry = existing?.expires_at;
-
-            const { data: updated, error } = await supabase
-                .from('enrollments')
-                .update({
-                    expires_at: data.newExpiryDate.toISOString(),
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', data.enrollmentId)
-                .select();
-
-            updateError = error;
-            console.log('[extendAccess] Test series update result:', { updated, error });
-
-            if (error) throw error;
-
-            if (!updated || updated.length === 0) {
-                throw new Error('No rows were updated. Test series enrollment may not exist.');
-            }
-
-            // Verify the update
-            const { data: verified } = await supabase
-                .from('enrollments')
-                .select('expires_at')
-                .eq('id', data.enrollmentId)
-                .single();
-
-            console.log('[extendAccess] Verified test series expiry after update:', verified);
-
-            if (!verified?.expires_at) {
-                throw new Error('Update succeeded but expires_at is still null');
-            }
-
-            // Log the action
-            await supabase.rpc('log_enrollment_action', {
-                p_action: 'extended',
-                p_performed_by: user.id,
-                p_enrollment_id: data.enrollmentId,
-                p_previous_expiry: previousExpiry,
-                p_new_expiry: data.newExpiryDate.toISOString(),
-                p_notes: data.notes || 'Access period extended'
-            });
+        if (!tenantId) {
+            return { error: 'Tenant ID not configured' };
         }
+
+        // Get current enrollment
+        const { data: existing, error: fetchError } = await supabase
+            .from('enrollments')
+            .select('expires_at, user_id')
+            .eq('id', data.enrollmentId)
+            .eq('tenant_id', tenantId)
+            .single();
+
+        if (fetchError) {
+            console.error('[extendAccess] Error fetching enrollment:', fetchError);
+            throw new Error(`Failed to find enrollment: ${fetchError.message}`);
+        }
+
+        console.log('[extendAccess] Current enrollment:', existing);
+        const previousExpiry = existing?.expires_at;
+
+        // Update the expiry date
+        const { data: updated, error } = await supabase
+            .from('enrollments')
+            .update({
+                expires_at: data.newExpiryDate.toISOString(),
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', data.enrollmentId)
+            .eq('tenant_id', tenantId)
+            .select();
+
+        if (error) throw error;
+
+        if (!updated || updated.length === 0) {
+            throw new Error('No rows were updated. Enrollment may not exist.');
+        }
+
+        // Verify the update
+        const { data: verified } = await supabase
+            .from('enrollments')
+            .select('expires_at')
+            .eq('id', data.enrollmentId)
+            .eq('tenant_id', tenantId)
+            .single();
+
+        console.log('[extendAccess] Verified expiry after update:', verified);
+
+        // Log the action
+        await supabase.rpc('log_enrollment_action', {
+            p_action: 'extended',
+            p_performed_by: user.id,
+            p_enrollment_id: data.enrollmentId,
+            p_previous_expiry: previousExpiry,
+            p_new_expiry: data.newExpiryDate.toISOString(),
+            p_notes: data.notes || 'Access period extended'
+        });
 
         console.log('[extendAccess] Update completed successfully');
         revalidatePath('/admin/students');
         return { success: true };
     } catch (error: any) {
-        console.error('[extendAccess] Error:', error);
+        console.error('❌ [extendAccess] Error:', error);
         return { error: error.message };
     }
 }
@@ -405,15 +366,23 @@ export async function extendAccess(data: {
  * Get expiring subscriptions (within specified days)
  */
 export async function getExpiringSubscriptions(daysAhead: number = 7) {
-    const supabase = await createTenantClient();
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: 'Unauthorized' };
-
     try {
+        const { createClient } = await import('@/lib/supabase/server');
+        const authClient = await createClient();
+        const { data: { user } } = await authClient.auth.getUser();
+        if (!user) return { error: 'Unauthorized' };
+
+        const supabase = createAdminClient();
+        const tenantId = await getTenantIdFromHeaders() || process.env.NEXT_PUBLIC_TENANT_ID;
+
+        if (!tenantId) {
+            return { error: 'Tenant ID not configured' };
+        }
+
         const { data, error } = await supabase
             .from('expiring_enrollments_view')
             .select('*')
+            .eq('tenant_id', tenantId)
             .lte('days_until_expiry', daysAhead)
             .order('days_until_expiry', { ascending: true });
 
@@ -421,6 +390,7 @@ export async function getExpiringSubscriptions(daysAhead: number = 7) {
 
         return { success: true, data };
     } catch (error: any) {
+        console.error('❌ [getExpiringSubscriptions] Error:', error);
         return { error: error.message };
     }
 }
@@ -429,22 +399,34 @@ export async function getExpiringSubscriptions(daysAhead: number = 7) {
  * Get recent enrollment logs
  */
 export async function getRecentAccessLogs(limit: number = 50) {
-    const supabase = await createTenantClient();
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: 'Unauthorized' };
-
     try {
+        const { createClient } = await import('@/lib/supabase/server');
+        const authClient = await createClient();
+        const { data: { user } } = await authClient.auth.getUser();
+        if (!user) return { error: 'Unauthorized' };
+
+        const supabase = createAdminClient();
+        const tenantId = await getTenantIdFromHeaders() || process.env.NEXT_PUBLIC_TENANT_ID;
+
+        if (!tenantId) {
+            return { error: 'Tenant ID not configured' };
+        }
+
         const { data, error } = await supabase
             .from('enrollment_logs')
             .select(`
-        *,
-        performed_by_profile:profiles!enrollment_logs_performed_by_fkey (
-          id,
-          full_name,
-          email
-        )
-      `)
+                *,
+                performed_by_profile:profiles!enrollment_logs_performed_by_fkey (
+                    id,
+                    full_name,
+                    email
+                ),
+                enrollments!inner (
+                    id,
+                    tenant_id
+                )
+            `)
+            .eq('enrollments.tenant_id', tenantId)
             .order('created_at', { ascending: false })
             .limit(limit);
 
@@ -452,6 +434,7 @@ export async function getRecentAccessLogs(limit: number = 50) {
 
         return { success: true, data };
     } catch (error: any) {
+        console.error('❌ [getRecentAccessLogs] Error:', error);
         return { error: error.message };
     }
 }

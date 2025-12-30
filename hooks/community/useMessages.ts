@@ -2,12 +2,14 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { CommunityMessage } from "@/types/community";
+import { useTenantId } from "@/lib/tenant";
 
 const supabase = createClient();
 
 export const useChannelMessages = (channelId: string) => {
+  const tenantId = useTenantId();
   const query = useInfiniteQuery({
-    queryKey: ["community", "messages", channelId],
+    queryKey: ["community", "messages", channelId, tenantId],
     queryFn: async ({ pageParam = 0 }) => {
       const pageSize = 20; // Reduced from 50 for performance
       const start = pageParam * pageSize;
@@ -41,6 +43,7 @@ export const useChannelMessages = (channelId: string) => {
           )
         `)
         .eq("channel_id", channelId)
+        .eq("tenant_id", tenantId)
         .order("created_at", { ascending: false })
         .range(start, end);
 

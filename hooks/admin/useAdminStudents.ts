@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getStudentsWithEnrollments, addStudent, resetStudentSessions } from '@/actions/admin/students';
+import { getStudentsWithEnrollments, addStudent, resetStudentSessions, getStudentDetailsAction } from '@/actions/admin/students';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { getTenantId } from '@/lib/tenant';
@@ -24,10 +24,10 @@ export function useStudentDetails(userId: string) {
             if (!userId) return null;
 
             // Call server action (runs server-side with admin client)
-            const { getStudentDetailsAction } = await import('@/actions/admin/students');
             const result = await getStudentDetailsAction(userId);
 
             if (result.error) {
+                console.error('getStudentDetailsAction error:', result.error);
                 throw new Error(result.error);
             }
 

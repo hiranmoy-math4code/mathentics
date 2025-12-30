@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
+import { getTenantIdFromHeaders } from '@/lib/tenant';
 
 /**
  * Add a new student manually (admin only)
@@ -153,15 +154,15 @@ export async function getStudentsWithEnrollments(filters?: {
     const supabase = createAdminClient();
 
     try {
-        // Get tenant ID from environment (static per deployment)
-        const tenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+        // Get tenant ID from environment or headers
+        const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || await getTenantIdFromHeaders();
 
         if (!tenantId) {
-            console.error('❌ NEXT_PUBLIC_TENANT_ID not set in environment');
-            throw new Error('Tenant ID not configured. Please set NEXT_PUBLIC_TENANT_ID in .env.local');
+            console.error('❌ Tenant ID not found in environment or headers');
+            throw new Error('Tenant ID not configured. Please set NEXT_PUBLIC_TENANT_ID in .env.local or ensure headers are present.');
         }
 
-        console.log('✅ Using tenant ID from environment:', tenantId);
+        console.log('✅ Using tenant ID:', tenantId);
         console.log('🔍 Query params:', {
             table: 'user_tenant_memberships',
             filters: {
@@ -284,9 +285,10 @@ export async function getStudentsWithEnrollments(filters?: {
  */
 export async function getStudentAttempts(userId: string) {
     const supabase = createAdminClient();
+    const tenantId = await getTenantIdFromHeaders() || process.env.NEXT_PUBLIC_TENANT_ID;
 
     try {
-        const { data: rawData, error } = await supabase
+        let query = supabase
             .from('exam_attempts')
             .select(`
                 *,
@@ -297,8 +299,13 @@ export async function getStudentAttempts(userId: string) {
                 ),
                 results (*)
             `)
-            .eq('student_id', userId)
-            .order('created_at', { ascending: false });
+            .eq('student_id', userId);
+
+        if (tenantId) {
+            query = query.eq('tenant_id', tenantId);
+        }
+
+        const { data: rawData, error } = await query.order('created_at', { ascending: false });
 
         if (error) throw error;
 
@@ -318,26 +325,49 @@ export async function getStudentAttempts(userId: string) {
  * Get detailed info for a single student with stats (NEW - uses admin client)
  */
 export async function getStudentDetailsAction(userId: string) {
+    console.log(`🔍 [getStudentDetailsAction] Starting for userId: ${userId}`);
     try {
+        // Auth check
+        const { createClient: createServerClient } = await import('@/lib/supabase/server');
+        const authClient = await createServerClient();
+        const { data: { user: currentUser } } = await authClient.auth.getUser();
+        if (!currentUser) {
+            console.error('❌ [getStudentDetailsAction] Unauthorized access attempt');
+            return { error: 'Unauthorized' };
+        }
+
         const supabase = createAdminClient();
-        const tenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+        // Prioritize dynamic header resolution for multi-tenant support
+        const tenantId = await getTenantIdFromHeaders() || process.env.NEXT_PUBLIC_TENANT_ID;
+
+        console.log(`🏢 [getStudentDetailsAction] Using tenantId: ${tenantId}`);
 
         if (!tenantId) {
+            console.error('❌ [getStudentDetailsAction] Tenant ID not found');
             return { error: 'Tenant ID not configured' };
         }
 
         // Verify user belongs to this tenant
-        const { data: membership } = await supabase
+        console.log(`🕵️ [getStudentDetailsAction] Verifying membership for ${userId} in ${tenantId}`);
+        const { data: membership, error: membershipError } = await supabase
             .from('user_tenant_memberships')
-            .select('user_id')
+            .select('user_id, role')
             .eq('user_id', userId)
             .eq('tenant_id', tenantId)
-            .eq('is_active', true)
-            .single();
+            // .eq('is_active', true) // Don't restrict to active if admin needs to see details
+            .maybeSingle();
+
+        if (membershipError) {
+            console.error('❌ [getStudentDetailsAction] Membership check error:', membershipError);
+            return { error: `Membership check failed: ${membershipError.message}` };
+        }
 
         if (!membership) {
+            console.warn(`⚠️ [getStudentDetailsAction] No membership found for user ${userId} in tenant ${tenantId}`);
             return { error: 'Student not found in this tenant' };
         }
+
+        console.log(`✅ [getStudentDetailsAction] Membership verified. Role: ${membership.role}`);
 
         // Get student profile
         const { data: student, error: studentError } = await supabase
@@ -347,11 +377,15 @@ export async function getStudentDetailsAction(userId: string) {
             .single();
 
         if (studentError) {
-            return { error: `Failed to fetch student: ${studentError.message}` };
+            console.error('❌ [getStudentDetailsAction] Profile fetch error:', studentError);
+            return { error: `Failed to fetch student profile: ${studentError.message}` };
         }
 
+        console.log(`👤 [getStudentDetailsAction] Student profile fetched: ${student.email}`);
+
         // Get enrollments
-        const { data: enrollments } = await supabase
+        console.log(`📚 [getStudentDetailsAction] Fetching enrollments...`);
+        const { data: enrollments, error: enrollmentsError } = await supabase
             .from('enrollments')
             .select(`
                 *,
@@ -370,8 +404,16 @@ export async function getStudentDetailsAction(userId: string) {
             .eq('user_id', userId)
             .eq('tenant_id', tenantId);
 
+        if (enrollmentsError) {
+            console.error('❌ [getStudentDetailsAction] Enrollments fetch error:', enrollmentsError);
+            // Don't fail the whole action if only enrollments fail, just log it
+        } else {
+            console.log(`✅ [getStudentDetailsAction] Fetched ${enrollments?.length || 0} enrollments`);
+        }
+
         // Get exam attempts
-        const { data: rawAttempts } = await supabase
+        console.log(`📝 [getStudentDetailsAction] Fetching exam attempts...`);
+        const { data: rawAttempts, error: attemptsError } = await supabase
             .from('exam_attempts')
             .select(`
                 *,
@@ -381,6 +423,12 @@ export async function getStudentDetailsAction(userId: string) {
             .eq('student_id', userId)
             .eq('tenant_id', tenantId)
             .order('created_at', { ascending: false });
+
+        if (attemptsError) {
+            console.error('❌ [getStudentDetailsAction] Attempts fetch error:', attemptsError);
+        } else {
+            console.log(`✅ [getStudentDetailsAction] Fetched ${rawAttempts?.length || 0} attempts`);
+        }
 
         const attempts = rawAttempts?.map(att => ({
             ...att,
@@ -392,7 +440,8 @@ export async function getStudentDetailsAction(userId: string) {
         let logs: any[] = [];
 
         if (enrollmentIds.length > 0) {
-            const { data: logData } = await supabase
+            console.log(`📜 [getStudentDetailsAction] Fetching logs for ${enrollmentIds.length} enrollments...`);
+            const { data: logData, error: logsError } = await supabase
                 .from('enrollment_logs')
                 .select(`
                     *,
@@ -405,6 +454,11 @@ export async function getStudentDetailsAction(userId: string) {
                 .order('created_at', { ascending: false })
                 .limit(50);
 
+            if (logsError) {
+                console.error('❌ [getStudentDetailsAction] Logs fetch error:', logsError);
+            } else {
+                console.log(`✅ [getStudentDetailsAction] Fetched ${logData?.length || 0} logs`);
+            }
             logs = logData || [];
         }
 
@@ -413,6 +467,8 @@ export async function getStudentDetailsAction(userId: string) {
         const avgPercentage = submittedAttempts.length > 0
             ? submittedAttempts.reduce((acc, curr) => acc + (curr.results?.percentage || 0), 0) / submittedAttempts.length
             : 0;
+
+        console.log(`🏁 [getStudentDetailsAction] All data fetched successfully for ${userId}`);
 
         return {
             success: true,
@@ -426,12 +482,12 @@ export async function getStudentDetailsAction(userId: string) {
                     totalEnrollments: enrollments?.length || 0,
                     totalAttempts: attempts?.length || 0,
                     avgPercentage: Math.round(avgPercentage * 10) / 10,
-                    activeSessions: 0 // Will be populated from device_sessions if needed
+                    activeSessions: 0
                 }
             }
         };
     } catch (error: any) {
-        console.error('getStudentDetailsAction error:', error);
+        console.error('💥 [getStudentDetailsAction] UNEXPECTED error:', error);
         return { error: error?.message || 'Failed to fetch student details' };
     }
 }

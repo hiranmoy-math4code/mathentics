@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useTenantId } from '@/lib/tenant';
 
 export const useMentions = () => {
+    const tenantId = useTenantId();
     return useQuery({
-        queryKey: ['community', 'mentions'],
+        queryKey: ['community', 'mentions', tenantId],
         queryFn: async () => {
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
@@ -15,6 +17,7 @@ export const useMentions = () => {
                 .from('profiles')
                 .select('full_name')
                 .eq('id', user.id)
+                .eq('tenant_id', tenantId)
                 .single();
 
             if (!profile?.full_name) return [];
@@ -48,6 +51,7 @@ export const useMentions = () => {
                         )
                     )
                 `)
+                .eq('tenant_id', tenantId)
                 .ilike('content', `%@${profile.full_name}%`)
                 .order('created_at', { ascending: false })
                 .limit(50);
@@ -59,8 +63,9 @@ export const useMentions = () => {
 };
 
 export const useBookmarkedMessages = () => {
+    const tenantId = useTenantId();
     return useQuery({
-        queryKey: ['community', 'bookmarks'],
+        queryKey: ['community', 'bookmarks', tenantId],
         queryFn: async () => {
             const supabase = createClient();
             const { data: { user } } = await supabase.auth.getUser();
@@ -105,6 +110,7 @@ export const useBookmarkedMessages = () => {
                     )
                 `)
                 .eq('user_id', user.id)
+                .eq('tenant_id', tenantId)
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -121,6 +127,7 @@ export const useBookmarkedMessages = () => {
 
 export const useToggleBookmark = (channelId?: string) => {
     const queryClient = useQueryClient();
+    const tenantId = useTenantId();
 
     return useMutation({
         mutationFn: async ({ messageId, isBookmarked }: { messageId: string; isBookmarked: boolean }) => {
@@ -134,7 +141,8 @@ export const useToggleBookmark = (channelId?: string) => {
                     .from('community_bookmarks')
                     .delete()
                     .eq('user_id', user.id)
-                    .eq('message_id', messageId);
+                    .eq('message_id', messageId)
+                    .eq('tenant_id', tenantId);
 
                 if (error) throw error;
                 return { action: 'removed' };
@@ -145,28 +153,17 @@ export const useToggleBookmark = (channelId?: string) => {
                     .select('id')
                     .eq('user_id', user.id)
                     .eq('message_id', messageId)
-                    .single();
+                    .eq('tenant_id', tenantId)
+                    .maybeSingle();
 
                 if (existing) {
                     return { action: 'added' };
                 }
 
-                // Get tenant_id from user membership
-                const { data: membership } = await supabase
-                    .from('user_tenant_memberships')
-                    .select('tenant_id')
-                    .eq('user_id', user.id)
-                    .eq('is_active', true)
-                    .single();
-
-                if (!membership) {
-                    throw new Error("No active tenant membership found");
-                }
-
                 const { error } = await supabase
                     .from('community_bookmarks')
                     .insert({
-                        tenant_id: membership.tenant_id,  // ✅ Added tenant_id
+                        tenant_id: tenantId,
                         user_id: user.id,
                         message_id: messageId,
                     });

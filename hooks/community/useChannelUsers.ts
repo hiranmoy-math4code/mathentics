@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useTenantId } from "@/lib/tenant";
 
 export function useChannelUsers(channelId: string | undefined) {
+    const tenantId = useTenantId();
     return useQuery({
-        queryKey: ["channel-users", channelId],
+        queryKey: ["channel-users", channelId, tenantId],
         queryFn: async () => {
             if (!channelId) return [];
 
@@ -14,6 +16,7 @@ export function useChannelUsers(channelId: string | undefined) {
                 .from("community_channels")
                 .select("course_id")
                 .eq("id", channelId)
+                .eq("tenant_id", tenantId)
                 .single();
 
             if (!channel) return [];

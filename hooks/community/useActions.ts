@@ -1,11 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { useTenantId } from "@/lib/tenant";
 
 const supabase = createClient();
 
 export const useSendMessage = (channelId: string) => {
     const queryClient = useQueryClient();
+    const tenantId = useTenantId();
 
     return useMutation({
         mutationFn: async ({ content, attachments = [] }: { content: string; attachments?: any[] }) => {
@@ -14,22 +16,10 @@ export const useSendMessage = (channelId: string) => {
                 throw new Error("Not authenticated");
             }
 
-            // Get tenant_id from user membership
-            const { data: membership } = await supabase
-                .from('user_tenant_memberships')
-                .select('tenant_id')
-                .eq('user_id', user.id)
-                .eq('is_active', true)
-                .single();
-
-            if (!membership) {
-                throw new Error("No active tenant membership found");
-            }
-
             const { data, error } = await supabase
                 .from("community_messages")
                 .insert({
-                    tenant_id: membership.tenant_id,  // ✅ Added tenant_id
+                    tenant_id: tenantId,
                     channel_id: channelId,
                     user_id: user.id,
                     content,
@@ -118,23 +108,12 @@ export const useSendMessage = (channelId: string) => {
 
 export const useToggleReaction = () => {
     const queryClient = useQueryClient();
+    const tenantId = useTenantId();
 
     return useMutation({
         mutationFn: async ({ messageId, emoji }: { messageId: string; emoji: string }) => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("Not authenticated");
-
-            // Get tenant_id from user membership
-            const { data: membership } = await supabase
-                .from('user_tenant_memberships')
-                .select('tenant_id')
-                .eq('user_id', user.id)
-                .eq('is_active', true)
-                .single();
-
-            if (!membership) {
-                throw new Error("No active tenant membership found");
-            }
 
             // Check if reaction exists
             const { data: existing } = await supabase
@@ -143,21 +122,23 @@ export const useToggleReaction = () => {
                 .eq("message_id", messageId)
                 .eq("user_id", user.id)
                 .eq("emoji", emoji)
-                .single();
+                .eq("tenant_id", tenantId)
+                .maybeSingle();
 
             if (existing) {
                 // Remove reaction
                 const { error } = await supabase
                     .from("community_reactions")
                     .delete()
-                    .eq("id", existing.id);
+                    .eq("id", existing.id)
+                    .eq("tenant_id", tenantId);
                 if (error) throw error;
             } else {
                 // Add reaction
                 const { error } = await supabase
                     .from("community_reactions")
                     .insert({
-                        tenant_id: membership.tenant_id,  // ✅ Added tenant_id
+                        tenant_id: tenantId,
                         message_id: messageId,
                         user_id: user.id,
                         emoji,

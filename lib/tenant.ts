@@ -51,3 +51,20 @@ export function useTenantId(): string {
 export function hasTenantId(): boolean {
     return !!process.env.NEXT_PUBLIC_TENANT_ID;
 }
+/**
+ * Get tenant ID from request headers (Server-side only)
+ * 
+ * @returns {Promise<string | null>} The tenant ID or null if not found
+ */
+export async function getTenantIdFromHeaders(): Promise<string | null> {
+    try {
+        const { headers } = await import('next/headers');
+        const headersList = await headers();
+        const tenantId = headersList.get('x-tenant-id');
+        return tenantId;
+    } catch (error) {
+        // Headers not available (e.g., called from static generation)
+        console.warn('⚠️ Headers not available in getTenantIdFromHeaders');
+        return null;
+    }
+}
