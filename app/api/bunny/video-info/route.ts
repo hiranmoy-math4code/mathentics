@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getBunnyVideoInfo } from '@/lib/bunny';
 
 // CORS headers
-export const runtime = 'edge';
+// export const runtime = 'edge';
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',

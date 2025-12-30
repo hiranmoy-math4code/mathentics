@@ -12,7 +12,7 @@ import { deleteBunnyVideo } from '@/lib/bunny';
  * 
  * 
  */
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 
 export async function POST(request: NextRequest) {

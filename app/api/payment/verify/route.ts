@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { checkPaymentStatus } from "@/lib/phonepe";
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 
 // CORS headers for mobile app

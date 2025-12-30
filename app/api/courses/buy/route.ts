@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { initiatePayment } from "@/lib/payments/gateway-factory";
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 
 // CORS headers for mobile app

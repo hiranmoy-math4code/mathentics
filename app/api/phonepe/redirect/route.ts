@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"; // For fallback
 import { createAdminClient } from "@/lib/supabase/admin";
 import { checkPaymentStatus } from "@/lib/phonepe";
 
-export const runtime = 'edge';
+// export const runtime = 'edge';
 
 
 // Shared logic for processing redirect (POST or GET)
