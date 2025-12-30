@@ -6,10 +6,10 @@ export const runtime = 'edge';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = params.id;
+        const { id: userId } = await params;
 
         // 1. Authenticate (using standard client to check session)
         const supabaseClient = await createClient();
