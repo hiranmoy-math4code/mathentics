@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import Script from 'next/script';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Declare global Cashfree variable
 declare const Cashfree: any;
 
-export const runtime = 'edge';
+export const dynamic = 'force-static';
 
 export default function CashfreeDebugPage() {
     const [amount, setAmount] = useState('1.00');
@@ -14,7 +17,7 @@ export default function CashfreeDebugPage() {
     const [loading, setLoading] = useState(false);
     const [logs, setLogs] = useState<string[]>([]);
 
-    const addLog = (msg: string) => setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev]);
+    const addLog = (msg: string) => setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg} `, ...prev]);
 
     const handlePay = async () => {
         try {
