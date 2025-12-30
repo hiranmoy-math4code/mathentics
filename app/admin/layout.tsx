@@ -1,43 +1,14 @@
 import type React from "react";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import AdminClientLayout from "./AdminClientLayout";
 import { AdminAppContainer } from "@/components/admin/AdminAppContainer";
-import { headers } from "next/headers";
-import { Home, Grid, BarChart2, User, Settings } from "lucide-react";
-import {
-  IconArrowLeft,
-  IconBrandTabler,
-  IconSettings,
-  IconUserBolt,
-} from "@tabler/icons-react";
 
-// export const runtime = 'edge';
+export const dynamic = 'force-static';
 
-export default async function AdminLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const headersList = await headers();
-  const pathname = headersList.get("x-url") || "/admin/dashboard";
-
-  if (!user) redirect("/auth/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile || (profile.role !== "admin" && profile.role !== "creator")) {
-    redirect("/student/dashboard");
-  }
   const links = [
     { icon: "home", label: "Dashboard", href: "/admin/dashboard" },
     { icon: "bookopen", label: "Courses", href: "/admin/courses" },
@@ -51,8 +22,8 @@ export default async function AdminLayout({
   ];
 
   return (
-    <AdminClientLayout profile={profile} links={links}>
-      <AdminAppContainer initialRoute={pathname}>
+    <AdminClientLayout links={links}>
+      <AdminAppContainer initialRoute="/admin/dashboard">
         {children}
       </AdminAppContainer>
     </AdminClientLayout>

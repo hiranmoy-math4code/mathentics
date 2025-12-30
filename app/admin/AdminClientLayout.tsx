@@ -8,13 +8,14 @@ import Header from "./components/layout/Header";
 import MobileNav from "./components/layout/MobileNav";
 import { CommunityModalProvider } from "@/context/CommunityModalContext";
 import { CommunityModal } from "@/components/community/CommunityModal";
+import { useCurrentUser } from "@/hooks/student/useCurrentUser";
 
 export default function AdminClientLayout({
-  profile,
+  profile: initialProfile,
   links,
   children,
 }: {
-  profile: any;
+  profile?: any;
   links: any;
   children: React.ReactNode;
 }) {
@@ -22,7 +23,11 @@ export default function AdminClientLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [theme, setTheme] = useState("light");
 
+  // Use hook to fetch profile if not provided
+  const { data: fetchedProfile, isLoading } = useCurrentUser();
 
+  // Use provided profile or fetched profile
+  const profile = initialProfile || fetchedProfile;
 
   const chartData = [
     { name: "Mon", users: 400, exams: 240 },
@@ -69,6 +74,16 @@ export default function AdminClientLayout({
     redirect("/auth/login");
   };
 
+  // Show loading spinner if fetching profile
+  if (!profile && isLoading && !initialProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-gray-600">Loading Dashboard...</div>
+      </div>
+    );
+  }
+
+  // Handle case where profile fails to load (and wasn't provided)
   return (
     <CommunityModalProvider>
       <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-black transition-colors duration-700">
