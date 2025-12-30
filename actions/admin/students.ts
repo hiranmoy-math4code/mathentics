@@ -403,7 +403,7 @@ export async function getStudentDetailsAction(userId: string) {
 
         // 5. Fetch Enrollments with safer join syntax
         log("Step 5: Fetching enrollments...");
-        const { data: enrollments, error: enrollmentsError } = await supabase
+        let { data: enrollments, error: enrollmentsError } = await supabase
             .from('enrollments')
             .select(`
                 *,
