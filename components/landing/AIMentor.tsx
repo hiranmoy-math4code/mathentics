@@ -36,40 +36,21 @@ export const chatKeys = {
 
 
 
+import { callGeminiAction } from "@/app/actions/mentorActions";
+
 // --- SERVER ACTION WRAPPER ---
-export const callGemini = async (prompt: string, systemInstruction: string = "") => {
-    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-    if (!apiKey) {
-        throw new Error("Gemini API key is missing. Please check NEXT_PUBLIC_GEMINI_API_KEY in your environment variables.");
-    }
+export const callGemini = async (prompt: string, systemInstruction: string = ""): Promise<string> => {
+    try {
+        const result = await callGeminiAction(prompt, systemInstruction);
 
-    let delay = 1000;
-    for (let i = 0; i < 3; i++) {
-        try {
-            const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction }] } : undefined
-                    })
-                }
-            );
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                const apiErrorMessage = errorData.error?.message || response.statusText || `HTTP ${response.status}`;
-                throw new Error(`Gemini API Error: ${apiErrorMessage}`);
-            }
-
-            const data = await response.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't generate a response.";
-        } catch (error: any) {
-            if (i === 2) throw error;
-            await new Promise(r => setTimeout(r, delay));
-            delay *= 2;
+        if (!result.success || !result.text) {
+            throw new Error(result.error || "Failed to get response from AI Mentor");
         }
+
+        return result.text;
+    } catch (error: any) {
+        console.error("AI Mentor Server Action Error:", error);
+        throw error;
     }
 };
 
@@ -110,7 +91,7 @@ const SUGGESTED_QUESTIONS = [
     "Tell me about IIT-JAM courses.",
     "Which test series is best for GATE Maths?",
     "How can I improve my Linear Algebra?",
-    "Show me some courses under $50."
+    "Show me some courses under 500."
 ];
 
 function AIMentorContent() {
@@ -310,7 +291,8 @@ function AIMentorContent() {
 
         } catch (e: any) {
             console.error("Chat Error:", e);
-            const errorMsg: Message = { role: 'ai', content: "Sorry, I'm having trouble. Please check your internet or try again later.", created_at: new Date().toISOString() };
+            const displayError = e.message || "Sorry, I'm having trouble. Please check your internet or try again later.";
+            const errorMsg: Message = { role: 'ai', content: displayError, created_at: new Date().toISOString() };
             setMessages(prev => prev ? [...prev, errorMsg] : [errorMsg]);
         } finally {
             setIsGenerating(false);
@@ -390,7 +372,7 @@ function AIMentorContent() {
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-200">
+                                        <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-indigo-50 to-purple-50 text-indigo-200">
                                             <Bot size={40} />
                                         </div>
                                     )}
@@ -435,7 +417,7 @@ function AIMentorContent() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="fixed bottom-24 right-6 w-[90vw] md:w-[400px] h-[500px] max-h-[80vh] bg-white rounded-3xl shadow-2xl border border-gray-100 z-[9999] overflow-hidden flex flex-col font-sans"
+                        className="fixed bottom-24 right-6 w-[90vw] md:w-[400px] h-[500px] max-h-[80vh] bg-white rounded-3xl shadow-2xl border border-gray-100 z-9999 overflow-hidden flex flex-col font-sans"
                     >
                         {/* --- HEADER --- */}
                         <div className="flex items-center justify-between px-4 py-3 bg-white/80 backdrop-blur-md border-b border-gray-100 z-40 sticky top-0">
@@ -609,7 +591,7 @@ function AIMentorContent() {
                                 {/* --- FOOTER INPUT --- */}
                                 <div className="p-4 bg-white z-10 border-t border-gray-50">
                                     <div className="relative group">
-                                        <div className={`absolute -inset-[1px] rounded-[24px] bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-30 transition-opacity duration-300 ${query ? 'opacity-100' : 'group-hover:opacity-60 opacity-0'}`} />
+                                        <div className={`absolute -inset-px rounded-[24px] bg-linear-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-30 transition-opacity duration-300 ${query ? 'opacity-100' : 'group-hover:opacity-60 opacity-0'}`} />
 
                                         <div className="relative flex items-center bg-white border border-gray-200 rounded-[22px] px-4 py-2 shadow-sm focus-within:border-transparent">
                                             <button className="text-gray-400 hover:text-gray-600 transition-colors p-1" title="Attach file (Demo)">
@@ -660,7 +642,7 @@ function AIMentorContent() {
 
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed bottom-6 right-6 z-[9998] bg-[#1F2A6B] text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-300"
+                className="fixed bottom-6 right-6 z-9998 bg-[#1F2A6B] text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-300"
             >
                 {isOpen ? <X size={24} /> : <MessageSquare size={24} />}
             </button>

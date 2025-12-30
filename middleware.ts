@@ -55,10 +55,9 @@ export async function middleware(request: NextRequest) {
   // ১. পারফরম্যান্স অপ্টিমাইজেশন: Static files, API routes এবং RSC requests দ্রুত স্কিপ করুন
   // এটি ১০,০০০+ ইউজার হ্যান্ডেল করার সময় সার্ভারের লোড কমাবে
   if (
-    pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname.includes('.') ||
-    search.includes('_rsc=') // ⚡ RSC requests skip করুন (এটাই মূল fix)
+    search.includes('_rsc=')
   ) {
     return NextResponse.next()
   }

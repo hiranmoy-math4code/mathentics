@@ -418,7 +418,7 @@ export function PreviousResultView({
                         onClick={onRetake}
                         className="bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
-                        <Flag className="w-4 w-4 mr-2" />
+                        <Flag className="w-4 mr-2" />
                         Retake Quiz
                     </Button>
                     {onBack && (
@@ -786,7 +786,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
             {/* LEFT PANEL */}
             <div className="flex flex-col min-h-0 p-3 md:p-6 relative bg-background">
                 {/* HEADER NAV */}
-                <div className="flex-shrink-0 bg-card border border-border py-3 px-3 md:px-4 rounded-xl flex flex-wrap items-center justify-between gap-2 md:gap-3 shadow-sm mb-4">
+                <div className="shrink-0 bg-card border border-border py-3 px-3 md:px-4 rounded-xl flex flex-wrap items-center justify-between gap-2 md:gap-3 shadow-sm mb-4">
                     <div className="flex flex-col flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                             <h2 className="text-base md:text-lg font-bold text-primary truncate">{sessionData.exam.title}</h2>

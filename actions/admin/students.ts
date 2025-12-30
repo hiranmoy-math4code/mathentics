@@ -350,11 +350,11 @@ export async function getStudentDetailsAction(userId: string) {
 
         // 2. Tenant resolution
         log("Step 2: Resolving tenant...");
-        const headerTenantId = await getTenantIdFromHeaders();
         const envTenantId = process.env.NEXT_PUBLIC_TENANT_ID;
-        const tenantId = headerTenantId || envTenantId;
+        const headerTenantId = await getTenantIdFromHeaders();
+        const tenantId = envTenantId || headerTenantId;
 
-        log(`📍 resolved tenantId: ${tenantId} (Source: ${headerTenantId ? 'Header' : 'Env Fallback'})`);
+        log(`📍 resolved tenantId: ${tenantId} (Source: ${envTenantId ? 'Env' : 'Header Fallback'})`);
 
         if (!tenantId) {
             log("❌ Tenant ID resolution failed (missing both header and env)");

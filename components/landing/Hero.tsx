@@ -25,7 +25,7 @@ export const Hero: React.FC = () => {
   };
 
   return (
-    <section className="relative min-h-[65vh] flex items-center pt-20 pb-16 lg:pt-24 lg:pb-20 overflow-hidden bg-white">
+    <section className="relative min-h-[85vh] flex items-center pt-20 pb-16 lg:pt-24 lg:pb-20 overflow-hidden bg-white">
       {/* Subtle Background Gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-white to-purple-50/40 -z-10" />
 
