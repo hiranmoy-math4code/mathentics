@@ -14,6 +14,8 @@ import { LessonAppContainer } from "@/components/LessonAppContainer";
  * - All lesson navigation
  * - Caching and optimization
  */
+export const runtime = 'edge';
+
 export default async function CourseLessonPage({
     params,
     searchParams,
