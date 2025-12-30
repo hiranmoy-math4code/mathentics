@@ -1,3 +1,5 @@
+import Link from 'next/link'
+export const dynamic = 'force-static';
 export default function TenantNotFound() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -27,12 +29,12 @@ export default function TenantNotFound() {
                     Please contact support if you believe this is an error.
                 </p>
                 <div className="mt-6">
-                    <a
+                    <Link
                         href="mailto:support@math4code.com"
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                     >
                         Contact Support
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyPayment } from "@/lib/payments/gateway-factory";
 
+export const runtime = 'edge';
+
 // CORS headers
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',

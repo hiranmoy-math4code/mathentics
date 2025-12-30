@@ -6,6 +6,8 @@ import Script from 'next/script';
 // Declare global Cashfree variable
 declare const Cashfree: any;
 
+export const runtime = 'edge';
+
 export default function CashfreeDebugPage() {
     const [amount, setAmount] = useState('1.00');
     const [phone, setPhone] = useState('9999999999');
