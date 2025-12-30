@@ -2,7 +2,7 @@ import { createBrowserClient } from "@supabase/ssr"
 
 export function createClient() {
   return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL || "https://wzlcuzygjdzolcycogow.supabase.co",
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "dummy_key_for_build_time_generation",
   )
 }

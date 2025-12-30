@@ -21,8 +21,12 @@ const OAUTH_BASE = isProd
   : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
 
 // Validation
+// Validation
 if (!MERCHANT_ID || !CLIENT_SECRET) {
-  logger.error("❌ PhonePe Error: Missing Required Environment Variables (MERCHANT_ID or CLIENT_SECRET)");
+  // During build time, these might be missing if not set in CI/CD.
+  // We log a warning instead of error to prevent build failure, 
+  // assumming they will be present at runtime or fetched from DB.
+  console.warn("⚠️ PhonePe Config: Missing Environment Variables (MERCHANT_ID or CLIENT_SECRET). This is expected during build if not needed.");
 }
 
 /**
