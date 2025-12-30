@@ -1,6 +1,7 @@
 "use client";
 import { useCurrentUser } from "@/hooks/student/useCurrentUser";
 import { useRewards, useStreakHistory } from "@/hooks/useRewards";
+import { useTenantId } from "@/hooks/useTenantId";
 import { useProfileQuery } from "@/hooks/useProfile";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -14,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 export default function StudentRewardsPage() {
     const { data: user, isLoading: userLoading } = useCurrentUser();
     const { data: profile } = useProfileQuery();
+    const tenantId = useTenantId();
 
     const {
         rewardStatus: rewards,
@@ -21,7 +23,7 @@ export default function StudentRewardsPage() {
         badges,
         transactions,
         statusLoading
-    } = useRewards(user?.id);
+    } = useRewards(user?.id, tenantId || undefined);
 
     const { data: streakHistory } = useStreakHistory(user?.id || "");
 

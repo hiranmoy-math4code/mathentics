@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRewards } from "@/hooks/useRewards";
+import { useTenantId } from "@/hooks/useTenantId";
 import { Gift, Flame, Hexagon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,7 +9,8 @@ import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
 export function RewardDisplay({ userId, userProfile }: { userId: string; userProfile?: any }) {
-    const { rewardStatus: rewards } = useRewards(userId);
+    const tenantId = useTenantId();
+    const { rewardStatus: rewards } = useRewards(userId, tenantId || undefined);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Fetch profile if not provided

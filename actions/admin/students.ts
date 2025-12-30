@@ -1,6 +1,5 @@
 'use server';
 
-import { createTenantClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 
@@ -13,7 +12,9 @@ export async function addStudent(data: {
     fullName: string;
     sendInvite?: boolean;
 }) {
-    const supabase = await createTenantClient();
+    // Use createClient instead of createTenantClient for Cloudflare compatibility
+    const { createClient } = await import('@/lib/supabase/server');
+    const supabase = await createClient();
 
     // Check admin permission
     const { data: { user } } = await supabase.auth.getUser();
@@ -111,7 +112,9 @@ export async function addStudent(data: {
  * Search students by name or email
  */
 export async function searchStudents(query: string) {
-    const supabase = await createTenantClient();
+    // Use createClient instead of createTenantClient for Cloudflare compatibility
+    const { createClient } = await import('@/lib/supabase/server');
+    const supabase = await createClient();
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
@@ -140,9 +143,10 @@ export async function getStudentsWithEnrollments(filters?: {
     status?: 'all' | 'active' | 'expired';
     expiringWithinDays?: number;
 }) {
-    // Use tenant client for auth check (has user context)
-    const tenantClient = await createTenantClient();
-    const { data: { user } } = await tenantClient.auth.getUser();
+    // Use createClient for auth check (Cloudflare compatible)
+    const { createClient: createServerClient } = await import('@/lib/supabase/server');
+    const authClient = await createServerClient();
+    const { data: { user } } = await authClient.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
 
     // Use admin client for queries (bypasses RLS)
