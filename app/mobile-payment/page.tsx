@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import MobilePaymentClient from './client';
 
-// export const runtime = 'edge';
+export const runtime = 'edge';
 
 export const metadata: Metadata = {
     title: 'Secure Payment Redirect',

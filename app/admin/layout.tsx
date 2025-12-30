@@ -2,7 +2,7 @@ import type React from "react";
 import AdminClientLayout from "./AdminClientLayout";
 import { AdminAppContainer } from "@/components/admin/AdminAppContainer";
 
-export const dynamic = 'force-static';
+export const runtime = 'edge';
 
 export default function AdminLayout({
   children,
