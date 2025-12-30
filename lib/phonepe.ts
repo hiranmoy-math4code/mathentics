@@ -179,6 +179,17 @@ export async function checkPaymentStatus(merchantTransactionId: string) {
 }
 
 /**
+ * Helper to compute SHA256 hash using Web Crypto API (Edge Runtime Compatible)
+ */
+async function sha256(message: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
  * Initiate Refund using v1 API (checksum-based)
  * Note: Standard Checkout v2 doesn't support refunds yet, so we use v1
  */
@@ -188,9 +199,6 @@ export async function refundTransaction(
   userId: string
 ) {
   try {
-    // Node.js built-in crypto module
-    const crypto = require('crypto');
-
     const newRefundTxnId = `RF${Date.now()}`;
 
     const refundPayload = {
@@ -203,6 +211,8 @@ export async function refundTransaction(
     };
 
     const payload = JSON.stringify(refundPayload);
+    // Buffer is available in Node.js and some Edge environments (like Cloudflare Workers)
+    // If Buffer is not available, we can use btoa/TextEncoder
     const payloadBase64 = Buffer.from(payload).toString('base64');
 
     const saltKey = CLIENT_SECRET || "";
@@ -210,8 +220,10 @@ export async function refundTransaction(
 
     const apiPath = "/pg/v1/refund";
     const stringToHash = payloadBase64 + apiPath + saltKey;
-    const sha256 = crypto.createHash('sha256').update(stringToHash).digest('hex');
-    const xVerify = `${sha256}###${saltIndex}`;
+
+    // Use Web Crypto API for hashing
+    const sha256Hash = await sha256(stringToHash);
+    const xVerify = `${sha256Hash}###${saltIndex}`;
 
     const url = `${API_BASE}${apiPath}`;
 
