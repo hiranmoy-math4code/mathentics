@@ -31,7 +31,7 @@ async function processRedirect(req: Request, transactionId: string) {
     }
 
     // Fetch tenant-specific PhonePe settings
-    const { data: gatewaySettings } = await supabase
+    let { data: gatewaySettings } = await supabase
       .from("payment_gateway_settings")
       .select("*")
       .eq("tenant_id", initialPayment.tenant_id)
@@ -40,8 +40,7 @@ async function processRedirect(req: Request, transactionId: string) {
       .single();
 
     if (!gatewaySettings) {
-      // Fallback to math4code default if needed? 
-      // For now, let's look for math4code default if tenant-specific fails (matching gateway-factory logic)
+      // Fallback to math4code default if needed
       const { data: math4codeTenant } = await supabase.from("tenants").select("id").eq("slug", "math4code").single();
       if (math4codeTenant) {
         const { data: defaultSettings } = await supabase
@@ -53,7 +52,7 @@ async function processRedirect(req: Request, transactionId: string) {
           .single();
 
         if (defaultSettings) {
-          (gatewaySettings as any) = defaultSettings;
+          gatewaySettings = defaultSettings;
         }
       }
     }
