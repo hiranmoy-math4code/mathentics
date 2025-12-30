@@ -13,7 +13,7 @@ export async function POST(req: Request) {
         const { response } = await req.json();
 
         // 1. Decode Response
-        const decodedResponse = JSON.parse(Buffer.from(response, "base64").toString("utf-8"));
+        const decodedResponse = JSON.parse(atob(response));
 
 
         const { code, merchantTransactionId, merchantOrderId, data } = decodedResponse;

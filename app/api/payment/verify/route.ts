@@ -74,10 +74,52 @@ export async function POST(req: Request) {
             );
         }
 
-        // 1. Check payment status from PhonePe
-        const statusResponse = await checkPaymentStatus(transactionId);
+        // 1. Fetch payment record to get tenant_id
+        const { data: paymentRecord, error: fetchError } = await supabase
+            .from("course_payments")
+            .select("*")
+            .eq("transaction_id", transactionId)
+            .single();
 
-        // 2. Determine payment status
+        if (fetchError || !paymentRecord) {
+            console.error("❌ Payment record not found:", fetchError);
+            return NextResponse.json(
+                { success: false, error: "Payment record not found" },
+                { status: 404, headers: corsHeaders }
+            );
+        }
+
+        const tenantId = paymentRecord.tenant_id;
+
+        // 2. Fetch PhonePe settings for this tenant
+        const { data: settings, error: settingsError } = await supabase
+            .from("payment_gateway_settings")
+            .select("*")
+            .eq("tenant_id", tenantId)
+            .eq("gateway_type", "phonepe")
+            .eq("is_active", true)
+            .single();
+
+        if (settingsError || !settings) {
+            console.error("❌ PhonePe settings not found for tenant:", tenantId);
+            return NextResponse.json(
+                { success: false, error: "Payment gateway configuration missing" },
+                { status: 500, headers: corsHeaders }
+            );
+        }
+
+        const phonepeConfig = {
+            merchantId: settings.credentials.merchantId,
+            clientId: settings.credentials.clientId,
+            clientSecret: settings.credentials.clientSecret,
+            clientVersion: settings.credentials.clientVersion || 1,
+            environment: settings.is_test_mode ? 'preprod' : 'production'
+        } as any;
+
+        // 3. Check payment status from PhonePe
+        const statusResponse = await checkPaymentStatus(phonepeConfig, transactionId);
+
+        // 4. Determine payment status
         let status = "pending";
         const response = statusResponse as any;
         let state = null;
@@ -96,7 +138,7 @@ export async function POST(req: Request) {
             status = "failed";
         }
 
-        // 3. Update payment record in database
+        // 5. Update payment record in database
         const { data: payment, error: updateError } = await supabase
             .from("course_payments")
             .update({
