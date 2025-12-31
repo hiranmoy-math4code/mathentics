@@ -39,8 +39,12 @@ export default function StudentClientLayout({ children }: { children: React.Reac
             prefetch: async () => {
                 // Prefetch results data on hover
                 const supabase = (await import('@/lib/supabase/client')).createClient();
+                const { getTenantId } = await import('@/lib/tenant');
+
                 const { data: { user } } = await supabase.auth.getUser();
-                if (!user) return null;
+                const tenantId = await getTenantId();
+
+                if (!user || !tenantId) return null;
 
                 const { data } = await supabase
                     .from("results")
@@ -54,6 +58,7 @@ export default function StudentClientLayout({ children }: { children: React.Reac
                         )
                     `)
                     .eq("student_id", user.id)
+                    .eq("tenant_id", tenantId)
                     .order("created_at", { ascending: false });
 
                 return data;
