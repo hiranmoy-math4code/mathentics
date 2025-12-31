@@ -37,20 +37,24 @@ export const chatKeys = {
 
 
 
-import { callGeminiAction } from "@/app/actions/mentorActions";
-
-// --- SERVER ACTION WRAPPER ---
+// --- CENTRALIZED API CALL ---
 export const callGemini = async (prompt: string, systemInstruction: string = ""): Promise<string> => {
     try {
-        const result = await callGeminiAction(prompt, systemInstruction);
+        const response = await fetch("/api/ai/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt, systemInstruction })
+        });
 
-        if (!result.success || !result.text) {
-            throw new Error(result.error || "Failed to get response from AI Mentor");
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || "Failed to generate response");
         }
 
-        return result.text;
+        return data.text;
     } catch (error: any) {
-        console.error("AI Mentor Server Action Error:", error);
+        console.error("AI Mentor API Error:", error);
         throw error;
     }
 };
@@ -264,7 +268,7 @@ function AIMentorContent() {
             if (isGuest) {
                 saveLocalMessage(activeSessionId!, optimisticUserMsg);
             } else {
-                saveMessageMutation.mutate({ sessionId: activeSessionId!, role: 'user', content: userText });
+                saveMessageMutation.mutate({ sessionId: activeSessionId!, role: 'user', content: userText, tenantId: tenantId! });
             }
 
             const systemPrompt = `
@@ -276,8 +280,9 @@ function AIMentorContent() {
                 1. Answer user questions based on the knowledge base above.
                 2. If you recommend a specific Course or Test Series, you MUST append its exact ID wrapped in double curly braces {{id}} immediately after the name (e.g., Course Name {{course-id-123}}).
                 3. Use **bold** markdown for course titles and prices.
-                4. Use LaTeX format enclosed in single $ symbols for math expressions.
-                5. Keep answers helpful, concise, and academic.
+                4. ALWAYS use the Indian Rupee symbol (₹) for prices, never use the dollar sign ($).
+                5. Use LaTeX format enclosed in single $ symbols for math expressions.
+                6. Keep answers helpful, concise, and academic.
             `;
 
             const aiResponseText = await callGemini(userText, systemPrompt);
@@ -288,7 +293,7 @@ function AIMentorContent() {
             if (isGuest) {
                 saveLocalMessage(activeSessionId!, aiMsg);
             } else {
-                saveMessageMutation.mutate({ sessionId: activeSessionId!, role: 'ai', content: aiResponseText });
+                saveMessageMutation.mutate({ sessionId: activeSessionId!, role: 'ai', content: aiResponseText, tenantId: tenantId! });
             }
 
         } catch (e: any) {
@@ -379,7 +384,7 @@ function AIMentorContent() {
                                         </div>
                                     )}
                                     <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-md text-[10px] font-bold text-indigo-600 shadow-sm">
-                                        ${product!.price}
+                                        ₹{product!.price}
                                     </div>
                                 </div>
 

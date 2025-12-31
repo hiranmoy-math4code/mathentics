@@ -217,11 +217,7 @@ export async function POST(req: Request) {
             callbackUrl: `${baseUrl}/api/payments/callback`,
         };
 
-        console.log('💳 Initiating payment:', { tenantId, ...paymentRequest });
-
         const paymentResponse = await initiatePayment(tenantId, paymentRequest);
-
-        console.log('💳 Payment response:', paymentResponse);
 
 
 

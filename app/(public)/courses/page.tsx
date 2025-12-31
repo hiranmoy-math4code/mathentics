@@ -7,6 +7,7 @@ import { Search, BookOpen, User, Clock, Star, ChevronRight, Filter } from "lucid
 import { Header } from "@/components/landing/Header";
 import { Footer } from "@/components/landing/Footer";
 import { CourseThumbnail } from "@/components/ui/CourseThumbnail";
+import { getTenantId } from "@/lib/tenant";
 
 export { metadata } from './metadata';
 
@@ -18,30 +19,7 @@ export default async function MarketplacePage({
     const { q, category } = await searchParams;
     const supabase = await createClient();
 
-    // Get tenant from domain
-    const { headers } = await import('next/headers');
-    const headersList = await headers();
-    const host = headersList.get('host') || '';
-
-    // Lookup tenant by domain
-    const { data: tenant } = await supabase
-        .from('tenants')
-        .select('id')
-        .eq('custom_domain', host)
-        .eq('is_active', true)
-        .maybeSingle();
-
-    // If no tenant found, use default
-    let tenantId = tenant?.id;
-    if (!tenantId) {
-        const { data: defaultTenant } = await supabase
-            .from('tenants')
-            .select('id')
-            .eq('slug', 'math4code')
-            .eq('is_active', true)
-            .maybeSingle();
-        tenantId = defaultTenant?.id;
-    }
+    const tenantId = getTenantId();
 
     // Build query with tenant filtering
     let query = supabase

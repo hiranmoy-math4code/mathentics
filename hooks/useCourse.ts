@@ -4,10 +4,10 @@ import { getTenantId } from "@/lib/tenant";
 
 export const useCourse = (courseId: string) => {
     const supabase = createClient();
-    const tenantId = getTenantId(); // ✅ Get tenant ID from environment
+    const tenantId = getTenantId();
 
     return useQuery({
-        queryKey: ['course', courseId, tenantId], // ✅ Include tenant in cache key
+        queryKey: ['course', courseId, tenantId],
         queryFn: async ({ signal }) => {
             const { data, error } = await supabase
                 .from('courses')

@@ -109,10 +109,10 @@ export const useSaveMessage = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ sessionId, role, content }: { sessionId: string; role: 'user' | 'ai'; content: string }) => {
+        mutationFn: async ({ sessionId, role, content, tenantId }: { sessionId: string; role: 'user' | 'ai'; content: string; tenantId: string }) => {
             const { data, error } = await supabase
                 .from('chat_messages')
-                .insert([{ session_id: sessionId, role, content }])
+                .insert([{ session_id: sessionId, role, content, tenant_id: tenantId }])
                 .select()
                 .single();
 

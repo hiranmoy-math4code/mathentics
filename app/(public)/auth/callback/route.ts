@@ -82,22 +82,12 @@ export async function GET(request: NextRequest) {
                     .eq('user_id', user.id)
                     .eq('is_active', true);
 
-                console.log('🔍 Auth Callback Debug:', {
-                    userId: user.id,
-                    email: user.email,
-                    memberships,
-                    membershipError
-                });
-
                 // If user is admin/creator in any tenant, redirect to admin dashboard
                 const isAdmin = memberships?.some(m =>
                     m.role === 'admin' || m.role === 'creator'
                 );
 
-                console.log('🔍 Admin Check:', { isAdmin, membershipCount: memberships?.length });
-
                 if (isAdmin) {
-                    console.log('✅ Redirecting to admin dashboard');
                     return NextResponse.redirect(`${origin}/admin/dashboard`);
                 }
             }

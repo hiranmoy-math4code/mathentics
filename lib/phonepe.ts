@@ -23,7 +23,6 @@ async function getOAuthToken(config: PhonePeConfig): Promise<string | null> {
       : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
 
     const url = `${OAUTH_BASE}/v1/oauth/token`;
-    console.log("this is config", config)
 
     const params = new URLSearchParams({
       grant_type: 'client_credentials',

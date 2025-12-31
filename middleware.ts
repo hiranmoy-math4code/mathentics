@@ -15,6 +15,13 @@ const CACHE_TTL = process.env.NODE_ENV === 'production'
   : 5 * 60 * 1000;  // 5 minutes (development)
 
 async function getTenantFromHostname(hostname: string, supabase: any): Promise<string | null> {
+  // 0. PERFORMANCE OVERRIDE: process.env.NEXT_PUBLIC_TENANT_ID
+  // If a static tenant ID is set in environment, use it immediately.
+  // This bypasses database lookups entirely for single-tenant deployments.
+  if (process.env.NEXT_PUBLIC_TENANT_ID) {
+    return process.env.NEXT_PUBLIC_TENANT_ID;
+  }
+
   // Check cache first (reduces DB queries by ~90%)
   const cached = tenantCache.get(hostname);
   if (cached && cached.expiry > Date.now()) {
@@ -119,23 +126,16 @@ export async function middleware(request: NextRequest) {
         .eq('is_active', true)
         .single()
 
-      console.log('🔍 Middleware Admin Check:', {
-        pathname,
-        tenantId,
-        userId: user.id,
-        membership,
-        membershipError,
-        isAdmin: membership?.role === 'admin' || membership?.role === 'creator'
-      });
+
 
       if (membership?.role !== 'admin' && membership?.role !== 'creator') {
-        console.log('❌ Middleware blocking: redirecting to /student/dashboard');
+
         const redirectUrl = request.nextUrl.clone()
         redirectUrl.pathname = '/student/dashboard'
         return NextResponse.redirect(redirectUrl)
       }
 
-      console.log('✅ Middleware allowing access to:', pathname);
+
     } catch (error) {
       console.error('Middleware auth error:', error)
     }

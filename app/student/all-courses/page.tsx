@@ -127,7 +127,7 @@ export default function AllCoursesPage() {
                                 <h4 className="font-semibold text-slate-800 dark:text-white mb-2">{course.title}</h4>
                                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{course.description}</p>
                                 <div className="flex justify-between text-xs mb-3 text-slate-500 dark:text-slate-400">
-                                    <span>{course.total_lessons || 0} lessons</span>
+                                    <span>All lessons</span>
                                     <span className="font-semibold text-indigo-600 dark:text-indigo-400">
                                         {course.price === 0 ? "Free" : `₹${course.price}`}
                                     </span>

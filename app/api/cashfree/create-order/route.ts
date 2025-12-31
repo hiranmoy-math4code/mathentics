@@ -48,8 +48,6 @@ export async function POST(request: NextRequest) {
             }
         };
 
-        console.log('📤 [Cashfree CreateOrder] Request:', { url: `${baseUrl}/orders`, payload });
-
         // 4. Call Cashfree API
         const response = await fetch(`${baseUrl}/orders`, {
             method: 'POST',
@@ -64,8 +62,6 @@ export async function POST(request: NextRequest) {
         });
 
         const data = await response.json();
-
-        console.log('📥 [Cashfree CreateOrder] Response:', { status: response.status, data });
 
         if (!response.ok) {
             return NextResponse.json({

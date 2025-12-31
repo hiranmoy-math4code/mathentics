@@ -195,16 +195,40 @@ export default function CourseBuilder({ course, initialModules }: CourseBuilderP
     const handleGenerateOutline = async () => {
         setIsGenerating(true);
         try {
-            const response = await fetch('/api/generate-outline', {
+            const prompt = `Generate a comprehensive course outline for a course titled "${course.title}". 
+            Return a JSON structure with the following format:
+            {
+              "modules": [
+                {
+                  "title": "Module Title",
+                  "lessons": [
+                    { 
+                      "title": "Lesson Title",
+                      "content_type": "video" | "text" | "pdf" 
+                    }
+                  ]
+                }
+              ]
+            }
+            Rules:
+            - Mix content types appropriately (e.g., "Introduction" -> video, "Summary" -> text, "Cheatsheet" -> pdf).
+            - Ensure the outline is structured logically with progressive difficulty.
+            - Do not include any markdown formatting or code blocks, just the raw JSON string.`;
+
+            const response = await fetch('/api/ai/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ courseTitle: course.title })
+                body: JSON.stringify({ prompt })
             });
 
             const result = await response.json();
 
             if (result.success) {
-                setGeneratedOutline(result.outline);
+                // Parse JSON from text response (handling potential markdown)
+                let text = result.text.replace(/```json/g, "").replace(/```/g, "").trim();
+                const outline = JSON.parse(text);
+
+                setGeneratedOutline(outline);
                 setShowOutlinePreview(true);
             } else {
                 toast.error(result.error || 'Failed to generate outline');

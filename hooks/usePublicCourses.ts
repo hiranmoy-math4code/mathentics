@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { getTenantId } from "@/lib/tenant";
 
 export interface PublicCourse {
     id: string;
@@ -18,36 +19,11 @@ export interface PublicCourse {
 
 export const usePublicCourses = () => {
     const supabase = createClient();
+    const tenantId = getTenantId();
 
     return useQuery({
-        queryKey: ["public-courses"],
+        queryKey: ["public-courses", tenantId],
         queryFn: async () => {
-            // Get tenant from domain (3-tier detection)
-            let tenantId: string | null = null;
-
-            // Try to get from domain
-            const domain = window.location.host;
-            const { data: tenant } = await supabase
-                .from('tenants')
-                .select('id')
-                .eq('custom_domain', domain)
-                .eq('is_active', true)
-                .maybeSingle();
-
-            tenantId = tenant?.id || null;
-
-            // If no tenant, use default
-            if (!tenantId) {
-                const { data: defaultTenant } = await supabase
-                    .from('tenants')
-                    .select('id')
-                    .eq('slug', 'math4code')
-                    .eq('is_active', true)
-                    .maybeSingle();
-                tenantId = defaultTenant?.id;
-            }
-
-            // Query with tenant filter
             const { data, error } = await supabase
                 .from("courses")
                 .select("*, profiles:creator_id(full_name)")

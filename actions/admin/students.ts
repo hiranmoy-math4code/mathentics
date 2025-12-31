@@ -68,7 +68,6 @@ export async function addStudent(data: {
                 throw new Error(`Failed to send invitation: ${inviteError.message}`);
             }
 
-            console.log(`✅ Invitation sent to ${data.email}`, inviteData);
 
             // Create profile entry for the invited user
             if (inviteData.user) {
@@ -162,16 +161,6 @@ export async function getStudentsWithEnrollments(filters?: {
             throw new Error('Tenant ID not configured. Please set NEXT_PUBLIC_TENANT_ID in .env.local or ensure headers are present.');
         }
 
-        console.log('✅ Using tenant ID:', tenantId);
-        console.log('🔍 Query params:', {
-            table: 'user_tenant_memberships',
-            filters: {
-                tenant_id: tenantId,
-                role: 'student',
-                is_active: true
-            }
-        });
-
         // Get all student memberships for this tenant
         const { data: memberships, error: membershipsError } = await supabase
             .from('user_tenant_memberships')
@@ -180,21 +169,12 @@ export async function getStudentsWithEnrollments(filters?: {
             .eq('role', 'student')
             .eq('is_active', true);
 
-        console.log('📊 Raw memberships response:', {
-            count: memberships?.length || 0,
-            data: memberships,
-            error: membershipsError
-        });
-
         if (membershipsError) {
             console.error('❌ Memberships query error:', membershipsError);
             throw membershipsError;
         }
 
-        console.log('✅ Found memberships:', memberships?.length || 0);
-
         if (!memberships || memberships.length === 0) {
-            console.log('⚠️ No student memberships found for tenant:', tenantId);
             return { success: true, data: [] };
         }
 
@@ -211,8 +191,6 @@ export async function getStudentsWithEnrollments(filters?: {
             console.error('❌ Students query error:', studentsError);
             throw studentsError;
         }
-
-        console.log('✅ Found student profiles:', students?.length || 0);
 
         const studentProfiles = students || [];
 
@@ -330,7 +308,6 @@ export async function getStudentDetailsAction(userId: string) {
         const timestamp = new Date().toISOString();
         const entry = `[${timestamp}] ${msg}`;
         trace.push(entry);
-        console.log(entry);
     };
 
     log(`🚀 Starting student details fetch for: ${userId}`);

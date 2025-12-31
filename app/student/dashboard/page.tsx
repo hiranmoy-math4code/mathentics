@@ -507,7 +507,7 @@ export default function StudentDashboard() {
                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">By {course.instructor_name}</p>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{course.description}</p>
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-sm text-slate-500 dark:text-slate-400">{course.total_lessons} lessons</span>
+                    <span className="text-sm text-slate-500 dark:text-slate-400">All lessons</span>
                     <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
                       {course.price === 0 ? "Free" : `₹${course.price}`}
                     </span>

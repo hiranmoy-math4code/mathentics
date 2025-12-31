@@ -59,26 +59,14 @@ function LoginForm() {
           .eq('user_id', user.id)
           .eq('is_active', true);
 
-        console.log('🔍 Login Page Debug:', {
-          userId: user.id,
-          email: user.email,
-          memberships,
-          membershipError
-        });
-
-        // If user is admin/creator in any tenant, redirect to admin dashboard
         const isAdmin = memberships?.some(m =>
           m.role === 'admin' || m.role === 'creator'
         );
 
-        console.log('🔍 Admin Check:', { isAdmin, membershipCount: memberships?.length });
-
         // Role-based routing
         if (isAdmin) {
-          console.log('✅ Redirecting to /admin/dashboard');
           router.push("/admin/dashboard");
         } else {
-          console.log('➡️ Redirecting to /student/dashboard');
           router.push("/student/dashboard");
         }
         router.refresh();
