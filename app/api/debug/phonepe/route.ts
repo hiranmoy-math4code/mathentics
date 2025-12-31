@@ -4,22 +4,41 @@ import { createClient } from "@/lib/supabase/server";
 export const runtime = 'edge';
 
 export async function GET(req: Request) {
-    try {
-        const supabase = await createClient();
+    const checks: any = {
+        env: {},
+        supabase: {},
+        gateway: {},
+        phonepe: {}
+    };
 
-        // 1. Get the default 'math4code' tenant
-        // (Adjust this if you need to debug a specific tenant)
+    try {
+        // 1. Check Env Vars
+        checks.env.SUPABASE_URL = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+        checks.env.SUPABASE_ANON_KEY = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        checks.env.POOLER_URL = !!process.env.SUPABASE_POOLER_URL;
+
+        // 2. Check Supabase
+        let supabase;
+        try {
+            supabase = await createClient();
+            const { data, error } = await supabase.from('tenants').select('count', { count: 'exact', head: true });
+            checks.supabase.connected = !error;
+            checks.supabase.error = error;
+        } catch (e: any) {
+            checks.supabase.crashed = true;
+            checks.supabase.message = e.message;
+            throw new Error("Supabase Client Init Failed: " + e.message);
+        }
+
+        // 3. Get Gateway Settings
         const { data: defaultTenant } = await supabase
             .from('tenants')
             .select('id')
             .eq('slug', 'math4code')
             .single();
 
-        if (!defaultTenant) {
-            return NextResponse.json({ error: "Default tenant 'math4code' not found" }, { status: 404 });
-        }
+        if (!defaultTenant) throw new Error("Default tenant 'math4code' not found");
 
-        // 2. Get Payment Settings
         const { data: gateway, error } = await supabase
             .from('payment_gateway_settings')
             .select('*')
@@ -27,18 +46,20 @@ export async function GET(req: Request) {
             .eq('is_active', true)
             .single();
 
+        checks.gateway.found = !!gateway;
         if (error || !gateway) {
-            return NextResponse.json({ error: "Gateway settings not found", details: error }, { status: 404 });
+            checks.gateway.error = error;
+            throw new Error("Gateway settings not found");
         }
 
-        // 3. Construct Config from DB
+        // 4. Test PhonePe
         const config = {
             merchantId: gateway.phonepe_merchant_id,
             clientId: gateway.phonepe_client_id,
-            clientSecret: gateway.phonepe_client_secret ? "***SECRET***" : "MISSING", // Mask for security in initial log
             clientVersion: gateway.phonepe_client_version || 1,
             environment: gateway.phonepe_environment
         };
+        checks.phonepe.config = config;
 
         const isProd = config.environment === 'production' || config.environment === 'prod';
         const OAUTH_BASE = isProd
@@ -46,54 +67,39 @@ export async function GET(req: Request) {
             : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
 
         const url = `${OAUTH_BASE}/v1/oauth/token`;
-
-        // 4. Prepare Actual Request
         const params = new URLSearchParams({
             grant_type: 'client_credentials',
-            client_id: gateway.phonepe_client_id || gateway.phonepe_merchant_id, // Fallback logic same as phonepe.ts
-            client_secret: gateway.phonepe_client_secret,
+            client_id: gateway.phonepe_client_id || gateway.phonepe_merchant_id,
+            client_secret: gateway.phonepe_client_secret, // Using real secret
             client_version: (gateway.phonepe_client_version || 1).toString()
         });
 
-        console.log("🔍 Debugging PhonePe Token Generation...");
-        console.log("   URL:", url);
-        console.log("   ClientID:", params.get('client_id'));
-        console.log("   ClientVersion:", params.get('client_version'));
-        console.log("   Environment:", config.environment);
-
-        // 5. Execute Fetch
         const response = await fetch(url, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: params,
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: params.toString(), // Explicit toString
             cache: "no-store"
         });
 
-        const status = response.status;
-        const responseText = await response.text();
+        checks.phonepe.status = response.status;
+        checks.phonepe.body = await response.text();
 
-        let responseJson;
         try {
-            responseJson = JSON.parse(responseText);
-        } catch (e) {
-            responseJson = { raw: responseText };
-        }
+            checks.phonepe.json = JSON.parse(checks.phonepe.body);
+        } catch (e) { }
 
         return NextResponse.json({
-            status: "Debug Run Complete",
-            requestConfig: config,
-            endpoint: url,
-            responseStatus: status,
-            responseBody: responseJson
+            success: true,
+            checks
         });
 
     } catch (error: any) {
         return NextResponse.json({
-            error: "Internal Debug Error",
-            message: error.message,
-            stack: error.stack
-        }, { status: 500 });
+            success: false,
+            message: "Debug Script Crashed / Failed",
+            error: error.message,
+            stack: error.stack,
+            checks
+        }, { status: 200 });
     }
 }

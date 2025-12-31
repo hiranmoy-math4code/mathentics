@@ -109,25 +109,15 @@ export default function PaymentGatewaySettingsPage() {
                 }),
             };
 
-            if (settings.id) {
-                // Update
-                const { error } = await supabase
-                    .from('payment_gateway_settings')
-                    .update(dataToSave)
-                    .eq('id', settings.id);
+            // Use upsert to handle both insert and update, preventing duplicate tenant_id errors
+            const { data, error } = await supabase
+                .from('payment_gateway_settings')
+                .upsert(dataToSave, { onConflict: 'tenant_id' })
+                .select()
+                .single();
 
-                if (error) throw error;
-            } else {
-                // Insert
-                const { data, error } = await supabase
-                    .from('payment_gateway_settings')
-                    .insert(dataToSave)
-                    .select()
-                    .single();
-
-                if (error) throw error;
-                setSettings({ ...settings, id: data.id });
-            }
+            if (error) throw error;
+            setSettings({ ...settings, id: data.id });
 
             toast.success('Payment gateway settings saved successfully!');
             loadSettings();

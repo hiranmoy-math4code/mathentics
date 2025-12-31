@@ -38,7 +38,7 @@ async function getOAuthToken(config: PhonePeConfig): Promise<string | null> {
         "Content-Type": "application/x-www-form-urlencoded"
       },
       body: params,
-      cache: "no-store"
+      // cache: "no-store" -- Not supported in Cloudflare Edge
     });
 
     const responseText = await response.text();
@@ -112,7 +112,7 @@ export async function createPayment(
         "Authorization": `O-Bearer ${token}`
       },
       body: JSON.stringify(paymentPayload),
-      cache: "no-store"
+      // cache: "no-store" -- Not supported in Cloudflare Edge
     });
 
     const data = await response.json();
@@ -171,7 +171,7 @@ export async function checkPaymentStatus(config: PhonePeConfig, merchantTransact
         "Content-Type": "application/json",
         "Authorization": `O-Bearer ${token}`
       },
-      cache: "no-store"
+      // cache: "no-store"
     });
 
     const data = await response.json();
