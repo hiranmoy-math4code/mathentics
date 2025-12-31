@@ -36,7 +36,7 @@ export function useLastAttempt(userId: string | undefined) {
                 .eq("status", "in_progress")
                 .order("started_at", { ascending: false })
                 .limit(1)
-                .single();
+                .maybeSingle();
 
             if (error || !attempt) return null;
 

@@ -504,6 +504,11 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
         setInitialTime(remaining)
         timeRef.current = remaining
         setIsTimerActive(true)
+
+        // Auto-enter fullscreen when exam starts
+        if (examContainerRef.current && !document.fullscreenElement) {
+            toggleFullscreen()
+        }
     }, [sessionData])
 
 
