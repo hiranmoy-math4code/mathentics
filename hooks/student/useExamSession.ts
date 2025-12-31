@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
+import { useTenantId } from "@/hooks/useTenantId"
 
 export type Option = { id: string; option_text: string; is_correct?: boolean }
 export type Question = {
@@ -25,17 +26,20 @@ export type Attempt = { id: string; status: string; exam_id: string; student_id:
 
 export function useExamSession(examId: string, userId: string | null, retakeAttempt: number = 0, enabled: boolean = true) {
     const supabase = createClient()
+    const tenantId = useTenantId()
 
     return useQuery({
         queryKey: ["exam-session", examId, userId, retakeAttempt],
         queryFn: async () => {
             if (!userId) throw new Error("User not logged in")
+            if (!tenantId) throw new Error("Tenant context not found")
 
             // 1. Fetch Exam Details
             const { data: exam, error: examError } = await supabase
                 .from("exams")
                 .select("*")
                 .eq("id", examId)
+                .eq("tenant_id", tenantId)
                 .single()
 
             if (examError) throw examError
@@ -110,6 +114,7 @@ export function useExamSession(examId: string, userId: string | null, retakeAtte
                 .select("*")
                 .eq("exam_id", examId)
                 .eq("student_id", userId)
+                .eq("tenant_id", tenantId)
                 .order("created_at", { ascending: false })
 
             if (attemptsError) throw attemptsError
@@ -163,6 +168,7 @@ export function useExamSession(examId: string, userId: string | null, retakeAtte
                     .from("responses")
                     .select("question_id, student_answer")
                     .eq("attempt_id", attempt.id)
+                    .eq("tenant_id", tenantId)
 
                 if (respError) throw respError
 

@@ -127,8 +127,17 @@ export default function SectionsCard() {
 
     setIsAdding(true);
     const supabase = createClient();
+
+    // Get tenant_id from exam
+    const { data: exam } = await supabase
+      .from("exams")
+      .select("tenant_id")
+      .eq("id", examId)
+      .single();
+
     await supabase.from("sections").insert({
       exam_id: examId,
+      tenant_id: exam?.tenant_id,
       title: newSection.title,
       duration_minutes: Number(newSection.duration_minutes),
       total_marks: Number(newSection.total_marks),

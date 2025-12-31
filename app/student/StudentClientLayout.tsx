@@ -52,12 +52,13 @@ export default function StudentClientLayout({ children }: { children: React.Reac
                         *,
                         exam_attempts!inner (
                             exam_id,
+                            student_id,
                             exams (
                                 title
                             )
                         )
                     `)
-                    .eq("student_id", user.id)
+                    .eq("exam_attempts.student_id", user.id)
                     .eq("tenant_id", tenantId)
                     .order("created_at", { ascending: false });
 

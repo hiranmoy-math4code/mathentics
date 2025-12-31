@@ -40,12 +40,13 @@ async function fetchResults(userId: string | undefined, tenantId: string | null)
       *,
       exam_attempts!inner (
         exam_id,
+        student_id,
         exams (
           title
         )
       )
     `)
-    .eq("student_id", userId) // ✅ Direct filter on results table
+    .eq("exam_attempts.student_id", userId)
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false })
 
