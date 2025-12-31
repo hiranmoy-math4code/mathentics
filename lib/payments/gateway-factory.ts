@@ -51,6 +51,8 @@ export async function initiatePayment(
             .eq('is_active', true)
             .maybeSingle();
 
+        console.log("this is data Hiranmoy ", data)
+
         // ============================================================================
         // STEP 2: Fallback to math4code tenant gateway if tenant doesn't have one
         // ============================================================================

@@ -23,6 +23,7 @@ async function getOAuthToken(config: PhonePeConfig): Promise<string | null> {
       : 'https://api-preprod.phonepe.com/apis/pg-sandbox';
 
     const url = `${OAUTH_BASE}/v1/oauth/token`;
+    console.log("this is config", config)
 
     const params = new URLSearchParams({
       grant_type: 'client_credentials',
@@ -40,16 +41,23 @@ async function getOAuthToken(config: PhonePeConfig): Promise<string | null> {
       cache: "no-store"
     });
 
-    const data = await response.json();
+    const responseText = await response.text();
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      logger.error("❌ Token Response Parse Error:", responseText);
+      return null;
+    }
 
-    if (data?.access_token) {
+    if (response.ok && data?.access_token) {
       return data.access_token;
     } else {
-      logger.error("❌ Token Generation Failed:", JSON.stringify(data));
+      logger.error(`❌ Token Generation Failed [${response.status}]:`, responseText);
       return null;
     }
   } catch (error: any) {
-    logger.error("❌ Token Error:", error.message);
+    logger.error("❌ Token Error:", error.message, error.stack);
     return null;
   }
 }
