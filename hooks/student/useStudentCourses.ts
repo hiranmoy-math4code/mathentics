@@ -96,9 +96,6 @@ export function useStudentCourses(userId: string | undefined) {
                 .in('status', ['active', 'completed'])
                 .order('last_accessed_at', { ascending: false, nullsFirst: false });
 
-            console.log("🔍 useStudentCourses Tenant:", tenantId);
-            console.log("🔍 useStudentCourses Raw Enrollments:", enrollments);
-            console.log("🔍 useStudentCourses Error:", error);
             if (error) console.error("❌ useStudentCourses Error:", error);
 
             // Error handling - navigation এর সময় abort error ignore করছি
@@ -164,7 +161,6 @@ export function useStudentCourses(userId: string | undefined) {
                 const courseId = progress.course_id;
                 completedCounts[courseId] = (completedCounts[courseId] || 0) + 1;
             });
-            console.log("🔍 useStudentCourses Fetched:", enrollments);
 
             // Map enrollments to courses with progress data
             const courses = enrollments

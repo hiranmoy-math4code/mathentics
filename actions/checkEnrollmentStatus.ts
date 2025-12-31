@@ -20,9 +20,36 @@ export interface EnrollmentStatus {
  * Check if student has active course access
  */
 export async function checkCourseAccess(courseId: string): Promise<EnrollmentStatus> {
-    const supabase = await createTenantClient(); // Multi-tenant aware
+    let supabase;
+    try {
+        supabase = await createTenantClient(); // Multi-tenant aware
+    } catch (e) {
+        console.warn('⚠️ Could not create tenant client in checkCourseAccess', e);
+        return {
+            hasAccess: false,
+            status: 'none',
+            expiresAt: null,
+            daysRemaining: null,
+            isExpiringSoon: false,
+            isExpired: false
+        };
+    }
 
-    const { data: { user } } = await supabase.auth.getUser();
+    let user;
+    try {
+        const { data } = await supabase.auth.getUser();
+        user = data.user;
+    } catch (e) {
+        console.error('Error getting user in checkCourseAccess:', e);
+        return {
+            hasAccess: false,
+            status: 'none',
+            expiresAt: null,
+            daysRemaining: null,
+            isExpiringSoon: false,
+            isExpired: false
+        };
+    }
 
     if (!user) {
         return {
@@ -101,9 +128,23 @@ export async function checkCourseAccess(courseId: string): Promise<EnrollmentSta
  * Get all user's enrollments with expiry status
  */
 export async function getUserEnrollmentsWithExpiry() {
-    const supabase = await createTenantClient(); // Multi-tenant aware
+    let supabase;
+    try {
+        supabase = await createTenantClient(); // Multi-tenant aware
+    } catch (e) {
+        console.warn('⚠️ Could not create tenant client in getUserEnrollmentsWithExpiry (likely missing headers)', e);
+        return { enrollments: [] };
+    }
 
-    const { data: { user } } = await supabase.auth.getUser();
+    let user;
+    try {
+        const { data } = await supabase.auth.getUser();
+        user = data.user;
+    } catch (e) {
+        console.error('Error getting user in getUserEnrollmentsWithExpiry:', e);
+        return { enrollments: [] };
+    }
+
     if (!user) return { enrollments: [] };
 
     try {

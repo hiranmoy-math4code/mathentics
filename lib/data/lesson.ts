@@ -51,15 +51,15 @@ export async function fetchLessonDetailedData(
             try {
                 const { data: course } = await supabase
                     .from("courses")
-                    .select("user_id")
+                    .select("creator_id") // ✅ Fixed: user_id -> creator_id
                     .eq("id", courseId)
                     .single();
 
-                if (course?.user_id) {
+                if (course?.creator_id) {
                     const { data: author } = await supabase
                         .from("profiles")
                         .select("*")
-                        .eq("id", course.user_id)
+                        .eq("id", course.creator_id)
                         .single();
                     result.author = author;
                 }

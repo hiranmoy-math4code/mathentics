@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useTenantId } from "@/hooks/useTenantId";
 import {
     getRewardStatus,
@@ -108,6 +109,23 @@ export function useRewards(userId?: string, tenantId?: string) {
             }
         },
     });
+
+    // Listen for global reward updates (e.g. from RewardInitializer)
+
+
+    useEffect(() => {
+        const handleUpdate = () => {
+            if (userId) {
+                queryClient.invalidateQueries({ queryKey: REWARD_KEYS.status(userId) });
+                queryClient.invalidateQueries({ queryKey: REWARD_KEYS.transactions(userId) });
+                queryClient.invalidateQueries({ queryKey: REWARD_KEYS.missions(userId) });
+                queryClient.invalidateQueries({ queryKey: REWARD_KEYS.badges(userId) });
+            }
+        };
+
+        window.addEventListener("rewards-updated", handleUpdate);
+        return () => window.removeEventListener("rewards-updated", handleUpdate);
+    }, [userId, queryClient]);
 
     return {
         rewardStatus,

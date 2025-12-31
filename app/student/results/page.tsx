@@ -137,7 +137,7 @@ export default function ResultsPage() {
                   >
                     {/* Exam Title */}
                     <TableCell className="font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                      {result.exam_attempts.exams.title}
+                      {result.exam_attempts?.exams?.title || "Unknown Exam"}
                     </TableCell>
 
                     {/* Score */}

@@ -47,9 +47,9 @@ export async function getLessonData(lessonId: string, courseId: string) {
 
         // 3. Fetch Course/Author Context (often needed for UI header)
         if (courseId) {
-            const { data: course } = await supabase.from("courses").select("user_id").eq("id", courseId).single();
-            if (course?.user_id) {
-                const { data: author } = await supabase.from("profiles").select("*").eq("id", course.user_id).single();
+            const { data: course } = await supabase.from("courses").select("creator_id").eq("id", courseId).single();
+            if (course?.creator_id) {
+                const { data: author } = await supabase.from("profiles").select("*").eq("id", course.creator_id).single();
                 result.author = author;
             }
         }
