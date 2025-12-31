@@ -17,7 +17,6 @@ export const useMentions = () => {
                 .from('profiles')
                 .select('full_name')
                 .eq('id', user.id)
-                .eq('tenant_id', tenantId)
                 .single();
 
             if (!profile?.full_name) return [];

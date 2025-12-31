@@ -59,20 +59,21 @@ async function getTenantFromHostname(hostname: string, supabase: any): Promise<s
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl
 
-  // ১. পারফরম্যান্স অপ্টিমাইজেশন: Static files, API routes এবং RSC requests দ্রুত স্কিপ করুন
-  // এটি ১০,০০০+ ইউজার হ্যান্ডেল করার সময় সার্ভারের লোড কমাবে
+  // 1. STRICT SKIP: Static files and images don't need tenant context
+  // This reduces overhead for assets
   if (
-    pathname.startsWith('/api') ||
-    pathname.includes('.') ||
-    search.includes('_rsc=')
+    pathname.startsWith('/_next') ||
+    pathname.includes('/static') ||
+    pathname.includes('.') || // Files like favicon.ico, robot.txt
+    pathname === '/favicon.ico'
   ) {
     return NextResponse.next()
   }
 
-  // ২. MULTI-TENANT: Get hostname and lookup tenant
+  // 2. MULTI-TENANT: Get hostname and lookup tenant
+  // We do this BEFORE skipping API/_rsc because they might need the tenant header
   const hostname = request.headers.get('host') || 'localhost:3000';
 
-  // Create Supabase client for tenant lookup
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -86,27 +87,38 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Lookup tenant from hostname
   const tenantId = await getTenantFromHostname(hostname, supabase);
 
-  // Handle tenant not found (redirect to 404 page)
-  if (!tenantId && !pathname.startsWith('/404-tenant-not-found')) {
-    return NextResponse.rewrite(new URL('/404-tenant-not-found', request.url));
-  }
-
-  // ৩. সেশন আপডেট করা (Supabase Auth এর জন্য)
-  let response = await updateSession(request)
-
-  // ৪. কাস্টম হেডার সেট করা (যাতে Server Components ইউআরএল দেখতে পায়)
+  // 3. Prepare Response Headers
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set("x-url", pathname)
 
-  // MULTI-TENANT: Inject tenant context header for RLS
   if (tenantId) {
     requestHeaders.set("x-tenant-id", tenantId)
   }
 
-  // ৫. অ্যাডমিন রুট প্রোটেকশন
+  // 4. PARTIAL SKIP: API routes and RSC requests
+  // They normally handle their own errors, but we MUST pass the tenant header
+  if (
+    pathname.startsWith('/api') ||
+    search.includes('_rsc=')
+  ) {
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
+  }
+
+  // 5. Handle Tenant Not Found (for main pages)
+  if (!tenantId && !pathname.startsWith('/404-tenant-not-found')) {
+    return NextResponse.rewrite(new URL('/404-tenant-not-found', request.url));
+  }
+
+  // 6. Session Update (for Auth)
+  await updateSession(request)
+
+  // 7. Admin Route Protection
   if (pathname.startsWith('/admin')) {
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -117,30 +129,26 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(redirectUrl)
       }
 
-      // MULTI-TENANT: Check user role in current tenant via user_tenant_memberships
-      const { data: membership, error: membershipError } = await supabase
+      // Check user role
+      const { data: membership } = await supabase
         .from('user_tenant_memberships')
         .select('role')
         .eq('user_id', user.id)
-        .eq('tenant_id', tenantId)
+        .eq('tenant_id', tenantId) // This works because we resolved tenantId above
         .eq('is_active', true)
         .single()
 
-
-
       if (membership?.role !== 'admin' && membership?.role !== 'creator') {
-
         const redirectUrl = request.nextUrl.clone()
         redirectUrl.pathname = '/student/dashboard'
         return NextResponse.redirect(redirectUrl)
       }
-
-
     } catch (error) {
       console.error('Middleware auth error:', error)
     }
   }
 
+  // 8. Final Response
   return NextResponse.next({
     request: {
       headers: requestHeaders,
