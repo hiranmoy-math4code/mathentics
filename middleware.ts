@@ -82,17 +82,15 @@ async function getTenantFromHostname(hostname: string, supabase: any): Promise<s
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl
 
-  // 1. STRICT SKIP: Static files and images don't need tenant context
-  // This reduces overhead for assets
   if (
-    pathname.startsWith('/_next') ||
-    pathname.includes('/static') ||
-    pathname.includes('.') || // Files like favicon.ico, robot.txt
-    pathname === '/favicon.ico'
+    pathname.startsWith('/_next/static') || // static assets
+    pathname.startsWith('/_next/image') ||  // optimized images
+    pathname === '/favicon.ico' ||
+    pathname === '/robots.txt' ||
+    (pathname.includes('.') && !pathname.startsWith('/api') && !search.includes('_rsc'))
   ) {
     return NextResponse.next()
   }
-
   // 2. MULTI-TENANT: Get hostname and lookup tenant
   // We do this BEFORE skipping API/_rsc because they might need the tenant header
   const hostname = request.headers.get('host') || 'localhost:3000';

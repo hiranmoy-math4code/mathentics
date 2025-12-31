@@ -48,7 +48,7 @@ export async function createTenantClient() {
   // This makes auth.tenant_id() function work correctly
   try {
     await supabase.rpc('set_config', {
-      setting: 'request.headers.x-tenant-id',
+      name: 'request.headers.x-tenant-id',
       value: tenantId
     })
   } catch (error) {
