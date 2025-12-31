@@ -44,8 +44,16 @@ export default function StudentClientLayout({ children }: { children: React.Reac
 
                 const { data } = await supabase
                     .from("results")
-                    .select("*, exam_attempts(exam_id, exams(title))")
-                    .eq("exam_attempts.student_id", user.id)
+                    .select(`
+                        *,
+                        exam_attempts!inner (
+                            exam_id,
+                            exams (
+                                title
+                            )
+                        )
+                    `)
+                    .eq("student_id", user.id)
                     .order("created_at", { ascending: false });
 
                 return data;

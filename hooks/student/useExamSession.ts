@@ -253,7 +253,11 @@ export function useSubmitExam() {
                 if (rpcError.message.includes("already submitted")) {
                     toast.info("Exam was already submitted.")
                     // Fetch existing result
-                    const { data: existing } = await supabase.from("results").select("*").eq("attempt_id", attemptId).single()
+                    const { data: existing } = await supabase
+                        .from("results")
+                        .select("*")
+                        .eq("attempt_id", attemptId)
+                        .single()
                     return existing
                 }
                 throw rpcError

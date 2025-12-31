@@ -226,7 +226,8 @@ export function DashboardExpiryBadge({ daysRemaining, isExpired, urgencyLevel }:
         );
     }
 
-    if (!daysRemaining || !urgencyLevel) return null;
+    // ✅ Allow 0 days remaining to show badge
+    if (daysRemaining === null || daysRemaining === undefined || !urgencyLevel) return null;
 
     const urgencyColors = {
         CRITICAL: 'bg-red-100 dark:bg-red-500/20 border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400',
@@ -242,7 +243,7 @@ export function DashboardExpiryBadge({ daysRemaining, isExpired, urgencyLevel }:
             urgencyLevel === 'CRITICAL' && 'animate-pulse'
         )}>
             <Calendar className="w-3 h-3" />
-            <span>{daysRemaining}d left</span>
+            <span>{daysRemaining === 0 ? 'EXPIRES TODAY' : `${daysRemaining}d left`}</span>
         </div>
     );
 }

@@ -175,7 +175,7 @@ async function getLeaderboardFallback(
             weekly_xp,
             level,
             current_streak,
-            user_id,
+            user_rewards.user_id,
             profiles:user_id (
                 full_name,
                 avatar_url

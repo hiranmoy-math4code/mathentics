@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { initiatePayment } from "@/lib/payments/gateway-factory";
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { useTenantId } from "@/lib/tenant";
 
 // export const runtime = 'edge';
 
@@ -72,25 +73,7 @@ export async function POST(req: Request) {
         // CRITICAL: Use domain to determine tenant, not user's membership
         const host = req.headers.get('host') || '';
 
-        const { data: tenant } = await supabase
-            .from('tenants')
-            .select('id')
-            .eq('custom_domain', host)
-            .eq('is_active', true)
-            .maybeSingle();
-
-        let tenantId = tenant?.id;
-
-        // Fallback to default tenant if not found
-        if (!tenantId) {
-            const { data: defaultTenant } = await supabase
-                .from('tenants')
-                .select('id')
-                .eq('slug', 'math4code')
-                .eq('is_active', true)
-                .maybeSingle();
-            tenantId = defaultTenant?.id;
-        }
+        const tenantId = useTenantId();
 
         if (!tenantId) {
             return NextResponse.json(
@@ -121,6 +104,7 @@ export async function POST(req: Request) {
             .select("id, status")
             .eq("user_id", user.id)
             .eq("course_id", courseId)
+            .eq("tenant_id", tenantId)
             .single();
 
         if (existingEnrollment && existingEnrollment.status === "active") {
@@ -140,6 +124,7 @@ export async function POST(req: Request) {
                     .insert({
                         user_id: user.id,
                         course_id: courseId,
+                        tenant_id: tenantId,
                         status: "active",
                     })
                     .select()

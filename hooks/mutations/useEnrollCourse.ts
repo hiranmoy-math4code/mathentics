@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { invalidations } from "@/lib/invalidations";
 import toast from "react-hot-toast";
+import { useTenantId } from "@/hooks/useTenantId";
 
 interface EnrollCourseParams {
     courseId: string;
@@ -16,6 +17,7 @@ export function useEnrollCourse() {
     return useMutation({
         mutationFn: async ({ courseId, userId }: EnrollCourseParams) => {
             const supabase = createClient();
+            const tenantId = useTenantId();
 
             // Check if already enrolled - use maybeSingle() to avoid 406 error
             const { data: existingEnrollment } = await supabase
@@ -35,6 +37,7 @@ export function useEnrollCourse() {
                 .insert({
                     user_id: userId,
                     course_id: courseId,
+                    tenant_id: tenantId,
                     enrolled_at: new Date().toISOString(),
                 })
                 .select()
