@@ -124,7 +124,7 @@ export default function MyCourses() {
                                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{course.description}</p>
                                 <div className="flex justify-between text-xs mb-2 text-slate-500 dark:text-slate-400">
                                     <span>{course.completed_lessons}/{course.total_lessons} lessons</span>
-                                    <span>{course.progress_percentage ? course.progress_percentage.toFixed(0) : course.completed_lessons / course.total_lessons * 100}%</span>
+                                    <span>{course.progress_percentage ? course.progress_percentage.toFixed(0) : (course.completed_lessons / course.total_lessons * 100).toFixed(0)}%</span>
                                 </div>
                                 <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 mb-3">
                                     <div

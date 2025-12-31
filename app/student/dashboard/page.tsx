@@ -436,12 +436,12 @@ export default function StudentDashboard() {
                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{course.description}</p>
                   <div className="flex justify-between text-xs mb-2 text-slate-500 dark:text-slate-400">
                     <span>{course.completed_lessons}/{course.total_lessons} lessons</span>
-                    <span>{course.progress_percentage.toFixed(0)}%</span>
+                    <span>{course.progress_percentage ? course.progress_percentage.toFixed(0) : (course.completed_lessons / course.total_lessons * 100).toFixed(0)}%</span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 mb-3">
                     <div
                       className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
-                      style={{ width: `${course.progress_percentage}%` }}
+                      style={{ width: `${course.progress_percentage ? course.progress_percentage : course.completed_lessons / course.total_lessons * 100}%` }}
                     />
                   </div>
                   <Button
@@ -595,7 +595,7 @@ export default function StudentDashboard() {
                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{test.description}</p>
                   <div className="flex justify-between text-xs mb-2 text-slate-500 dark:text-slate-400">
                     <span>{test.completedExams}/{test.totalExams} exams</span>
-                    <span>{test.progress ? test.progress.toFixed(0) : test.completedExams / test.totalExams * 100}%</span>
+                    <span>{test.progress ? test.progress.toFixed(0) : (test.completedExams / test.totalExams * 100).toFixed(0)}%</span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 mb-3">
                     <div

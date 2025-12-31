@@ -124,7 +124,7 @@ export default function MyTestSeries() {
                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{test.description}</p>
                 <div className="flex justify-between text-xs mb-2 text-slate-500 dark:text-slate-400">
                   <span>{test.completedExams}/{test.totalExams} exams</span>
-                  <span>{test.progress ? test.progress.toFixed(0) : test.completedExams / test.totalExams * 100}%</span>
+                  <span>{test.progress ? test.progress.toFixed(0) : (test.completedExams / test.totalExams * 100).toFixed(0)}%</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 mb-3">
                   <div

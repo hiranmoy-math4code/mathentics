@@ -36,9 +36,17 @@ async function fetchResults(userId: string | undefined, tenantId: string | null)
 
   const { data, error } = await supabase
     .from("results")
-    .select("*, exam_attempts(exam_id, exams(title))")
-    .eq("exam_attempts.student_id", userId)
-    .eq("tenant_id", tenantId) // ✅ Strict Tenant Isolation
+    .select(`
+      *,
+      exam_attempts!inner (
+        exam_id,
+        exams (
+          title
+        )
+      )
+    `)
+    .eq("student_id", userId) // ✅ Direct filter on results table
+    .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false })
 
   if (error) throw error
@@ -137,6 +145,7 @@ export default function ResultsPage() {
                   >
                     {/* Exam Title */}
                     <TableCell className="font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                      {/* @ts-ignore */}
                       {result.exam_attempts?.exams?.title || "Unknown Exam"}
                     </TableCell>
 

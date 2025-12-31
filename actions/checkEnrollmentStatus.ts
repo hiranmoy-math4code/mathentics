@@ -5,6 +5,8 @@
 
 'use server';
 
+export const runtime = 'edge';
+
 import { createTenantClient } from '@/lib/supabase/server';
 
 export interface EnrollmentStatus {
