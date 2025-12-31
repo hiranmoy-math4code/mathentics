@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
+import { getTenantId } from "@/lib/tenant"
 
 interface EnrolledTestSeries {
     id: string
@@ -43,6 +44,7 @@ export function useStudentTestSeries(userId: string | undefined) {
                     )
                 `)
                 .eq('user_id', userId)
+                .eq('tenant_id', getTenantId()) // ✅ Strict Tenant Isolation
                 .in('status', ['active', 'completed'])
                 .order('last_accessed_at', { ascending: false, nullsFirst: false })
                 .abortSignal(signal);

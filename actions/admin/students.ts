@@ -112,26 +112,42 @@ export async function addStudent(data: {
  * Search students by name or email
  */
 export async function searchStudents(query: string) {
-    // Use createClient instead of createTenantClient for Cloudflare compatibility
+    // Standard server client for auth check
     const { createClient } = await import('@/lib/supabase/server');
-    const supabase = await createClient();
-
-    const { data: { user } } = await supabase.auth.getUser();
+    const authClient = await createClient();
+    const { data: { user } } = await authClient.auth.getUser();
     if (!user) return { error: 'Unauthorized' };
 
+    // Admin client for data access
+    const supabase = createAdminClient();
+
+    // Resolve Tenant ID
+    const tenantId = process.env.NEXT_PUBLIC_TENANT_ID || await getTenantIdFromHeaders();
+    if (!tenantId) return { error: 'Tenant context missing' };
+
     try {
+        // Perform search on profiles via user_tenant_memberships to ensure isolation
         const { data, error } = await supabase
-            .from('profiles')
-            .select('id, email, full_name, avatar_url, created_at')
+            .from('user_tenant_memberships')
+            .select(`
+                user_id,
+                profiles!inner (
+                    id, email, full_name, avatar_url, created_at
+                )
+            `)
+            .eq('tenant_id', tenantId)
             .eq('role', 'student')
-            .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
-            .order('full_name', { ascending: true })
+            .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`, { foreignTable: 'profiles' })
             .limit(20);
 
         if (error) throw error;
 
-        return { success: true, data };
+        // Flatten the structure to match expected output
+        const validStudents = data?.map((item: any) => item.profiles).filter(Boolean) || [];
+
+        return { success: true, data: validStudents };
     } catch (error: any) {
+        console.error("Search error:", error);
         return { error: error.message };
     }
 }
@@ -508,148 +524,7 @@ export async function getStudentDetailsAction(userId: string) {
     }
 }
 
-/**
- * Get detailed info for a single student with stats (OLD - kept for compatibility)
- */
-export async function getStudentDetails(userId: string) {
-    try {
-        const supabase = createAdminClient();
-
-        // Get student profile
-        const { data: student, error: studentError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .single();
-
-        if (studentError) {
-            console.error('Student fetch error:', studentError);
-            throw new Error(`Failed to fetch student profile: ${studentError.message}`);
-        }
-
-        if (!student) {
-            return { error: 'Student not found' };
-        }
-
-        // Get active sessions count
-        // Note: Accessing auth schema may require special permissions
-        let activeSessions = 0;
-        try {
-            const { count, error: sessionsError } = await supabase
-                .schema('auth')
-                .from('sessions')
-                .select('*', { count: 'exact', head: true })
-                .eq('user_id', userId);
-
-            if (sessionsError) {
-                console.error('Session count error:', sessionsError);
-            } else {
-                activeSessions = count || 0;
-            }
-        } catch (err) {
-            console.error('Failed to fetch session count:', err);
-            // Fallback: activeSessions remains 0
-        }
-
-        // Get enrollments
-        const { data: enrollments, error: enrollmentsError } = await supabase
-            .from('enrollments')
-            .select(`
-                *,
-                courses (
-                    id,
-                    title,
-                    thumbnail_url,
-                    price,
-                    course_type
-                ),
-                granted_by_profile:profiles!enrollments_granted_by_fkey (
-                    id,
-                    full_name
-                )
-            `)
-            .eq('user_id', userId);
-
-        if (enrollmentsError) {
-            console.error('Enrollments fetch error:', enrollmentsError);
-            // Don't throw, just log and continue with empty array
-        }
-
-
-
-        const { data: rawAttempts, error: attemptsError } = await supabase
-            .from('exam_attempts')
-            .select(`
-                *,
-                exams (id, title, total_marks),
-                results (percentage, obtained_marks)
-            `)
-            .eq('student_id', userId)
-            .order('created_at', { ascending: false });
-
-        if (attemptsError) {
-            console.error('Exam attempts fetch error:', attemptsError);
-            // Don't throw, just log and continue with empty array
-        }
-
-        // Transform attempts to handle singular results object
-        const attempts = rawAttempts?.map(att => ({
-            ...att,
-            results: Array.isArray(att.results) ? att.results[0] : att.results
-        })) || [];
-
-        // Get enrollment logs
-        const enrollmentIds = enrollments?.map(e => e.id) || [];
-
-        let logs: any[] = [];
-        if (enrollmentIds.length > 0) {
-            const { data: logData, error: logsError } = await supabase
-                .from('enrollment_logs')
-                .select(`
-                    *,
-                    performed_by_profile:profiles!enrollment_logs_performed_by_fkey (
-                        id,
-                        full_name
-                    )
-                `)
-                .in('enrollment_id', enrollmentIds)
-                .order('created_at', { ascending: false })
-                .limit(50);
-
-            if (logsError) {
-                console.error('Enrollment logs fetch error:', logsError);
-                // Don't throw, just log and continue with empty array
-            } else {
-                logs = logData || [];
-            }
-        }
-
-        // Calculate Stats
-        const submittedAttempts = attempts.filter(a => a.status === 'submitted');
-        const avgPercentage = submittedAttempts.length > 0
-            ? submittedAttempts.reduce((acc, curr) => acc + (curr.results?.percentage || 0), 0) / submittedAttempts.length
-            : 0;
-
-        return {
-            success: true,
-            data: {
-                student,
-                enrollments: enrollments || [],
-                attempts: attempts || [],
-                logs,
-                activeSessions,
-                stats: {
-                    totalEnrollments: enrollments?.length || 0,
-                    totalAttempts: attempts?.length || 0,
-                    avgPercentage: Math.round(avgPercentage * 10) / 10
-                }
-            }
-        };
-    } catch (error: any) {
-        console.error('getStudentDetails error:', error);
-        return { error: error?.message || 'An unexpected error occurred while fetching student details' };
-    }
-}
+// [Deleted legacy getStudentDetails function that was not tenant-aware]
 
 /**
  * Reset all active sessions for a student (admin only)

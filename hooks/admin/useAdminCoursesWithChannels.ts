@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { CommunityChannel } from "@/types/community";
+import { useTenantId } from "@/hooks/useTenantId"; // ✅ Import useTenantId
 
 const supabase = createClient();
 
@@ -14,10 +15,12 @@ export interface AdminCourseWithChannels {
 }
 
 export const useAdminCoursesWithChannels = (userId: string | undefined) => {
+    const tenantId = useTenantId(); // ✅ Get Tenant ID
+
     return useQuery({
-        queryKey: ["admin", "courses-with-channels", userId],
+        queryKey: ["admin", "courses-with-channels", userId, tenantId],
         queryFn: async () => {
-            if (!userId) return [];
+            if (!userId || !tenantId) return [];
 
             const { data, error } = await supabase
                 .from("courses")
@@ -28,7 +31,8 @@ export const useAdminCoursesWithChannels = (userId: string | undefined) => {
                     category,
                     community_enabled
                 `)
-                .eq("creator_id", userId);
+                .eq("creator_id", userId)
+                .eq("tenant_id", tenantId); // ✅ Filter by Tenant
 
             if (error) throw error;
 
@@ -39,6 +43,7 @@ export const useAdminCoursesWithChannels = (userId: string | undefined) => {
                         .from("community_channels")
                         .select("*")
                         .eq("course_id", course.id)
+                        .eq("tenant_id", tenantId) // ✅ Filter by Tenant
                         .order("created_at", { ascending: true });
 
                     return {
@@ -50,6 +55,6 @@ export const useAdminCoursesWithChannels = (userId: string | undefined) => {
 
             return coursesWithChannels as AdminCourseWithChannels[];
         },
-        enabled: !!userId,
+        enabled: !!userId && !!tenantId,
     });
 };

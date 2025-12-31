@@ -64,6 +64,8 @@ export function useCourseAnalytics(courseId: string) {
                     .from('lesson_progress')
                     .select('*', { count: 'exact', head: true })
                     .in('lesson_id', lessonIds)
+                    .in('lesson_id', lessonIds)
+                    .eq('tenant_id', tenantId) // ✅ SECURITY FIX: Filter by tenant
                     .eq('completed', true);
 
                 avgProgress = (completedLessons || 0) / (totalLearners * lessonIds.length) * 100;

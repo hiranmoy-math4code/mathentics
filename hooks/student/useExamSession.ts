@@ -215,30 +215,20 @@ export function useSubmitExam() {
             examId,
             responses,
             sections, // Unused in RPC but kept for signature compatibility if needed
-            totalMarks // Unused in RPC
+            totalMarks, // Unused in RPC
+            tenantId, // ✅ OPTIMIZATION: Configurable tenantId
         }: {
             attemptId: string
             examId: string
             responses: Record<string, any>
             sections: Section[]
             totalMarks: number
+            tenantId?: string | null
         }) => {
 
             // 1. Ensure all local responses are synced one last time (Optimization)
-            // Although we auto-saved, sending final state is safer.
-            // However, for pure speed, we assume auto-save worked or we do a bulk upsert here first.
-
-            // Get tenant_id from exam_attempts
-            const { data: attemptData } = await supabase
-                .from('exam_attempts')
-                .select('tenant_id')
-                .eq('id', attemptId)
-                .single();
-
-            const tenantId = attemptData?.tenant_id;
-
             const entries = Object.entries(responses).map(([qid, ans]) => ({
-                tenant_id: tenantId,  // ✅ Added tenant_id
+                tenant_id: tenantId,  // ✅ Used passed tenant_id
                 attempt_id: attemptId,
                 question_id: qid,
                 student_answer: Array.isArray(ans) ? JSON.stringify(ans) : String(ans),
@@ -290,18 +280,22 @@ export function useSubmitExam() {
 export function useSaveAnswer() {
     const supabase = createClient()
     return useMutation({
-        mutationFn: async ({ attemptId, questionId, answer }: { attemptId: string, questionId: string, answer: any }) => {
-            // Get tenant_id from exam_attempts
-            const { data: attemptData } = await supabase
-                .from('exam_attempts')
-                .select('tenant_id')
-                .eq('id', attemptId)
-                .single();
+        mutationFn: async ({ attemptId, questionId, answer, tenantId }: { attemptId: string, questionId: string, answer: any, tenantId?: string | null }) => {
+            // ✅ OPTIMIZATION: Use passed tenantId instead of fetching it
+            let finalTenantId = tenantId;
 
-            const tenantId = attemptData?.tenant_id;
+            if (!finalTenantId) {
+                // Fallback only if not provided (should not happen in optimized flow)
+                const { data: attemptData } = await supabase
+                    .from('exam_attempts')
+                    .select('tenant_id')
+                    .eq('id', attemptId)
+                    .single();
+                finalTenantId = attemptData?.tenant_id;
+            }
 
             const { error } = await supabase.from("responses").upsert({
-                tenant_id: tenantId,  // ✅ Added tenant_id
+                tenant_id: finalTenantId,  // ✅ Added tenant_id
                 attempt_id: attemptId,
                 question_id: questionId,
                 student_answer: Array.isArray(answer) ? JSON.stringify(answer) : String(answer),

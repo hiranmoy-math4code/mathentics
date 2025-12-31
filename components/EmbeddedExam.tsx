@@ -617,7 +617,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
         setVisited((v) => ({ ...v, [qid]: true }))
 
         if (sessionData?.attempt?.id) {
-            saveAnswer({ attemptId: sessionData.attempt.id, questionId: qid, answer: ans })
+            saveAnswer({ attemptId: sessionData.attempt.id, questionId: qid, answer: ans, tenantId: tenantId || undefined })
         }
     }, [currentSection, getSectionAttemptCount, isAnswered, responses, sessionData?.attempt?.id, saveAnswer])
 
@@ -634,7 +634,8 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
             examId: sessionData.exam.id,
             responses: responses,
             sections: sessionData.sections,
-            totalMarks: sessionData.exam.total_marks || 0
+            totalMarks: sessionData.exam.total_marks || 0,
+            tenantId: tenantId || undefined // ✅ OPTIMIZATION: Pass tenantId
         }, {
             onSuccess: async (result: any) => {
                 // Exit Fullscreen IMMEDIATELY

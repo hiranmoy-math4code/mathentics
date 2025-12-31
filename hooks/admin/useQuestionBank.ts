@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
+import { useTenantId } from "@/hooks/useTenantId";
+import { getTenantId } from "@/lib/tenant"; // For mutation if needed, or pass from hook
 
 /**
  * Hook to fetch questions from the question bank with pagination
@@ -7,9 +9,11 @@ import { createClient } from "@/lib/supabase/client";
  * @param pageSize - Number of questions per page (default: 20)
  */
 export function useQuestionBank(page: number = 0, pageSize: number = 20) {
+    const tenantId = useTenantId();
     return useQuery({
-        queryKey: ['question-bank', page, pageSize],
+        queryKey: ['question-bank', page, pageSize, tenantId],
         queryFn: async () => {
+            if (!tenantId) return { questions: [], totalCount: 0 };
             const supabase = createClient();
 
             const from = page * pageSize;
@@ -18,6 +22,7 @@ export function useQuestionBank(page: number = 0, pageSize: number = 20) {
             const { data, error, count } = await supabase
                 .from('question_bank')
                 .select('*', { count: 'exact' })
+                .eq('tenant_id', tenantId) // ✅ Tenant Filter
                 .order('created_at', { ascending: false })
                 .range(from, to);
 
@@ -84,14 +89,17 @@ export function useAddQuestionFromBank() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ sectionId, questionBankId }: { sectionId: string; questionBankId: string }) => {
+        mutationFn: async ({ sectionId, questionBankId, tenantId }: { sectionId: string; questionBankId: string; tenantId?: string }) => {
             const supabase = createClient();
+            // Use passed tenantId or try to get it (mutations logic)
+            const resolvedTenantId = tenantId || getTenantId();
 
             // Get the question from question_bank
             const { data: bankQuestion, error: bankError } = await supabase
                 .from('question_bank')
                 .select('question_text')
                 .eq('id', questionBankId)
+                .eq('tenant_id', resolvedTenantId) // ✅ Security Check
                 .single();
 
             if (bankError || !bankQuestion) {

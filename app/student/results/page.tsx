@@ -28,15 +28,17 @@ const supabase = createClient()
 
 // 🔹 Fetch Function
 import { useUser } from "@/hooks/useUser"
+import { useTenantId } from "@/hooks/useTenantId"
 
 // 🔹 Fetch Function
-async function fetchResults(userId: string | undefined) {
-  if (!userId) return []
+async function fetchResults(userId: string | undefined, tenantId: string | null) {
+  if (!userId || !tenantId) return []
 
   const { data, error } = await supabase
     .from("results")
     .select("*, exam_attempts(exam_id, exams(title))")
     .eq("exam_attempts.student_id", userId)
+    .eq("tenant_id", tenantId) // ✅ Strict Tenant Isolation
     .order("created_at", { ascending: false })
 
   if (error) throw error
@@ -45,15 +47,16 @@ async function fetchResults(userId: string | undefined) {
 
 export default function ResultsPage() {
   const { user, loading: isUserLoading } = useUser()
+  const tenantId = useTenantId()
 
   const {
     data: results,
     isLoading: isResultsLoading,
     isFetching,
   } = useQuery({
-    queryKey: ["student-results", user?.id],
-    queryFn: () => fetchResults(user?.id),
-    enabled: !!user?.id,
+    queryKey: ["student-results", user?.id, tenantId],
+    queryFn: () => fetchResults(user?.id, tenantId),
+    enabled: !!user?.id && !!tenantId,
   })
 
   const isLoading = isResultsLoading || isUserLoading

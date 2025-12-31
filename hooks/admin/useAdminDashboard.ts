@@ -44,43 +44,43 @@ async function fetchDashboard(): Promise<DashboardData> {
     ] = await Promise.all([
       // Query 1: Count total students (tenant-filtered)
       supabase
-        .from('profiles')
-        .select('id', { count: 'exact', head: false })
+        .from('user_tenant_memberships')
+        .select('user_id', { count: 'exact', head: true })
         .eq('role', 'student')
-        .eq('tenant_id', tenantId), // ✅ SECURITY FIX
+        .eq('tenant_id', tenantId),
 
       // Query 2: Count total questions (tenant-filtered)
       supabase
         .from('questions')
-        .select('id', { count: 'exact' })
-        .eq('tenant_id', tenantId), // ✅ SECURITY FIX
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId),
 
       // Query 3: Count total test series (tenant-filtered)
       supabase
         .from('test_series')
-        .select('id', { count: 'exact' })
-        .eq('tenant_id', tenantId), // ✅ SECURITY FIX
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId),
 
       // Query 4: Count total results (tenant-filtered)
       supabase
         .from('results')
-        .select('id', { count: 'exact' })
-        .eq('tenant_id', tenantId), // ✅ SECURITY FIX
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId),
 
-      // Query 5: Get recent 6 students (tenant-filtered)
+      // Query 5: Get recent 6 students (tenant-filtered via memberships)
       supabase
-        .from('profiles')
-        .select('id, full_name, email, created_at')
+        .from('user_tenant_memberships')
+        .select('user_id, profiles:user_id(id, full_name, email, created_at)')
         .eq('role', 'student')
-        .eq('tenant_id', tenantId) // ✅ SECURITY FIX
-        .order('created_at', { ascending: false })
+        .eq('tenant_id', tenantId)
+        .order('created_at', { foreignTable: 'profiles', ascending: false }) // Order by profile creation
         .limit(6),
 
       // Query 6: Get recent 6 test series (tenant-filtered)
       supabase
         .from('test_series')
         .select('*')
-        .eq('tenant_id', tenantId) // ✅ SECURITY FIX
+        .eq('tenant_id', tenantId)
         .order('created_at', { ascending: false })
         .limit(6)
     ]);
@@ -104,7 +104,12 @@ async function fetchDashboard(): Promise<DashboardData> {
     // সব data একসাথে return করছি
     return {
       totals,
-      recentUsers: recentUsersResp.data ?? [],
+      recentUsers: recentUsersResp.data?.map((item: any) => ({
+        id: item.profiles?.id || item.user_id,
+        full_name: item.profiles?.full_name,
+        email: item.profiles?.email,
+        created_at: item.profiles?.created_at
+      })) ?? [],
       recentTests: recentTestsResp.data ?? [],
     };
   } catch (error) {
