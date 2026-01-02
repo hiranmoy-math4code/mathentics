@@ -8,6 +8,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { createPayment as createPhonePePayment, checkPaymentStatus as checkPhonePeStatus } from '@/lib/phonepe';
 import { CashfreePayment } from './cashfree';
 
@@ -39,7 +40,9 @@ export async function initiatePayment(
     request: UnifiedPaymentRequest
 ): Promise<UnifiedPaymentResponse> {
     try {
-        const supabase = await createClient();
+        // Use Admin Client (Service Role) to fetch settings securely
+        // Students don't have RLS access to payment_gateway_settings (contains secrets)
+        const supabase = createAdminClient();
 
         // ============================================================================
         // STEP 1: Try to fetch tenant-specific gateway
@@ -75,7 +78,7 @@ export async function initiatePayment(
                     .select('*')
                     .eq('tenant_id', defaultTenant?.id)
                     .eq('is_active', true)
-                    .single();
+                    .maybeSingle();
 
                 console.log("this is defalut gateway error ", defaultGateway)
 
@@ -184,7 +187,8 @@ export async function verifyPayment(
     error?: string;
 }> {
     try {
-        const supabase = await createClient();
+        // Use Admin Client (Service Role)
+        const supabase = createAdminClient();
 
         // ============================================================================
         // STEP 1: Try to fetch tenant-specific gateway

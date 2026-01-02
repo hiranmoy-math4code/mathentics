@@ -1,21 +1,64 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2, Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
+import { Loader2, Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff, BookOpen, Calculator, Rocket, CheckCircle2 } from "lucide-react";
 import { FaGoogle, FaGithub } from "react-icons/fa";
+import { cn } from "@/lib/utils";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        // User is already logged in, redirect to dashboard
+        const { data: memberships } = await supabase
+          .from('user_tenant_memberships')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('is_active', true);
+
+        const isAdmin = memberships?.some(m =>
+          m.role === 'admin' || m.role === 'creator'
+        );
+
+        if (isAdmin) {
+          router.push('/admin/dashboard');
+        } else {
+          router.push(next || '/student/dashboard');
+        }
+      } else {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, [router, next]);
+
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,6 +130,23 @@ function LoginForm() {
         redirectTo.searchParams.set("next", next);
       }
 
+      // MULTI-TENANT: Only extract tenant slug if NEXT_PUBLIC_TENANT_ID is not set
+      if (!process.env.NEXT_PUBLIC_TENANT_ID) {
+        const hostname = window.location.hostname;
+        let tenantSlug: string | null = null;
+        const parts = hostname.split('.');
+        if (parts.length > 2) {
+          tenantSlug = parts[0];
+        } else if (parts.length === 2) {
+          tenantSlug = parts[0];
+        } else {
+          tenantSlug = 'math4code';
+        }
+        if (tenantSlug) {
+          redirectTo.searchParams.set("tenant_slug", tenantSlug);
+        }
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -108,151 +168,194 @@ function LoginForm() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="w-full"
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="w-full max-w-[1000px] bg-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col md:flex-row min-h-[580px] border border-slate-100"
     >
-      <div className="mb-8 text-center">
-        <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
-          <div className="flex items-center justify-center gap-3">
-            <div className="w-auto px-2 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20">
-              <span className="text-xl">Σ✨{'}'}</span>
-            </div>
-            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">
-              math4code
-            </h1>
-          </div>
-        </Link>
-        <p className="mt-3 text-slate-600">Welcome back! Please sign in to continue.</p>
-      </div>
+      {/* LEFT PANEL: Features */}
+      {/* LEFT PANEL: Features */}
+      <div className="hidden md:flex flex-col w-[45%] bg-[#F8FAFC] p-10 lg:p-12 relative overflow-hidden border-r border-slate-100">
+        {/* Background Decorations */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute top-[-100px] right-[-100px] w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-[-100px] left-[-100px] w-64 h-64 bg-blue-500/5 rounded-full blur-3xl" />
+        </div>
 
-      <div className="bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-2xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-violet-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-        <form onSubmit={handleLogin} className="space-y-5 relative z-10">
-          {/* Email */}
+        <div className="flex-1 flex flex-col justify-center relative z-10 space-y-10">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700 ml-1" htmlFor="email">
-              Email Address
-            </label>
-            <div className="relative group/input">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-slate-400 group-focus-within/input:text-indigo-500 transition-colors" />
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Crack Competitive Exams</h2>
+            <p className="text-slate-500 text-sm">Join 1000+ aspirants aceing <span className="font-bold text-slate-700">IIT JAM, CSIR NET & GATE</span>.</p>
+          </div>
+
+          <div className="space-y-6">
+            {/* Learn */}
+            <div className="flex gap-4 p-4 rounded-2xl transition-all duration-300 hover:bg-white hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 border border-transparent hover:border-indigo-100 group cursor-default">
+              <div className="relative shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm group-hover:scale-110 transition-transform duration-300 z-10 relative">
+                  <BookOpen className="w-6 h-6" />
+                </div>
+                {/* Connecting Line */}
+                <div className="absolute top-12 left-6 w-0.5 h-12 bg-indigo-100/50" />
               </div>
-              <input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all hover:border-slate-300"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Password */}
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-slate-700 ml-1" htmlFor="password">
-                Password
-              </label>
-              <Link
-                href="/auth/forgot-password"
-                className="text-xs text-indigo-600 hover:text-indigo-500 transition-colors font-medium"
-              >
-                Forgot password?
-              </Link>
-            </div>
-            <div className="relative group/input">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-slate-400 group-focus-within/input:text-indigo-500 transition-colors" />
+              <div className="pt-1">
+                <h3 className="text-base font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">Comprehensive Courses</h3>
+                <p className="text-slate-500 text-xs leading-relaxed mt-1">Deep dive into IIT JAM, CSIR NET & GATE syllabi with structured modules.</p>
               </div>
-              <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all hover:border-slate-300"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+            </div>
+
+            {/* Apply */}
+            <div className="flex gap-4 p-4 rounded-2xl transition-all duration-300 hover:bg-white hover:shadow-xl hover:shadow-pink-500/10 hover:-translate-y-1 border border-transparent hover:border-pink-100 group cursor-default">
+              <div className="relative shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-white border border-pink-100 flex items-center justify-center text-pink-600 shadow-sm group-hover:scale-110 transition-transform duration-300 z-10 relative">
+                  <Calculator className="w-6 h-6" />
+                </div>
+                {/* Connecting Line */}
+                <div className="absolute top-12 left-6 w-0.5 h-12 bg-pink-100/50" />
+              </div>
+              <div className="pt-1">
+                <h3 className="text-base font-bold text-slate-800 group-hover:text-pink-600 transition-colors">Mock Tests & PYQs</h3>
+                <p className="text-slate-500 text-xs leading-relaxed mt-1">Solve past year questions and full-length mock tests to boost confidence.</p>
+              </div>
+            </div>
+
+            {/* Grow */}
+            <div className="flex gap-4 p-4 rounded-2xl transition-all duration-300 hover:bg-white hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 border border-transparent hover:border-emerald-100 group cursor-default">
+              <div className="relative shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-white border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm group-hover:scale-110 transition-transform duration-300 z-10 relative">
+                  <Rocket className="w-6 h-6" />
+                </div>
+              </div>
+              <div className="pt-1">
+                <h3 className="text-base font-bold text-slate-800 group-hover:text-emerald-600 transition-colors">Expert Guidance</h3>
+                <p className="text-slate-500 text-xs leading-relaxed mt-1">Learn from top educators and rank holders to strategize your preparation.</p>
+              </div>
             </div>
           </div>
+        </div>
 
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="flex items-center gap-2 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 text-sm"
-            >
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <p>{error}</p>
-            </motion.div>
-          )}
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed transform active:scale-[0.98]"
-          >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <>
-                Sign In <ArrowRight className="h-4 w-4" />
-              </>
-            )}
-          </button>
-        </form>
-
-        <div className="mt-8 relative z-10">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200"></div>
+        <div className="relative z-10 mt-6">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-white/60 backdrop-blur-sm border border-slate-100 shadow-sm">
+            <div className="flex -space-x-2">
+              <div className="w-8 h-8 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-indigo-600">JD</div>
+              <div className="w-8 h-8 rounded-full bg-pink-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-pink-600">AS</div>
+              <div className="w-8 h-8 rounded-full bg-emerald-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-emerald-600">MK</div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-3 bg-white text-slate-500">Or continue with</span>
+            <div className="text-xs font-medium text-slate-600">
+              <span className="font-bold text-slate-900">1k+</span> Aspirants
             </div>
-          </div>
-
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            <button
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-              type="button"
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl text-slate-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm"
-            >
-              <FaGoogle className="h-4 w-4 text-slate-600" />
-              <span className="text-sm font-medium">Google</span>
-            </button>
-            <button
-              disabled={isLoading}
-              type="button"
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl text-slate-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed shadow-sm hidden"
-            >
-              <FaGithub className="h-4 w-4 text-slate-600" />
-              <span className="text-sm font-medium">GitHub</span>
-            </button>
           </div>
         </div>
       </div>
 
-      <p className="mt-8 text-center text-sm text-slate-600">
-        Don't have an account?{" "}
-        <Link
-          href={next ? `/auth/sign-up?next=${encodeURIComponent(next)}` : "/auth/sign-up"}
-          className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors hover:underline"
-        >
-          Sign up
-        </Link>
-      </p>
+      {/* RIGHT PANEL: Login Form */}
+      <div className="flex-1 p-8 md:p-12 lg:p-14 flex flex-col justify-center bg-white relative">
+        <div className="max-w-[360px] mx-auto w-full">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Welcome Back! 👋</h2>
+            <p className="text-slate-500 text-sm">One account for all your learning needs.</p>
+          </div>
+
+          <div className="space-y-3 mb-8">
+            <button
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+              type="button"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl text-slate-700 text-sm font-semibold transition-all active:scale-[0.98] group"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 21" className="w-5 h-5"><path fill="#4285F4" d="M10 8.682v3.872h5.382a4.6 4.6 0 0 1-2.01 3.01l3.246 2.518c1.89-1.746 2.982-4.31 2.982-7.355 0-.709-.064-1.39-.182-2.045z"></path><path fill="#34A853" d="m4.396 12.403-.732.56-2.591 2.019C2.718 18.245 6.09 20.5 10 20.5c2.7 0 4.963-.89 6.618-2.418l-3.246-2.518c-.89.6-2.027.963-3.372.963-2.6 0-4.81-1.754-5.6-4.118z"></path><path fill="#FBBC05" d="M1.073 6.018A9.9 9.9 0 0 0 0 10.5c0 1.618.39 3.136 1.073 4.482C1.073 14.99 4.4 12.4 4.4 12.4c-.2-.6-.318-1.237-.318-1.9 0-.664.118-1.3.318-1.9z"></path><path fill="#EA4335" d="M10 4.482c1.473 0 2.782.509 3.827 1.49l2.864-2.863C14.954 1.491 12.7.5 10 .5 6.09.5 2.718 2.745 1.073 6.018L4.4 8.6c.79-2.364 3-4.118 5.6-4.118"></path></svg>
+              <span>Continue with Google</span>
+            </button>
+          </div>
+
+          <div className="relative mb-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-100"></div>
+            </div>
+            <div className="relative flex justify-center">
+              <span className="px-3 bg-white text-[11px] uppercase tracking-wider font-semibold text-slate-400">Or continue with email</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 ml-1">Email Address</label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-3.5 h-4 w-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm"
+                    placeholder="name@example.com"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center ml-1">
+                  <label className="text-xs font-bold text-slate-700">Password</label>
+                  <Link href="/auth/forgot-password" className="text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:underline">Forgot?</Link>
+                </div>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-3.5 h-4 w-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-11 pr-11 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium text-slate-900 placeholder:text-slate-400 text-sm"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-3.5 text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-start gap-3 text-rose-600 text-xs font-medium"
+              >
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <p>{error}</p>
+              </motion.div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+                <>
+                  Sign In <ArrowRight className="h-4 w-4 opacity-50" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-xs font-medium text-slate-500">
+            Don't have an account?{" "}
+            <Link href="/auth/sign-up" className="text-indigo-600 font-bold hover:underline">
+              Create an account
+            </Link>
+          </p>
+        </div>
+      </div>
     </motion.div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
+    <div className="flex items-center justify-center w-full min-h-[500px] p-4">
       <Suspense fallback={<Loader2 className="h-8 w-8 animate-spin text-indigo-600" />}>
         <LoginForm />
       </Suspense>

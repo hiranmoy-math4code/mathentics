@@ -100,7 +100,7 @@ export default function MyTestSeries() {
                 key={test.id}
                 whileHover={{ scale: 1.02 }}
                 onClick={() => handleContinueCourse(test.id)}
-                onMouseEnter={() => prefetchCourse(test.id)}
+                onMouseEnter={() => prefetchCourse(test.id, true)}
                 className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md cursor-pointer"
               >
                 <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">

@@ -15,6 +15,7 @@ interface QuestionDisplayProps {
     onNext: () => void
     onPrev: () => void
     onClear: () => void
+    onSubmit?: () => void  // NEW: Optional submit handler
     isFirst: boolean
     isLast: boolean
 }
@@ -29,6 +30,7 @@ function QuestionDisplayComponent({
     onNext,
     onPrev,
     onClear,
+    onSubmit,  // NEW
     isFirst,
     isLast
 }: QuestionDisplayProps) {
@@ -163,6 +165,15 @@ function QuestionDisplayComponent({
                             </button>
                         </div>
                         <div className="flex gap-2">
+                            {isLast && onSubmit && (
+                                <button
+                                    onClick={onSubmit}
+                                    className="px-4 md:px-6 py-1.5 md:py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-medium shadow-sm transition-colors text-xs md:text-sm flex items-center gap-2"
+                                >
+                                    <Flag className="w-3 h-3 md:w-4 md:h-4" />
+                                    Submit Exam
+                                </button>
+                            )}
                             <button
                                 onClick={onNext}
                                 className="px-4 md:px-6 py-1.5 md:py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm transition-colors text-xs md:text-sm"

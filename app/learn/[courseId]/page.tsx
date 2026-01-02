@@ -36,6 +36,21 @@ export default async function CourseLessonPage({
         redirect(`/auth/login?next=${encodeURIComponent(nextPath)}`);
     }
 
+    // Verify user has tenant membership (ensures complete setup)
+    const { data: membership } = await supabase
+        .from('user_tenant_memberships')
+        .select('id, is_active')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .single();
+
+    if (!membership) {
+        // User is authenticated but missing tenant membership
+        // This shouldn't happen with the fixed OAuth flow, but handle it gracefully
+        console.error(`[LEARN] User ${user.email} missing tenant membership`);
+        redirect('/auth/login?error=Account setup incomplete. Please login again.');
+    }
+
     // Fast Enrollment Check (indexed query)
     const { data: enrollment } = await supabase
         .from("enrollments")

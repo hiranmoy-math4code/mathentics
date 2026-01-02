@@ -279,7 +279,7 @@ export function QuizPlayer({ exam, attempts, userId, questionsCount, maxAttempts
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
-                                                    className="h-6 px-2 text-[10px] uppercase font-bold tracking-wider opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="h-6 px-2 text-[10px] uppercase font-bold tracking-wider opacity-100 group-hover:opacity-100 transition-opacity"
                                                     onClick={() => handleViewResult(attempt)}
                                                 >
                                                     View Result

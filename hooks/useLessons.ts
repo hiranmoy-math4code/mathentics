@@ -14,6 +14,11 @@ export interface LessonSummary {
     meeting_date?: string;
     created_at: string;
     updated_at: string;
+    exam_details?: {
+        allow_pause?: boolean;
+        start_time?: string;
+        end_time?: string;
+    };
 }
 
 export interface ModuleStructure {
@@ -51,7 +56,12 @@ export const useLessons = (courseId: string) => {
                             lesson_order, 
                             is_live,
                             created_at, 
-                            updated_at
+                            updated_at,
+                            exams (
+                                allow_pause,
+                                start_time,
+                                end_time
+                            )
                         )
                     `)
                     .eq('course_id', courseId)
@@ -62,7 +72,10 @@ export const useLessons = (courseId: string) => {
 
                 return fallbackData?.map((module: any) => ({
                     ...module,
-                    lessons: (module.lessons || []).sort((a: any, b: any) => a.lesson_order - b.lesson_order)
+                    lessons: (module.lessons || []).map((l: any) => ({
+                        ...l,
+                        exam_details: l.exams // Map relation to exam_details prop
+                    })).sort((a: any, b: any) => a.lesson_order - b.lesson_order)
                 })) as ModuleStructure[];
             }
 

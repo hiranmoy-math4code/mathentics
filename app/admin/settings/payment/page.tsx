@@ -55,7 +55,7 @@ export default function PaymentGatewaySettingsPage() {
             const { data, error } = await supabase
                 .from('payment_gateway_settings')
                 .select('*')
-                .single();
+                .maybeSingle();
 
             if (data) {
                 setSettings(data);

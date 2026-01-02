@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, Calendar, Eye, EyeOff, Clock, Lock } from "lucide-react";
+import { Loader2, Calendar, Eye, EyeOff, Clock, Lock, PauseCircle } from "lucide-react";
 import { Exam } from "@/lib/types";
 
 interface ExamSettingsDialogProps {
@@ -62,6 +62,9 @@ export function ExamSettingsDialog({
 
     // Form state - Max attempts
     const [maxAttempts, setMaxAttempts] = useState<number | null>(null);
+
+    // Form state - Pause control
+    const [allowPause, setAllowPause] = useState(true);
 
     const supabase = createClient();
 
@@ -137,6 +140,9 @@ export function ExamSettingsDialog({
 
             // Load max_attempts
             setMaxAttempts(data.max_attempts ?? null);
+
+            // Load pause control
+            setAllowPause(data.allow_pause ?? true);
 
             // Set scheduling enabled if start or end time exists
             setIsSchedulingEnabled(!!(data.start_time || data.end_time));
@@ -291,6 +297,7 @@ export function ExamSettingsDialog({
                 start_time: startTimestamp,
                 end_time: endTimestamp,
                 max_attempts: maxAttempts,
+                allow_pause: allowPause,
                 updated_at: new Date().toISOString(),
             };
 
@@ -571,6 +578,40 @@ export function ExamSettingsDialog({
                                 <p className="text-xs text-slate-500 dark:text-slate-400">
                                     Leave empty for unlimited attempts. Set a number to limit how many times students can take this exam.
                                 </p>
+                            </div>
+
+                            {/* Pause Control Section */}
+                            <div className="space-y-3 pt-3 border-t dark:border-slate-800">
+                                <div className="flex items-center gap-2">
+                                    <PauseCircle className="h-4 w-4 text-amber-500" />
+                                    <h3 className="text-sm font-semibold dark:text-white">Student Controls</h3>
+                                </div>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    Control whether students can pause and resume this exam
+                                </p>
+
+                                <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-900/50">
+                                    <div className="flex-1">
+                                        <Label className="text-sm font-medium dark:text-amber-300">Allow Pause & Exit</Label>
+                                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                                            {allowPause
+                                                ? "Students can pause and resume later from where they left off"
+                                                : "Timer runs continuously - students cannot pause (strict exam mode)"}
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        checked={allowPause}
+                                        onCheckedChange={setAllowPause}
+                                    />
+                                </div>
+
+                                {!allowPause && (
+                                    <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-900/50">
+                                        <p className="text-xs text-red-700 dark:text-red-300">
+                                            ⚠️ <strong>Strict Mode:</strong> Timer will run continuously even if student closes tab or loses connection. Use for live/competitive exams.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

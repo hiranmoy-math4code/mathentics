@@ -3,20 +3,28 @@ import { createClient } from "@/lib/supabase/server";
 
 export const runtime = 'edge';
 
-
-
+/**
+ * OAuth Callback Handler
+ * Handles Google OAuth redirects and ensures complete user setup
+ * 
+ * CRITICAL: This route must:
+ * 1. Create user profile if missing
+ * 2. Create tenant membership for new users
+ * 3. Initialize user_rewards
+ * 4. Handle all edge cases gracefully
+ */
 export async function GET(request: NextRequest) {
     const { searchParams, origin, hash } = new URL(request.url);
     const code = searchParams.get("code");
-    // if "next" is in param, use it as the redirect URL
     const next = searchParams.get("next") ?? "/student/dashboard";
+    const tenantSlug = searchParams.get("tenant_slug"); // Passed from login page
 
     // Supabase can send type in query params OR in hash fragment
     let type = searchParams.get("type");
 
     // If not in query params, check hash fragment
     if (!type && hash) {
-        const hashParams = new URLSearchParams(hash.substring(1)); // Remove the # and parse
+        const hashParams = new URLSearchParams(hash.substring(1));
         type = hashParams.get("type");
     }
 
@@ -25,35 +33,41 @@ export async function GET(request: NextRequest) {
         const { error, data } = await supabase.auth.exchangeCodeForSession(code);
 
         if (!error) {
-            // Check if this is a password recovery flow
-            // Supabase adds type=recovery in the URL for password reset
+            // Handle password recovery flow
             if (type === 'recovery') {
-
                 return NextResponse.redirect(`${origin}/auth/reset-password`);
             }
 
-            // Check if this is an invitation flow
+            // Handle invitation flow
             if (type === 'invite') {
-
                 return NextResponse.redirect(`${origin}/auth/reset-password`);
             }
 
-            // Successful login
+            // ================================================================
+            // SUCCESSFUL LOGIN - Ensure complete user setup
+            // ================================================================
             const { data: { user } } = await supabase.auth.getUser();
 
             if (user) {
-                // Production Safeguard: Ensure profile exists before redirecting
-                // This replaces the need for unreliable SQL triggers or client-side syncs
+                console.log(`[AUTH] User logged in: ${user.email}`);
+
+                // ============================================================
+                // STEP 1: Ensure profile exists
+                // ============================================================
                 const { data: existingProfile } = await supabase
                     .from("profiles")
-                    .select("role")
+                    .select("id, role")
                     .eq("id", user.id)
                     .single();
 
+                let userRole = existingProfile?.role || "student";
+                let isNewUser = false;
+
                 if (!existingProfile) {
-                    // Profile missing? Create it immediately on the server.
-                    // This is synchronous and ensures the user lands on the dashboard with data.
-                    const role = (user.user_metadata?.role as string) || "student";
+                    isNewUser = true;
+                    console.log(`[AUTH] Creating new profile for ${user.email}`);
+
+                    userRole = (user.user_metadata?.role as string) || "student";
                     const fullName = user.user_metadata?.full_name || user.user_metadata?.name || "Student";
 
                     const { error: insertError } = await supabase.from("profiles").insert({
@@ -61,38 +75,133 @@ export async function GET(request: NextRequest) {
                         email: user.email,
                         full_name: fullName,
                         avatar_url: user.user_metadata?.avatar_url,
-                        role: role
+                        role: userRole
                     });
 
                     if (insertError) {
-
-                        // We continue anyway, as the user is authenticated. 
-                        // The dashboard might handle the error or retry.
+                        console.error(`[AUTH] Profile creation failed:`, insertError);
+                        // Continue anyway - user is authenticated
                     } else {
-                        // Force a redirect to dashboard for new users
-                        // This is safer than relying on 'next' which might be stale
-                        return NextResponse.redirect(`${origin}/student/dashboard`);
+                        console.log(`[AUTH] Profile created successfully`);
                     }
                 }
 
-                // MULTI-TENANT: Check if user is admin in ANY tenant
-                const { data: memberships, error: membershipError } = await supabase
+                // ============================================================
+                // STEP 2: Get tenant config from environment (no DB hit)
+                // ============================================================
+                const tenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+                const tenantSlug = process.env.NEXT_PUBLIC_TENANT_SLUG;
+
+                if (!tenantId || !tenantSlug) {
+                    console.error(`[AUTH] Tenant configuration missing in environment!`);
+                    return NextResponse.redirect(`${origin}/auth/login?error=Configuration error. Please contact support.`);
+                }
+
+                // Use RPC to assign user to tenant (same as email signup)
+                try {
+                    await supabase.rpc('assign_user_to_tenant', {
+                        p_user_id: user.id,
+                        p_tenant_slug: tenantSlug,
+                        p_role: userRole
+                    });
+                } catch (rpcError) {
+                    console.error('[AUTH] RPC failed:', rpcError);
+                }
+
+
+                // ============================================================
+                // STEP 3: Ensure tenant membership exists
+                // ============================================================
+                if (tenantId) {
+                    const { data: existingMembership } = await supabase
+                        .from('user_tenant_memberships')
+                        .select('id, role')
+                        .eq('user_id', user.id)
+                        .eq('tenant_id', tenantId)
+                        .single();
+
+                    if (!existingMembership) {
+                        console.log(`[AUTH] Creating tenant membership for ${user.email} in tenant ${tenantId}`);
+
+                        const { error: membershipError } = await supabase
+                            .from('user_tenant_memberships')
+                            .insert({
+                                user_id: user.id,
+                                tenant_id: tenantId,
+                                role: userRole,
+                                is_active: true
+                            });
+
+                        if (membershipError) {
+                            console.error(`[AUTH] Tenant membership creation failed:`, membershipError);
+                        } else {
+                            console.log(`[AUTH] Tenant membership created successfully`);
+                        }
+                    }
+                } else {
+                    console.warn(`[AUTH] No tenant ID available - user may have access issues`);
+                }
+
+                // ============================================================
+                // STEP 4: Initialize user_rewards if new user
+                // ============================================================
+                if (isNewUser) {
+                    const { data: existingRewards } = await supabase
+                        .from('user_rewards')
+                        .select('id')
+                        .eq('user_id', user.id)
+                        .single();
+
+                    if (!existingRewards) {
+                        console.log(`[AUTH] Initializing user_rewards for ${user.email}`);
+
+                        const { error: rewardsError } = await supabase
+                            .from('user_rewards')
+                            .insert({
+                                user_id: user.id,
+                                total_coins: 0,
+                                xp: 0,
+                                level: 1,
+                                current_streak: 0,
+                                longest_streak: 0
+                            });
+
+                        if (rewardsError) {
+                            console.error(`[AUTH] User rewards initialization failed:`, rewardsError);
+                        } else {
+                            console.log(`[AUTH] User rewards initialized successfully`);
+                        }
+                    }
+                }
+
+                // ============================================================
+                // STEP 5: Determine redirect based on role
+                // ============================================================
+                const { data: memberships } = await supabase
                     .from('user_tenant_memberships')
                     .select('role, tenant_id, tenants(slug)')
                     .eq('user_id', user.id)
                     .eq('is_active', true);
 
-                // If user is admin/creator in any tenant, redirect to admin dashboard
                 const isAdmin = memberships?.some(m =>
                     m.role === 'admin' || m.role === 'creator'
                 );
 
+                console.log(`[AUTH] Login complete for ${user.email}, isAdmin: ${isAdmin}`);
+
                 if (isAdmin) {
                     return NextResponse.redirect(`${origin}/admin/dashboard`);
                 }
-            }
 
-            return NextResponse.redirect(`${origin}${next}`);
+                // For new users, always go to dashboard first
+                if (isNewUser) {
+                    return NextResponse.redirect(`${origin}/student/dashboard`);
+                }
+
+                return NextResponse.redirect(`${origin}${next}`);
+            }
+        } else {
+            console.error(`[AUTH] Session exchange failed:`, error);
         }
     }
 

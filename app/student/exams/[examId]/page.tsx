@@ -15,11 +15,29 @@ export default function ExamPanelSections() {
   const isRetake = searchParams.get('retake') === 'true'
   const [isAuthChecking, setIsAuthChecking] = useState(true)
 
-  // Auth check (Redundant but safe)
+  // Auth check + Tenant membership verification
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) router.push("/auth/login")
+      if (!user) {
+        router.push("/auth/login")
+        return
+      }
+
+      // Verify tenant membership exists
+      const { data: membership } = await supabase
+        .from('user_tenant_memberships')
+        .select('id, is_active')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .single()
+
+      if (!membership) {
+        console.error(`[EXAM] User ${user.email} missing tenant membership`)
+        router.push('/auth/login?error=Account setup incomplete. Please login again.')
+        return
+      }
+
       setIsAuthChecking(false)
     }
     checkUser()

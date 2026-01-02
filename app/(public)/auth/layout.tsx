@@ -16,7 +16,7 @@ export default function AuthLayout({
                 <div className="absolute top-[40%] left-[40%] w-[20%] h-[20%] bg-blue-500/5 rounded-full blur-[80px]" />
             </div>
 
-            <div className="w-full max-w-md relative z-10">
+            <div className="w-full relative z-10 flex items-center justify-center">
                 {children}
             </div>
         </div>

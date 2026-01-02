@@ -184,7 +184,7 @@ export default function ExamResultPage() {
             </div>
 
             {/* Stats Grid */}
-            <div className="md:col-span-2 grid grid-cols-2 gap-4">
+            <div className="md:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Target className="w-5 h-5" />
@@ -223,6 +223,26 @@ export default function ExamResultPage() {
                 <div className="text-3xl font-bold text-rose-300">
                   {stats.wrong}
                 </div>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-5 h-5" />
+                  <span className="text-sm opacity-90">Time Taken</span>
+                </div>
+                <div className="text-3xl font-bold text-blue-300">
+                  {(() => {
+                    const totalSeconds = attempt?.total_time_spent || 0;
+                    const hours = Math.floor(totalSeconds / 3600);
+                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                    const seconds = totalSeconds % 60;
+                    if (hours > 0) {
+                      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    }
+                    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                  })()}
+                </div>
+                <div className="text-xs opacity-75 mt-1">{attempt?.total_time_spent >= 3600 ? 'hours' : 'minutes'}</div>
               </div>
             </div>
           </div>

@@ -10,6 +10,7 @@ interface ScientificCalculatorProps {
 
 export function ScientificCalculator({ onClose }: ScientificCalculatorProps) {
     const [display, setDisplay] = useState("0")
+    const [expression, setExpression] = useState("")  // NEW: Show operation
     const [memory, setMemory] = useState(0)
     const [isRadians, setIsRadians] = useState(true)
     const [waitingForOperand, setWaitingForOperand] = useState(false)
@@ -36,6 +37,7 @@ export function ScientificCalculator({ onClose }: ScientificCalculatorProps) {
 
     const clearDisplay = () => {
         setDisplay("0")
+        setExpression("")  // Clear expression
         setWaitingForOperand(false)
         setPendingOperator(null)
         setValue(null)
@@ -50,11 +52,18 @@ export function ScientificCalculator({ onClose }: ScientificCalculatorProps) {
 
         if (value === null) {
             setValue(inputValue)
+            setExpression(`${inputValue} ${nextOperator}`)  // Show expression
         } else if (pendingOperator) {
             const currentValue = value || 0
             const newValue = calculate(currentValue, inputValue, pendingOperator)
             setValue(newValue)
             setDisplay(String(newValue))
+
+            if (nextOperator === "=") {
+                setExpression(`${currentValue} ${pendingOperator} ${inputValue} =`)  // Show full expression
+            } else {
+                setExpression(`${newValue} ${nextOperator}`)  // Continue expression
+            }
         }
 
         setWaitingForOperand(true)
@@ -108,7 +117,7 @@ export function ScientificCalculator({ onClose }: ScientificCalculatorProps) {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed top-20 left-20 z-50 bg-slate-800 rounded-xl shadow-2xl border border-slate-700 w-[320px] overflow-hidden"
+            className="fixed top-4 sm:top-20 left-4 sm:left-20 z-50 bg-slate-800 rounded-xl shadow-2xl border border-slate-700 w-[320px] overflow-hidden"
         >
             {/* Header */}
             <div className="bg-slate-900 p-2 flex items-center justify-between cursor-move handle">
@@ -123,7 +132,12 @@ export function ScientificCalculator({ onClose }: ScientificCalculatorProps) {
 
             {/* Display */}
             <div className="p-4 bg-slate-800">
-                <div className="bg-slate-900 rounded-lg p-3 text-right font-mono text-2xl text-emerald-400 overflow-hidden truncate shadow-inner border border-slate-700">
+                {/* Expression Display (shows operation) */}
+                <div className="bg-slate-900/50 rounded-t-lg px-3 py-1 text-right font-mono text-xs text-slate-400 min-h-[20px] border-b border-slate-700">
+                    {expression || " "}
+                </div>
+                {/* Result Display */}
+                <div className="bg-slate-900 rounded-b-lg p-3 text-right font-mono text-2xl text-emerald-400 overflow-hidden truncate shadow-inner border border-slate-700 border-t-0">
                     {display}
                 </div>
                 <div className="flex gap-2 mt-2 text-[10px] text-slate-500 font-mono">
@@ -197,3 +211,4 @@ function Btn({ children, onClick, className = "", style = {} }: any) {
         </button>
     )
 }
+

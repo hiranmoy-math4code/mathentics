@@ -37,23 +37,7 @@ export default function AllCoursesPage() {
             router.push(`/auth/login?redirect=/courses/${courseId}`);
             return;
         }
-
-        if (price === 0) {
-            setEnrollingCourseId(courseId);
-            enrollMutation.mutate(
-                { courseId, userId: user.id },
-                {
-                    onSuccess: () => {
-                        setEnrollingCourseId(null);
-                    },
-                    onError: () => {
-                        setEnrollingCourseId(null);
-                    },
-                }
-            );
-        } else {
-            router.push(`/courses/${courseId}`);
-        }
+        router.push(`/courses/${courseId}`);
     };
 
     if (allCoursesLoading) {
@@ -113,7 +97,7 @@ export default function AllCoursesPage() {
                             <motion.div
                                 key={course.id}
                                 whileHover={{ scale: 1.02 }}
-                                onMouseEnter={() => prefetchCourse(course.id)}
+                                onMouseEnter={() => prefetchCourse(course.id, course.is_enrolled)}
                                 className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md"
                             >
                                 <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">
@@ -154,7 +138,7 @@ export default function AllCoursesPage() {
                                         ) : (
                                             <>
                                                 <ShoppingCart className="w-4 h-4 mr-2" />
-                                                {course.price === 0 ? "Enroll Free" : "View Details"}
+                                                View Details
                                             </>
                                         )}
                                     </Button>

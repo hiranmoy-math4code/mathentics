@@ -21,8 +21,18 @@ export type Section = {
     required_attempts?: number;
     max_questions_to_attempt?: number;
 }
-export type Exam = { id: string; title: string; duration_minutes: number; total_marks?: number }
-export type Attempt = { id: string; status: string; exam_id: string; student_id: string; total_time_spent?: number }
+export type Exam = { id: string; title: string; duration_minutes: number; total_marks?: number; allow_pause?: boolean }
+export type Attempt = {
+    id: string;
+    status: string;
+    exam_id: string;
+    student_id: string;
+    total_time_spent?: number;
+    exam_deadline?: string;
+    elapsed_time_seconds?: number;
+    last_activity_at?: string;
+    is_paused?: boolean;
+}
 
 export function useExamSession(examId: string, userId: string | null, retakeAttempt: number = 0, enabled: boolean = true) {
     const supabase = createClient()
@@ -201,10 +211,15 @@ export function useExamSession(examId: string, userId: string | null, retakeAtte
 export function useUpdateTimer() {
     const supabase = createClient()
     return useMutation({
-        mutationFn: async ({ attemptId, timeSpent }: { attemptId: string, timeSpent: number }) => {
+        mutationFn: async ({ attemptId, timeSpent, isPaused, elapsedSeconds, lastActivityAt }: { attemptId: string, timeSpent: number, isPaused?: boolean, elapsedSeconds?: number, lastActivityAt?: string }) => {
+            const updates: any = { total_time_spent: timeSpent }
+            if (isPaused !== undefined) updates.is_paused = isPaused
+            if (elapsedSeconds !== undefined) updates.elapsed_time_seconds = elapsedSeconds
+            if (lastActivityAt !== undefined) updates.last_activity_at = lastActivityAt
+
             const { error } = await supabase
                 .from("exam_attempts")
-                .update({ total_time_spent: timeSpent })
+                .update(updates)
                 .eq("id", attemptId)
             if (error) throw error
         }

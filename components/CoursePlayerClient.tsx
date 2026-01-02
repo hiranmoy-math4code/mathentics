@@ -259,8 +259,55 @@ export function CoursePlayerClient({
                                                             <div className={cn("font-medium line-clamp-2 leading-tight", isActive ? "text-emerald-900 dark:text-emerald-100" : "text-foreground")}>
                                                                 {lesson.title}
                                                             </div>
-                                                            <div className={cn("text-xs mt-1", isActive ? "text-emerald-600/80 dark:text-emerald-400/80" : "text-muted-foreground/60")}>
-                                                                {typeLabel} {lesson.is_free_preview && !isEnrolled && "• Free Preview"}
+                                                            <div className={cn("text-xs mt-1 flex items-center gap-2", isActive ? "text-emerald-600/80 dark:text-emerald-400/80" : "text-muted-foreground/60")}>
+                                                                <span>{typeLabel} {lesson.is_free_preview && !isEnrolled && "• Free Preview"}</span>
+
+                                                                {lesson.content_type === "quiz" && lesson.exam_details && (() => {
+                                                                    const { allow_pause, start_time, end_time } = lesson.exam_details;
+                                                                    const now = new Date();
+                                                                    const start = start_time ? new Date(start_time) : null;
+                                                                    const end = end_time ? new Date(end_time) : null;
+
+                                                                    if (allow_pause === false) {
+                                                                        return (
+                                                                            <Badge variant="destructive" className="h-4 px-1 text-[9px] rounded-sm uppercase tracking-wider font-bold">
+                                                                                Live
+                                                                            </Badge>
+                                                                        )
+                                                                    }
+
+                                                                    if (end && now > end) {
+                                                                        return (
+                                                                            <Badge variant="secondary" className="h-4 px-1 text-[9px] rounded-sm uppercase tracking-wider font-bold bg-muted text-muted-foreground">
+                                                                                Ended
+                                                                            </Badge>
+                                                                        )
+                                                                    }
+
+                                                                    if (start && now < start) {
+                                                                        return (
+                                                                            <Badge variant="outline" className="h-4 px-1 text-[9px] rounded-sm uppercase tracking-wider font-bold border-yellow-500 text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20">
+                                                                                Upcom..
+                                                                            </Badge>
+                                                                        )
+                                                                    }
+
+                                                                    if (start && end && now >= start && now <= end) {
+                                                                        return (
+                                                                            <Badge variant="outline" className="h-4 px-1 text-[9px] rounded-sm uppercase tracking-wider font-bold border-emerald-500 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20">
+                                                                                Open
+                                                                            </Badge>
+                                                                        )
+                                                                    }
+
+                                                                    // Default Practice
+                                                                    return (
+                                                                        <Badge variant="outline" className="h-4 px-1 text-[9px] rounded-sm uppercase tracking-wider font-bold border-blue-200 text-blue-600 bg-blue-50 dark:bg-blue-900/20">
+                                                                            Practice
+                                                                        </Badge>
+                                                                    )
+
+                                                                })()}
                                                             </div>
                                                         </div>
                                                         {isCompleted && (
@@ -375,9 +422,57 @@ export function CoursePlayerClient({
                                                                     <div className={cn("font-medium line-clamp-2 leading-tight", isActive ? "text-emerald-900 dark:text-emerald-100" : "text-foreground")}>
                                                                         {lesson.title}
                                                                     </div>
-                                                                    <div className={cn("text-xs mt-1", isActive ? "text-emerald-600/80 dark:text-emerald-400/80" : "text-muted-foreground/60")}>
-                                                                        {typeLabel} {lesson.is_free_preview && !isEnrolled && "• Free Preview"}
+                                                                    <div className={cn("text-xs mt-1 flex items-center gap-2", isActive ? "text-emerald-600/80 dark:text-emerald-400/80" : "text-muted-foreground/60")}>
+                                                                        <span>{typeLabel} {lesson.is_free_preview && !isEnrolled && "• Free Preview"}</span>
+
+                                                                        {lesson.content_type === "quiz" && lesson.exam_details && (() => {
+                                                                            const { allow_pause, start_time, end_time } = lesson.exam_details;
+                                                                            const now = new Date();
+                                                                            const start = start_time ? new Date(start_time) : null;
+                                                                            const end = end_time ? new Date(end_time) : null;
+
+                                                                            if (allow_pause === false) {
+                                                                                return (
+                                                                                    <Badge variant="destructive" className="h-4 px-1 text-[9px] rounded-sm uppercase tracking-wider font-bold">
+                                                                                        Live
+                                                                                    </Badge>
+                                                                                )
+                                                                            }
+
+                                                                            if (end && now > end) {
+                                                                                return (
+                                                                                    <Badge variant="secondary" className="h-4 px-1 text-[9px] rounded-sm uppercase tracking-wider font-bold bg-muted text-muted-foreground">
+                                                                                        Ended
+                                                                                    </Badge>
+                                                                                )
+                                                                            }
+
+                                                                            if (start && now < start) {
+                                                                                return (
+                                                                                    <Badge variant="outline" className="h-4 px-1 text-[9px] rounded-sm uppercase tracking-wider font-bold border-yellow-500 text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20">
+                                                                                        Upcom..
+                                                                                    </Badge>
+                                                                                )
+                                                                            }
+
+                                                                            if (start && end && now >= start && now <= end) {
+                                                                                return (
+                                                                                    <Badge variant="outline" className="h-4 px-1 text-[9px] rounded-sm uppercase tracking-wider font-bold border-emerald-500 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20">
+                                                                                        Open
+                                                                                    </Badge>
+                                                                                )
+                                                                            }
+
+                                                                            // Default Practice
+                                                                            return (
+                                                                                <Badge variant="outline" className="h-4 px-1 text-[9px] rounded-sm uppercase tracking-wider font-bold border-blue-200 text-blue-600 bg-blue-50 dark:bg-blue-900/20">
+                                                                                    Practice
+                                                                                </Badge>
+                                                                            )
+
+                                                                        })()}
                                                                     </div>
+
                                                                 </div>
                                                                 {isCompleted && (
                                                                     <CheckCircle className="h-5 w-5 shrink-0 text-emerald-500 fill-emerald-500/10" />

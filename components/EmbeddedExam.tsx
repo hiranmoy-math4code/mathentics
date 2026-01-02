@@ -12,7 +12,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import {
     Clock, CheckCircle2, Loader2, ArrowLeft, Flag, TrendingUp, Award, Target, BarChart3,
-    Menu, AlertTriangle, Save, ListChecks, Maximize, Minimize, PauseCircle, X
+    Menu, AlertTriangle, Save, ListChecks, Maximize, Minimize, PauseCircle, X, Calculator
 } from "lucide-react"
 import { renderWithLatex } from "@/lib/renderWithLatex"
 import { useRouter } from "next/navigation"
@@ -22,6 +22,8 @@ import { isResponseExpired } from "@/lib/responseCleanup"
 import { ExamTimer } from "@/components/exam/ExamTimer"
 import { QuestionDisplay } from "@/components/exam/QuestionDisplay"
 import { QuestionPalette } from "@/components/exam/QuestionPalette"
+import { ScientificCalculator } from "@/components/exam/ScientificCalculator"
+import { ExamLeaderboard } from "@/components/exam/ExamLeaderboard"
 
 interface EmbeddedExamProps {
     examId: string
@@ -312,133 +314,293 @@ export function PreviousResultView({
     }
 
     return (
-        <div className="bg-background rounded-xl border border-border overflow-hidden shadow-sm">
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 text-center">
-                <Award className="w-16 h-16 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Quiz Result</h2>
-                <p className="text-indigo-100">
-                    Attempted on {new Date(result.created_at).toLocaleDateString()}
-                </p>
-            </div>
-
-            <div className="p-4 md:p-6 space-y-6">
-
-                {attempt?.submitted_at && (
-                    <ResponseExpiryWarning submittedAt={attempt.submitted_at} />
-                )}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                    <div className="bg-blue-50 dark:bg-blue-900/20 p-3 md:p-4 rounded-xl border border-blue-200 dark:border-blue-800 text-center">
-                        <Target className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 text-blue-500 dark:text-blue-400" />
-                        <div className="text-xl md:text-2xl font-bold text-blue-700 dark:text-blue-300">{result.score ?? result.obtained_marks ?? 0}</div>
-                        <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">Score</div>
-                    </div>
-                    <div className="bg-purple-50 dark:bg-purple-900/20 p-3 md:p-4 rounded-xl border border-purple-200 dark:border-purple-800 text-center">
-                        <TrendingUp className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 text-purple-500 dark:text-purple-400" />
-                        <div className="text-xl md:text-2xl font-bold text-purple-700 dark:text-purple-300">{result.percentage?.toFixed(1) || 0}%</div>
-                        <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">Percentage</div>
-                    </div>
-                    <div className={`bg-gradient-to-br p-3 md:p-4 rounded-xl border text-center col-span-2 md:col-span-1 ${passed ? 'from-emerald-500/20 to-emerald-600/20 border-emerald-500/50' : 'from-amber-500/20 to-amber-600/20 border-amber-500/50'}`}>
-                        {passed ? (
-                            <>
-                                <CheckCircle2 className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 text-emerald-500" />
-                                <div className="text-xl md:text-2xl font-bold text-emerald-600 dark:text-emerald-400">Passed</div>
-                            </>
-                        ) : (
-                            <>
-                                <AlertTriangle className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 text-amber-500" />
-                                <div className="text-xl md:text-2xl font-bold text-amber-600 dark:text-amber-400">Not Passed</div>
-                            </>
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-indigo-950 dark:to-purple-950 p-4 md:p-6">
+            <div className="max-w-7xl mx-auto space-y-6">
+                {/* Header Section */}
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white rounded-2xl p-6 md:p-8 shadow-2xl"
+                >
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="text-center md:text-left">
+                            <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
+                                <Award className="w-10 h-10 md:w-12 md:h-12" />
+                                <h1 className="text-3xl md:text-4xl font-bold">Exam Result</h1>
+                            </div>
+                            <p className="text-indigo-100 text-sm md:text-base">
+                                Completed on {new Date(result.created_at).toLocaleDateString('en-US', {
+                                    weekday: 'long',
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                })}
+                            </p>
+                        </div>
+                        {result.rank && (
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.3, type: "spring" }}
+                                className="bg-white/20 backdrop-blur-sm rounded-2xl px-6 py-4 border-2 border-white/30"
+                            >
+                                <div className="text-center">
+                                    <div className="text-4xl md:text-5xl font-bold text-yellow-300">#{result.rank}</div>
+                                    <div className="text-xs md:text-sm text-white/90 font-medium mt-1">Your Rank</div>
+                                </div>
+                            </motion.div>
                         )}
-                        <div className="text-xs text-muted-foreground font-medium">Status</div>
                     </div>
-                </div>
+                </motion.div>
 
-                {/* Section Analysis */}
-                {structured && structured.length > 0 && (
-                    <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                            <BarChart3 className="w-5 h-5 text-primary" />
-                            Section Analysis
-                        </h3>
-                        <div className="grid gap-4">
-                            {structured.map((section: any) => {
-                                const secResult = section.result
-                                const totalQuestions = section.questions.length
-
-                                return (
-                                    <div key={section.id} className="bg-card p-4 rounded-xl border border-border">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <h4 className="font-medium text-foreground">{section.title}</h4>
-                                            <span className="text-xs text-muted-foreground">{totalQuestions} Questions</span>
-                                        </div>
-
-                                        {secResult ? (
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                                <div className="bg-muted/50 p-2 rounded-lg border border-border">
-                                                    <div className="text-muted-foreground text-xs">Score</div>
-                                                    <div className="font-semibold text-blue-500">{secResult.obtained_marks} / {secResult.total_marks}</div>
-                                                </div>
-                                                <div className="bg-muted/50 p-2 rounded-lg border border-border">
-                                                    <div className="text-muted-foreground text-xs">Correct</div>
-                                                    <div className="font-semibold text-emerald-500">{secResult.correct_answers}</div>
-                                                </div>
-                                                <div className="bg-muted/50 p-2 rounded-lg border border-border">
-                                                    <div className="text-muted-foreground text-xs">Wrong</div>
-                                                    <div className="font-semibold text-rose-500">{secResult.wrong_answers}</div>
-                                                </div>
-                                                <div className="bg-muted/50 p-2 rounded-lg border border-border">
-                                                    <div className="text-muted-foreground text-xs">Unanswered</div>
-                                                    <div className="font-semibold text-muted-foreground">{secResult.unanswered}</div>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="text-sm text-muted-foreground italic">
-                                                No detailed result available for this section.
-                                            </div>
-                                        )}
-                                    </div>
-                                )
-                            })}
+                {/* Stats Grid - Redesigned */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                >
+                    {/* Score Card */}
+                    <div className="bg-white dark:bg-slate-800/90 rounded-2xl p-4 md:p-6 shadow-lg border border-blue-100 dark:border-blue-800/50 hover:shadow-xl transition-shadow">
+                        <div className="flex flex-col items-center">
+                            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-3">
+                                <Target className="w-6 h-6 md:w-7 md:h-7 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div className="text-2xl md:text-3xl font-bold text-blue-700 dark:text-blue-300 mb-1">
+                                {result.score ?? result.obtained_marks ?? 0}
+                            </div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Score</div>
+                            <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                                out of {result.total_marks}
+                            </div>
                         </div>
                     </div>
-                )}
 
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row justify-center gap-3 pt-4">
+                    {/* Percentage Card */}
+                    <div className="bg-white dark:bg-slate-800/90 rounded-2xl p-4 md:p-6 shadow-lg border border-purple-100 dark:border-purple-800/50 hover:shadow-xl transition-shadow">
+                        <div className="flex flex-col items-center">
+                            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-3">
+                                <TrendingUp className="w-6 h-6 md:w-7 md:h-7 text-purple-600 dark:text-purple-400" />
+                            </div>
+                            <div className="text-2xl md:text-3xl font-bold text-purple-700 dark:text-purple-300 mb-1">
+                                {result.percentage?.toFixed(1) || 0}%
+                            </div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Percentage</div>
+                            <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                                {result.percentage >= 90 ? 'Excellent!' : result.percentage >= 75 ? 'Great!' : result.percentage >= 60 ? 'Good' : 'Keep trying'}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Status Card */}
+                    <div className={`bg-white dark:bg-slate-800/90 rounded-2xl p-4 md:p-6 shadow-lg border hover:shadow-xl transition-shadow ${passed ? 'border-emerald-100 dark:border-emerald-800/50' : 'border-amber-100 dark:border-amber-800/50'
+                        }`}>
+                        <div className="flex flex-col items-center">
+                            <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center mb-3 ${passed ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-amber-100 dark:bg-amber-900/30'
+                                }`}>
+                                {passed ? (
+                                    <CheckCircle2 className="w-6 h-6 md:w-7 md:h-7 text-emerald-600 dark:text-emerald-400" />
+                                ) : (
+                                    <AlertTriangle className="w-6 h-6 md:w-7 md:h-7 text-amber-600 dark:text-amber-400" />
+                                )}
+                            </div>
+                            <div className={`text-xl md:text-2xl font-bold mb-1 ${passed ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'
+                                }`}>
+                                {passed ? 'Passed' : 'Not Passed'}
+                            </div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Status</div>
+                        </div>
+                    </div>
+
+                    {/* Time Card */}
+                    <div className="bg-white dark:bg-slate-800/90 rounded-2xl p-4 md:p-6 shadow-lg border border-indigo-100 dark:border-indigo-800/50 hover:shadow-xl transition-shadow">
+                        <div className="flex flex-col items-center">
+                            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center mb-3">
+                                <Clock className="w-6 h-6 md:w-7 md:h-7 text-indigo-600 dark:text-indigo-400" />
+                            </div>
+                            <div className="text-xl md:text-2xl font-bold text-indigo-700 dark:text-indigo-300 mb-1">
+                                {(() => {
+                                    const totalSeconds = attempt?.total_time_spent || 0;
+                                    const hours = Math.floor(totalSeconds / 3600);
+                                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                                    const seconds = totalSeconds % 60;
+                                    if (hours > 0) {
+                                        return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                                    }
+                                    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                                })()}
+                            </div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Time Taken</div>
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* Action Buttons - Moved to top */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex flex-col sm:flex-row justify-center gap-3"
+                >
                     {showAnswers && (
                         <Button
                             onClick={() => setShowAnalysis(true)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all"
+                            size="lg"
                         >
-                            <ListChecks className="w-4 h-4 mr-2" />
+                            <ListChecks className="w-5 h-5 mr-2" />
                             Review Questions
                         </Button>
                     )}
                     <Button
                         onClick={onRetake}
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all"
+                        size="lg"
                     >
-                        <Flag className="w-4 mr-2" />
-                        Retake Quiz
+                        <Flag className="w-5 h-5 mr-2" />
+                        Retake Exam
                     </Button>
                     {onBack && (
                         <Button
                             onClick={onBack}
                             variant="outline"
-                            className="border-border text-foreground hover:bg-muted"
+                            className="border-2 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 shadow-md"
+                            size="lg"
                         >
-                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            <ArrowLeft className="w-5 h-5 mr-2" />
                             Back to Attempts
                         </Button>
                     )}
                     <Button
                         onClick={() => window.location.reload()}
                         variant="secondary"
-                        className="bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                        className="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 shadow-md"
+                        size="lg"
                     >
                         Continue Learning
                     </Button>
+                </motion.div>
+
+                {/* 2-Column Layout: Section Analysis + Leaderboard */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Section Analysis - Enhanced */}
+                    {structured && structured.length > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="space-y-4"
+                        >
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                                    <BarChart3 className="w-5 h-5 text-white" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Section Analysis</h2>
+                            </div>
+                            <div className="space-y-4">
+                                {structured.map((section: any, idx: number) => {
+                                    const secResult = section.result
+                                    const totalQuestions = section.questions.length
+                                    const accuracy = secResult ? (secResult.correct_answers / totalQuestions * 100) : 0
+
+                                    return (
+                                        <motion.div
+                                            key={section.id}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.3 + idx * 0.1 }}
+                                            className="bg-white dark:bg-slate-800/90 rounded-2xl p-5 shadow-lg border border-slate-200 dark:border-slate-700/50 hover:shadow-xl transition-all"
+                                        >
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div>
+                                                    <h3 className="font-bold text-lg text-slate-800 dark:text-white">{section.title}</h3>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                                        {totalQuestions} Questions • {secResult?.obtained_marks || 0}/{secResult?.total_marks || 0} Marks
+                                                    </p>
+                                                </div>
+                                                <div className={`px-3 py-1 rounded-full text-xs font-bold ${accuracy >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                                    accuracy >= 60 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                                                        'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                                    }`}>
+                                                    {accuracy.toFixed(0)}% Accuracy
+                                                </div>
+                                            </div>
+
+                                            {secResult ? (
+                                                <>
+                                                    {/* Progress Bar */}
+                                                    <div className="mb-4">
+                                                        <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400 mb-2">
+                                                            <span>Progress</span>
+                                                            <span>{secResult.correct_answers + secResult.wrong_answers}/{totalQuestions} Attempted</span>
+                                                        </div>
+                                                        <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
+                                                                style={{ width: `${(secResult.correct_answers + secResult.wrong_answers) / totalQuestions * 100}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Stats Grid */}
+                                                    <div className="grid grid-cols-3 gap-3">
+                                                        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-center border border-emerald-100 dark:border-emerald-900">
+                                                            <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                                                                {secResult.correct_answers}
+                                                            </div>
+                                                            <div className="text-[10px] text-emerald-600 dark:text-emerald-500 font-medium mt-1">Correct</div>
+                                                        </div>
+                                                        <div className="bg-rose-50 dark:bg-rose-900/20 rounded-xl p-3 text-center border border-rose-100 dark:border-rose-900">
+                                                            <div className="text-xl font-bold text-rose-600 dark:text-rose-400">
+                                                                {secResult.wrong_answers}
+                                                            </div>
+                                                            <div className="text-[10px] text-rose-600 dark:text-rose-500 font-medium mt-1">Wrong</div>
+                                                        </div>
+                                                        <div className="bg-slate-100 dark:bg-slate-700/50 rounded-xl p-3 text-center border border-slate-200 dark:border-slate-600">
+                                                            <div className="text-xl font-bold text-slate-600 dark:text-slate-400">
+                                                                {secResult.unanswered}
+                                                            </div>
+                                                            <div className="text-[10px] text-slate-600 dark:text-slate-500 font-medium mt-1">Skipped</div>
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div className="text-sm text-slate-500 dark:text-slate-400 italic text-center py-4">
+                                                    No detailed result available for this section.
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    )
+                                })}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Leaderboard - Enhanced */}
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        <ExamLeaderboard
+                            examId={examId}
+                            examTitle={examSettings?.title}
+                            currentUserId={userId}
+                            limit={50}
+                        />
+                    </motion.div>
                 </div>
+
+                {/* Response Expiry Warning - Moved to bottom */}
+                {attempt?.submitted_at && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                    >
+                        <ResponseExpiryWarning submittedAt={attempt.submitted_at} />
+                    </motion.div>
+                )}
             </div>
         </div>
     )
@@ -468,6 +630,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
     const [submittedAttemptId, setSubmittedAttemptId] = useState<string | null>(null)
     const [showPauseDialog, setShowPauseDialog] = useState(false)
     const [isPausing, setIsPausing] = useState(false)
+    const [showCalculator, setShowCalculator] = useState(false)  // NEW: Calculator state
     const { markComplete } = useLessonContext()
     const tenantId = useTenantId()
 
@@ -486,9 +649,16 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
     const { mutate: saveAnswer, isPending: isSaving } = useSaveAnswer()
     const { mutate: updateTimer } = useUpdateTimer()
 
-    // Initialize session
+    // Initialize session & Timer Logic
     useEffect(() => {
         if (!sessionData) return
+
+        // Safety: If already submitted, show results immediately
+        if (sessionData.attempt?.status === 'submitted') {
+            setSubmittedAttemptId(sessionData.attempt.id)
+            setShowResults(true)
+            return
+        }
 
         if (sessionData.previousResponses) {
             setResponses(sessionData.previousResponses)
@@ -497,19 +667,91 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
             setVisited(newVisited)
         }
 
-        const totalDuration = sessionData.exam.duration_minutes * 60
-        const timeSpent = sessionData.attempt.total_time_spent || 0
-        const remaining = Math.max(0, totalDuration - timeSpent)
+        const exam = sessionData.exam
+        const attempt = sessionData.attempt
+        const totalDuration = exam.duration_minutes * 60
+        let remaining = 0
 
-        setInitialTime(remaining)
-        timeRef.current = remaining
-        setIsTimerActive(true)
+        if (exam.allow_pause === false) {
+            // MODE 1: PAUSE OFF (Deadline based)
+            if (attempt.exam_deadline) {
+                const deadline = new Date(attempt.exam_deadline).getTime()
+                remaining = Math.max(0, (deadline - Date.now()) / 1000)
+            } else {
+                remaining = Math.max(0, totalDuration - (attempt.total_time_spent || 0))
+            }
+            setIsTimerActive(true)
+        } else {
+            // MODE 2: PAUSE ON (Elapsed based)
+            const elapsed = attempt.elapsed_time_seconds || 0
+
+            if (attempt.is_paused) {
+                // Auto-Resume logic: If user is back, we resume!
+                remaining = Math.max(0, totalDuration - elapsed)
+                setIsTimerActive(true)
+
+                // Fire update to server to mark as active
+                updateTimer({
+                    attemptId: attempt.id,
+                    timeSpent: elapsed,
+                    isPaused: false,
+                    lastActivityAt: new Date().toISOString()
+                })
+            } else {
+                // Active: elapsed + (now - last_activity)
+                const lastActivity = attempt.last_activity_at ? new Date(attempt.last_activity_at).getTime() : Date.now()
+                const currentSession = (Date.now() - lastActivity) / 1000
+                remaining = Math.max(0, totalDuration - (elapsed + currentSession))
+                setIsTimerActive(true)
+            }
+        }
+
+        // If time is up, submit immediately
+        if (remaining <= 0) {
+            setInitialTime(0)
+            timeRef.current = 0
+            if (!showSubmitDialog && !isSubmitting && !submittedAttemptId) {
+                toast.error("Time expired. Submitting exam...")
+                // Trigger submission
+                handleAutoSubmit()
+            }
+            return
+        }
+
+        setInitialTime(Math.floor(remaining))
+        timeRef.current = Math.floor(remaining)
 
         // Auto-enter fullscreen when exam starts
         if (examContainerRef.current && !document.fullscreenElement) {
             toggleFullscreen()
         }
     }, [sessionData])
+
+
+    // Auto-pause handler (Tab Close)
+    useEffect(() => {
+        if (!sessionData?.exam?.allow_pause) return
+
+        const handleBeforeUnload = () => {
+            // Attempt to pause on exit (best effort)
+            const attempt = sessionData.attempt
+            const currentElapsed = (attempt.elapsed_time_seconds || 0) +
+                Math.floor((Date.now() - new Date(attempt.last_activity_at || Date.now()).getTime()) / 1000)
+
+            // Fire and forget update
+            supabase.from('exam_attempts').update({
+                is_paused: true,
+                elapsed_time_seconds: currentElapsed
+            }).eq('id', attempt.id).then()
+        }
+
+        window.addEventListener('beforeunload', handleBeforeUnload)
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+    }, [sessionData, supabase])
+
+
+
+
 
 
     // Fullscreen handler
@@ -558,7 +800,12 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
 
                 await new Promise<void>((resolve, reject) => {
                     updateTimer(
-                        { attemptId: sessionData.attempt.id, timeSpent },
+                        {
+                            attemptId: sessionData.attempt.id,
+                            timeSpent,
+                            isPaused: true,
+                            elapsedSeconds: timeSpent
+                        },
                         {
                             onSuccess: () => resolve(),
                             onError: (error) => reject(error)
@@ -634,13 +881,39 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
     const performSubmit = useCallback(async () => {
         if (!sessionData?.attempt?.id || !sessionData?.exam) return
 
+        // Calculate final time spent
+        const currentSecondsLeft = timeRef.current
+        const totalDur = sessionData.exam.duration_minutes * 60
+        const timeSpent = Math.max(0, totalDur - currentSecondsLeft)
+
+        // Ensure timer is saved before submitting
+        // We act "optimistically" but waiting ensures DB has it for the result view
+        try {
+            await new Promise<void>((resolve) => {
+                updateTimer(
+                    {
+                        attemptId: sessionData.attempt.id,
+                        timeSpent,
+                        isPaused: false, // Not paused, just finished
+                        elapsedSeconds: timeSpent // Sync elapsed too for consistency
+                    },
+                    {
+                        onSuccess: () => resolve(),
+                        onError: () => resolve() // Continue anyway 
+                    }
+                )
+            })
+        } catch (e) {
+            console.error("Failed to sync final time", e)
+        }
+
         submitExam({
             attemptId: sessionData.attempt.id,
             examId: sessionData.exam.id,
             responses: responses,
             sections: sessionData.sections,
             totalMarks: sessionData.exam.total_marks || 0,
-            tenantId: tenantId || undefined // ✅ OPTIMIZATION: Pass tenantId
+            tenantId: tenantId || undefined
         }, {
             onSuccess: async (result: any) => {
                 // Exit Fullscreen IMMEDIATELY
@@ -791,20 +1064,95 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
         <div ref={examContainerRef} className="grid grid-cols-1 lg:grid-cols-[1fr_360px] bg-background text-foreground rounded-xl overflow-hidden border border-border h-full">
             {/* LEFT PANEL */}
             <div className="flex flex-col min-h-0 p-3 md:p-6 relative bg-background">
-                {/* HEADER NAV */}
-                <div className="shrink-0 bg-card border border-border py-3 px-3 md:px-4 rounded-xl flex flex-wrap items-center justify-between gap-2 md:gap-3 shadow-sm mb-4">
-                    <div className="flex flex-col flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <h2 className="text-base md:text-lg font-bold text-primary truncate">{sessionData.exam.title}</h2>
+                {/* HEADER - Compact NTA Style */}
+                <div className="shrink-0 bg-card border border-border rounded-xl shadow-sm mb-4 overflow-hidden">
+                    {/* Top Row: Title + Timer + Actions */}
+                    <div className="flex items-center justify-between gap-2 px-3 md:px-4 py-2.5 bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border">
+                        {/* Left: Title */}
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <h2 className="text-sm md:text-base font-bold text-primary truncate">{sessionData.exam.title}</h2>
                             {currentSection && (
-                                <div className="text-xs font-semibold px-2 py-0.5 rounded border border-border bg-muted/50 text-muted-foreground ml-2">
-                                    Attempted: <span className={`${(currentSection.max_questions_to_attempt && getSectionAttemptCount(currentSection.id) >= currentSection.max_questions_to_attempt) ? "text-rose-500" : "text-foreground"}`}>{getSectionAttemptCount(currentSection.id)}</span>
-                                    {currentSection.required_attempts ? ` / Min ${currentSection.required_attempts}` : ""}
-                                    {currentSection.max_questions_to_attempt ? ` / Max ${currentSection.max_questions_to_attempt}` : ""}
+                                <div className="hidden sm:flex text-[10px] md:text-xs font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                    {getSectionAttemptCount(currentSection.id)}/{allQuestions.length}
                                 </div>
                             )}
                         </div>
-                        <div className="flex gap-2 mt-2 overflow-x-auto pb-1">
+                        {/* Right: Timer + Actions */}
+                        <div className="flex items-center gap-1 md:gap-1.5">
+
+
+
+
+                            <ExamTimer
+                                key={initialTime}
+                                initialSeconds={initialTime}
+                                isActive={isTimerActive}
+                                onTimeUp={handleAutoSubmit}
+                                timeRef={timeRef}
+                            />
+
+                            {/* Calculator */}
+                            <button
+                                onClick={() => setShowCalculator(!showCalculator)}
+                                className={`p-1.5 md:p-2 rounded-md transition-colors ${showCalculator ? "bg-emerald-600 text-white" : "bg-muted text-foreground"}`}
+                                title="Calculator"
+                            >
+                                <Calculator className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    if (validateMinimumAttempts()) {
+                                        setShowSubmitDialog(true)
+                                    } else {
+                                        setShowSubmitDialog(true)
+                                    }
+                                }}
+                                className="hidden sm:block bg-rose-600 hover:bg-rose-700 text-white px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-colors shadow-sm"
+                            >
+                                Submit
+                            </button>
+                            {/* <button
+                                onClick={() => setShowPauseDialog(true)}
+                                className="flex items-center gap-2 bg-muted hover:bg-muted/80 text-muted-foreground px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-colors shadow-sm"
+                            >
+                                <PauseCircle className="w-4 h-4" />
+                                <span className="hidden lg:inline">Pause & Exit</span>
+                            </button> */}
+                            <button
+                                onClick={toggleFullscreen}
+                                className="p-2 rounded-md bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+                                title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                            >
+                                {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                            </button>
+
+                            {/* Menu (Mobile) */}
+                            <button
+                                onClick={() => setPaletteOpenMobile(true)}
+                                className="lg:hidden p-1.5 md:p-2 rounded-md bg-muted text-foreground"
+                                title="Questions"
+                            >
+                                <Menu className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                            </button>
+
+
+                            {/* Pause (Desktop) - Only if allowed */}
+                            {sessionData?.exam?.allow_pause && (
+                                <button
+                                    onClick={() => setShowPauseDialog(true)}
+                                    className="flex items-center justify-center p-1.5 md:p-2 rounded-md bg-amber-500 hover:bg-amber-600 text-white"
+                                    title="Pause"
+                                >
+                                    <PauseCircle className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Section Tabs (if multiple sections) */}
+                    {sessionData.sections.length > 1 && (
+                        <div className="flex gap-1 px-2 md:px-3 py-1.5 overflow-x-auto bg-muted/20">
                             {sessionData.sections.map((s, i) => {
                                 const startIdx = sessionData.sections.slice(0, i).reduce((a, b) => a + b.questions.length, 0)
                                 const isActive = activeQuestionIdx >= startIdx && activeQuestionIdx < startIdx + s.questions.length
@@ -812,9 +1160,9 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
                                     <button
                                         key={s.id}
                                         onClick={() => setActiveQuestionIdx(startIdx)}
-                                        className={`px-2 md:px-3 py-1 text-xs rounded-md whitespace-nowrap transition-colors ${isActive
-                                            ? "bg-primary text-primary-foreground shadow-md"
-                                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                        className={`px-2.5 md:px-3 py-1 text-[10px] md:text-xs font-medium rounded whitespace-nowrap transition-all ${isActive
+                                            ? "bg-primary text-primary-foreground shadow-sm"
+                                            : "bg-background text-muted-foreground hover:bg-muted/50"
                                             }`}
                                     >
                                         {s.title}
@@ -822,65 +1170,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
                                 )
                             })}
                         </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 md:gap-3">
-                        {/* Saving Indicator */}
-                        <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground font-medium">
-                            {isSaving ? (
-                                <>
-                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="w-3 h-3" />
-                                    Saved
-                                </>
-                            )}
-                        </div>
-
-                        <ExamTimer
-                            key={initialTime}
-                            initialSeconds={initialTime}
-                            isActive={isTimerActive}
-                            onTimeUp={handleAutoSubmit}
-                            timeRef={timeRef}
-                        />
-
-                        <button
-                            onClick={() => {
-                                if (validateMinimumAttempts()) {
-                                    setShowSubmitDialog(true)
-                                } else {
-                                    setShowSubmitDialog(true)
-                                }
-                            }}
-                            className="hidden sm:block bg-rose-600 hover:bg-rose-700 text-white px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-colors shadow-sm"
-                        >
-                            Submit
-                        </button>
-                        <button
-                            onClick={() => setShowPauseDialog(true)}
-                            className="flex items-center gap-2 bg-muted hover:bg-muted/80 text-muted-foreground px-3 md:px-4 py-1.5 md:py-2 rounded-md text-xs md:text-sm font-medium transition-colors shadow-sm"
-                        >
-                            <PauseCircle className="w-4 h-4" />
-                            <span className="hidden lg:inline">Pause & Exit</span>
-                        </button>
-                        <button
-                            onClick={toggleFullscreen}
-                            className="p-2 rounded-md bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
-                            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                        >
-                            {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-                        </button>
-                        <button
-                            onClick={() => setPaletteOpenMobile(true)}
-                            className="block lg:hidden bg-primary text-primary-foreground px-2 md:px-3 py-1.5 md:py-2 rounded-md text-sm"
-                        >
-                            <Menu className="w-4 h-4" />
-                        </button>
-                    </div>
+                    )}
                 </div>
 
                 {/* QUESTION CARD */}
@@ -898,6 +1188,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
                         if (activeQuestionIdx > 0) setActiveQuestionIdx(i => i - 1)
                     }}
                     onClear={() => handleSaveResponse(currentQuestion.id, "")}
+                    onSubmit={() => setShowSubmitDialog(true)}  // NEW: Pass submit handler
                     isFirst={activeQuestionIdx === 0}
                     isLast={activeQuestionIdx === allQuestions.length - 1}
                 />
@@ -1052,6 +1343,14 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
                     </>
                 )}
             </AnimatePresence>
+
+            {/* SCIENTIFIC CALCULATOR */}
+            <AnimatePresence>
+                {showCalculator && (
+                    <ScientificCalculator onClose={() => setShowCalculator(false)} />
+                )}
+            </AnimatePresence>
         </div>
     )
 }
+

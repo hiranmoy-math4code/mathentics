@@ -15,6 +15,7 @@ import {
   GraduationCap,
   ShoppingCart,
   ArrowRight,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -100,26 +101,8 @@ export default function StudentDashboard() {
       router.push("/auth/login");
       return;
     }
+    router.push(`/courses/${courseId}`);
 
-    if (price === 0) {
-      // Free course - use mutation hook
-      setEnrollingCourseId(courseId);
-      enrollMutation.mutate(
-        { courseId, userId: user.id },
-        {
-          onSuccess: () => {
-            setEnrollingCourseId(null);
-            router.push(`/learn/${courseId}`);
-          },
-          onError: () => {
-            setEnrollingCourseId(null);
-          },
-        }
-      );
-    } else {
-      // Paid course - go to course page for payment
-      router.push(`/courses/${courseId}`);
-    }
   };
 
   const formatDate = (dateString: string | null) => {
@@ -159,6 +142,12 @@ export default function StudentDashboard() {
       value: myCoursesLoading ? "..." : myCourses?.length.toString() || "0",
       icon: <GraduationCap className="w-6 h-6 text-purple-500" />,
       color: "from-purple-50 to-pink-100 dark:from-slate-800 dark:to-slate-900",
+    },
+    {
+      title: "Test Series Enrolled",
+      value: seriesLoading ? "..." : testSeries?.length.toString() || "0",
+      icon: <FileText className="w-6 h-6 text-orange-500" />,
+      color: "from-orange-50 to-amber-100 dark:from-slate-800 dark:to-slate-900",
     },
     {
       title: "Rank",
@@ -322,7 +311,7 @@ export default function StudentDashboard() {
                     key={course.id}
                     whileHover={{ scale: 1.02 }}
                     onClick={() => handleContinueCourse(course.id)}
-                    onMouseEnter={() => prefetchCourse(course.id)}
+                    onMouseEnter={() => prefetchCourse(course.id, true)}
                     className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md cursor-pointer"
                   >
                     <div className="flex items-start justify-between mb-2">
@@ -357,7 +346,7 @@ export default function StudentDashboard() {
                     key={test.id}
                     whileHover={{ scale: 1.02 }}
                     onClick={() => handleContinueCourse(test.id)}
-                    onMouseEnter={() => prefetchCourse(test.id)}
+                    onMouseEnter={() => prefetchCourse(test.id, true)}
                     className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md cursor-pointer"
                   >
                     <div className="flex items-start justify-between mb-2">
@@ -412,7 +401,7 @@ export default function StudentDashboard() {
                   key={course.id}
                   whileHover={{ scale: 1.02 }}
                   onClick={() => handleContinueCourse(course.id)}
-                  onMouseEnter={() => prefetchCourse(course.id)}
+                  onMouseEnter={() => prefetchCourse(course.id, true)}
                   className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md cursor-pointer"
                 >
                   <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">
@@ -492,7 +481,7 @@ export default function StudentDashboard() {
                 <motion.div
                   key={course.id}
                   whileHover={{ scale: 1.02 }}
-                  onMouseEnter={() => prefetchCourse(course.id)}
+                  onMouseEnter={() => prefetchCourse(course.id, course.is_enrolled)}
                   className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md"
                 >
                   <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">
@@ -533,7 +522,7 @@ export default function StudentDashboard() {
                       ) : (
                         <>
                           <ShoppingCart className="w-4 h-4 mr-2" />
-                          {course.price === 0 ? "Enroll Free" : "View Course"}
+                          View Course
                         </>
                       )}
                     </Button>
@@ -571,7 +560,7 @@ export default function StudentDashboard() {
                   key={test.id}
                   whileHover={{ scale: 1.02 }}
                   onClick={() => handleContinueCourse(test.id)}
-                  onMouseEnter={() => prefetchCourse(test.id)}
+                  onMouseEnter={() => prefetchCourse(test.id, true)}
                   className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md cursor-pointer"
                 >
                   <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">
@@ -651,7 +640,7 @@ export default function StudentDashboard() {
                 <motion.div
                   key={series.id}
                   whileHover={{ scale: 1.02 }}
-                  onMouseEnter={() => prefetchCourse(series.id)}
+                  onMouseEnter={() => prefetchCourse(series.id, series.is_enrolled)}
                   className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md"
                 >
                   <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">
@@ -691,7 +680,7 @@ export default function StudentDashboard() {
                       ) : (
                         <>
                           <ShoppingCart className="w-4 h-4 mr-2" />
-                          {series.price === 0 ? "Enroll Free" : "View Details"}
+                          View Details
                         </>
                       )}
                     </Button>

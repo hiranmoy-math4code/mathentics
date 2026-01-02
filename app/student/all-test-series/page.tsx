@@ -113,7 +113,7 @@ export default function AllTestSeriesPage() {
               <motion.div
                 key={series.id}
                 whileHover={{ scale: 1.02 }}
-                onMouseEnter={() => prefetchCourse(series.id)}
+                onMouseEnter={() => prefetchCourse(series.id, series.is_enrolled)}
                 className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md"
               >
                 <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">
@@ -154,7 +154,7 @@ export default function AllTestSeriesPage() {
                     ) : (
                       <>
                         <ShoppingCart className="w-4 h-4 mr-2" />
-                        {series.price === 0 ? "Enroll Free" : "View Details"}
+                        View Details
                       </>
                     )}
                   </Button>

@@ -14,7 +14,6 @@ export async function fetchLessonDetailedData(
         .single();
 
     if (error || !lesson) {
-        console.error("Lesson fetch error:", error);
         return { error: "Lesson not found" };
     }
 

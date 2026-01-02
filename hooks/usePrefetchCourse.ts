@@ -14,7 +14,7 @@ import { fetchLessonDetailedData } from "@/lib/data/lesson";
 export function usePrefetchCourse() {
     const queryClient = useQueryClient();
 
-    const prefetchCourse = async (courseId: string) => {
+    const prefetchCourse = async (courseId: string, isEnrolled: boolean = false) => {
         try {
             const supabase = createClient();
 
@@ -66,20 +66,25 @@ export function usePrefetchCourse() {
             const structure = queryClient.getQueryData(['course-structure', courseId]) as any[];
             if (structure?.[0]?.lessons?.[0]) {
                 const firstLesson = structure[0].lessons[0];
-                const { data: { user } } = await supabase.auth.getUser();
 
-                if (user) {
-                    // Prefetch first lesson detailed data
-                    await queryClient.prefetchQuery({
-                        queryKey: ['lesson', firstLesson.id, courseId],
-                        queryFn: () => fetchLessonDetailedData(
-                            supabase,
-                            firstLesson.id,
-                            courseId,
-                            user.id
-                        ),
-                        staleTime: 1000 * 60 * 10, // 10 minutes
-                    });
+                // CRITICAL FIX: Only prefetch detailed data if user receives access
+                // This prevents 406/RLS errors for unenrolled users on paid courses
+                if (isEnrolled || firstLesson.is_free_preview) {
+                    const { data: { user } } = await supabase.auth.getUser();
+
+                    if (user) {
+                        // Prefetch first lesson detailed data
+                        await queryClient.prefetchQuery({
+                            queryKey: ['lesson', firstLesson.id, courseId],
+                            queryFn: () => fetchLessonDetailedData(
+                                supabase,
+                                firstLesson.id,
+                                courseId,
+                                user.id
+                            ),
+                            staleTime: 1000 * 60 * 10, // 10 minutes
+                        });
+                    }
                 }
             }
         } catch (error) {

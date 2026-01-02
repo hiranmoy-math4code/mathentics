@@ -100,7 +100,7 @@ export default function MyCourses() {
                                 key={course.id}
                                 whileHover={{ scale: 1.02 }}
                                 onClick={() => handleContinueCourse(course.id)}
-                                onMouseEnter={() => prefetchCourse(course.id)}
+                                onMouseEnter={() => prefetchCourse(course.id, true)}
                                 className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md cursor-pointer"
                             >
                                 <div className="h-40 w-full mb-3 rounded-lg overflow-hidden">
