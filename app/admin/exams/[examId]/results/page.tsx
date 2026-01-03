@@ -156,137 +156,172 @@ export default function ExamResultsPage() {
         setCurrentPage(1);
     }, [searchQuery]);
 
+    // Helper to load external scripts dynamically
+    const loadScript = (src: string): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            if (document.querySelector(`script[src="${src}"]`)) {
+                resolve();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+            document.body.appendChild(script);
+        });
+    };
+
     // Export to Excel (XLSX) with professional formatting
     const exportToXLSX = async () => {
-        const xlsxModule = await import('xlsx');
-        const XLSX = xlsxModule.default || xlsxModule;
+        try {
+            setLoading(true);
+            // Load XLSX from CDN
+            await loadScript('https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js');
 
-        // Get best results per student
-        const studentBestResults = new Map<string, ExamResult>();
-        results.forEach(result => {
-            const existing = studentBestResults.get(result.student_id);
-            if (!existing || (result.percentage || 0) > (existing.percentage || 0)) {
-                studentBestResults.set(result.student_id, result);
-            }
-        });
+            const XLSX = (window as any).XLSX;
+            if (!XLSX) throw new Error("XLSX library not loaded");
 
-        const bestResults = Array.from(studentBestResults.values())
-            .sort((a, b) => (a.rank || 999) - (b.rank || 999));
+            // Get best results per student
+            const studentBestResults = new Map<string, ExamResult>();
+            results.forEach(result => {
+                const existing = studentBestResults.get(result.student_id);
+                if (!existing || (result.percentage || 0) > (existing.percentage || 0)) {
+                    studentBestResults.set(result.student_id, result);
+                }
+            });
 
-        // Prepare data for Excel
-        const excelData = bestResults.map(r => ({
-            'Rank': r.rank || '-',
-            'Name': r.full_name || 'Unknown',
-            'Email': r.email,
-            'Status': r.status,
-            'Submitted At': r.submitted_at ? format(new Date(r.submitted_at), 'yyyy-MM-dd HH:mm') : '-',
-            'Score': r.obtained_marks || 0,
-            'Total Marks': r.total_marks || 0,
-            'Percentage': r.percentage ? `${r.percentage}%` : '-'
-        }));
+            const bestResults = Array.from(studentBestResults.values())
+                .sort((a, b) => (a.rank || 999) - (b.rank || 999));
 
-        // Create worksheet
-        const ws = XLSX.utils.json_to_sheet(excelData);
+            // Prepare data for Excel
+            const excelData = bestResults.map(r => ({
+                'Rank': r.rank || '-',
+                'Name': r.full_name || 'Unknown',
+                'Email': r.email,
+                'Status': r.status,
+                'Submitted At': r.submitted_at ? format(new Date(r.submitted_at), 'yyyy-MM-dd HH:mm') : '-',
+                'Score': r.obtained_marks || 0,
+                'Total Marks': r.total_marks || 0,
+                'Percentage': r.percentage ? `${r.percentage}%` : '-'
+            }));
 
-        // Set column widths
-        ws['!cols'] = [
-            { wch: 6 },  // Rank
-            { wch: 25 }, // Name
-            { wch: 30 }, // Email
-            { wch: 12 }, // Status
-            { wch: 18 }, // Submitted At
-            { wch: 8 },  // Score
-            { wch: 12 }, // Total Marks
-            { wch: 12 }  // Percentage
-        ];
+            // Create worksheet
+            const ws = XLSX.utils.json_to_sheet(excelData);
 
-        // Create workbook
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Results');
+            // Set column widths
+            ws['!cols'] = [
+                { wch: 6 },  // Rank
+                { wch: 25 }, // Name
+                { wch: 30 }, // Email
+                { wch: 12 }, // Status
+                { wch: 18 }, // Submitted At
+                { wch: 8 },  // Score
+                { wch: 12 }, // Total Marks
+                { wch: 12 }  // Percentage
+            ];
 
-        // Download
-        XLSX.writeFile(wb, `${examTitle.replace(/[^a-z0-9]/gi, '_')}_results_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Results');
+
+            // Download
+            XLSX.writeFile(wb, `${examTitle.replace(/[^a-z0-9]/gi, '_')}_results_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+        } catch (error) {
+            console.error("Export failed:", error);
+            alert("Export failed. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Export to PDF with professional formatting
     const exportToPDF = async () => {
-        const { jsPDF } = await import('jspdf');
-        const autoTableModule = await import('jspdf-autotable');
-        const autoTable = autoTableModule.default;
+        try {
+            setLoading(true);
+            // Load jsPDF and AutoTable from CDN
+            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
 
-        // Get best results per student
-        const studentBestResults = new Map<string, ExamResult>();
-        results.forEach(result => {
-            const existing = studentBestResults.get(result.student_id);
-            if (!existing || (result.percentage || 0) > (existing.percentage || 0)) {
-                studentBestResults.set(result.student_id, result);
-            }
-        });
+            const jspdf = (window as any).jspdf;
+            if (!jspdf) throw new Error("jsPDF library not loaded");
+            const jsPDF = jspdf.jsPDF;
+            const doc = new jsPDF();
 
-        const bestResults = Array.from(studentBestResults.values())
-            .sort((a, b) => (a.rank || 999) - (b.rank || 999));
-
-        // Create PDF
-        const doc = new jsPDF();
-
-        // Add title
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-        doc.text(examTitle || 'Exam Results', 14, 20);
-
-        // Add metadata
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Generated: ${format(new Date(), 'MMMM dd, yyyy HH:mm')}`, 14, 28);
-        doc.text(`Total Students: ${bestResults.length}`, 14, 34);
-
-        // Prepare table data
-        const tableData = bestResults.map(r => [
-            r.rank || '-',
-            r.full_name || 'Unknown',
-            r.email,
-            r.obtained_marks || 0,
-            r.total_marks || 0,
-            r.percentage ? `${r.percentage}%` : '-'
-        ]);
-
-        // Add table
-        if (typeof autoTable === 'function') {
-            autoTable(doc, {
-                startY: 40,
-                head: [['Rank', 'Name', 'Email', 'Score', 'Total', 'Percentage']],
-                body: tableData,
-                theme: 'grid',
-                headStyles: {
-                    fillColor: [79, 70, 229], // Indigo
-                    textColor: 255,
-                    fontStyle: 'bold',
-                    halign: 'center'
-                },
-                styles: {
-                    fontSize: 9,
-                    cellPadding: 3
-                },
-                columnStyles: {
-                    0: { halign: 'center', cellWidth: 15 }, // Rank
-                    1: { cellWidth: 50 }, // Name
-                    2: { cellWidth: 60 }, // Email
-                    3: { halign: 'right', cellWidth: 20 }, // Score
-                    4: { halign: 'right', cellWidth: 20 }, // Total
-                    5: { halign: 'center', cellWidth: 25 }  // Percentage
-                },
-                alternateRowStyles: {
-                    fillColor: [245, 247, 250]
+            // Get best results per student
+            const studentBestResults = new Map<string, ExamResult>();
+            results.forEach(result => {
+                const existing = studentBestResults.get(result.student_id);
+                if (!existing || (result.percentage || 0) > (existing.percentage || 0)) {
+                    studentBestResults.set(result.student_id, result);
                 }
             });
-        } else {
-            console.error("AutoTable is not a function", autoTable);
-            alert("PDF Export failed: Library not loaded correctly. Please try again.");
-            return;
-        }
 
-        // Download
-        doc.save(`${examTitle.replace(/[^a-z0-9]/gi, '_')}_results_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+            const bestResults = Array.from(studentBestResults.values())
+                .sort((a, b) => (a.rank || 999) - (b.rank || 999));
+
+            // Add title
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text(examTitle || 'Exam Results', 14, 20);
+
+            // Add metadata
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Generated: ${format(new Date(), 'MMMM dd, yyyy HH:mm')}`, 14, 28);
+            doc.text(`Total Students: ${bestResults.length}`, 14, 34);
+
+            // Prepare table data
+            const tableData = bestResults.map(r => [
+                r.rank || '-',
+                r.full_name || 'Unknown',
+                r.email,
+                r.obtained_marks || 0,
+                r.total_marks || 0,
+                r.percentage ? `${r.percentage}%` : '-'
+            ]);
+
+            // Add table
+            if ((doc as any).autoTable) {
+                (doc as any).autoTable({
+                    startY: 40,
+                    head: [['Rank', 'Name', 'Email', 'Score', 'Total', 'Percentage']],
+                    body: tableData,
+                    theme: 'grid',
+                    headStyles: {
+                        fillColor: [79, 70, 229], // Indigo
+                        textColor: 255,
+                        fontStyle: 'bold',
+                        halign: 'center'
+                    },
+                    styles: {
+                        fontSize: 9,
+                        cellPadding: 3
+                    },
+                    columnStyles: {
+                        0: { halign: 'center', cellWidth: 15 }, // Rank
+                        1: { cellWidth: 50 }, // Name
+                        2: { cellWidth: 60 }, // Email
+                        3: { halign: 'right', cellWidth: 20 }, // Score
+                        4: { halign: 'right', cellWidth: 20 }, // Total
+                        5: { halign: 'center', cellWidth: 25 }  // Percentage
+                    },
+                    alternateRowStyles: {
+                        fillColor: [245, 247, 250]
+                    }
+                });
+            } else {
+                console.error("AutoTable is not attached to doc");
+                throw new Error("PDF Table plugin failed to load");
+            }
+
+            // Download
+            doc.save(`${examTitle.replace(/[^a-z0-9]/gi, '_')}_results_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+        } catch (error) {
+            console.error("Export failed:", error);
+            alert("Export failed. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const getStatusBadge = (status: string) => {
