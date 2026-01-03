@@ -194,6 +194,12 @@ export function LessonEditor({ lesson, course, onUpdate, onDelete }: LessonEdito
                 </div>
             </div>
 
+            {/* Sequential Learning Section */}
+            <SequentialLearningSection
+                lesson={lesson}
+                onUpdate={onUpdate}
+            />
+
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent className="dark:bg-[#161b22] dark:border-slate-800">
                     <AlertDialogHeader>
@@ -492,6 +498,110 @@ export function LessonEditor({ lesson, course, onUpdate, onDelete }: LessonEdito
                 </div>
             </div>
 
+        </div>
+    );
+}
+
+// Sequential Learning Configuration Component
+function SequentialLearningSection({ lesson, onUpdate }: { lesson: Lesson, onUpdate: (updates: Partial<Lesson>) => Promise<any> }) {
+    const [previousLessons, setPreviousLessons] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const supabase = createClient();
+
+    // Load previous lessons in the same module
+    useEffect(() => {
+        loadPreviousLessons();
+    }, [lesson.module_id, lesson.lesson_order]);
+
+    const loadPreviousLessons = async () => {
+        setIsLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from("lessons")
+                .select("id, title, lesson_order, content_type")
+                .eq("module_id", lesson.module_id)
+                .lt("lesson_order", lesson.lesson_order)
+                .order("lesson_order", { ascending: true });
+
+            if (error) throw error;
+            setPreviousLessons(data || []);
+        } catch (error) {
+            console.error("Error loading previous lessons:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleToggleSequential = async (enabled: boolean) => {
+        try {
+            const updates: Partial<Lesson> = {
+                sequential_unlock_enabled: enabled,
+                // Auto-select previous lesson if enabling
+                prerequisite_lesson_id: enabled && previousLessons.length > 0
+                    ? previousLessons[previousLessons.length - 1].id
+                    : null
+            };
+            await onUpdate(updates);
+            toast.success(enabled ? "Sequential unlock enabled" : "Sequential unlock disabled");
+        } catch (error) {
+            toast.error("Failed to update sequential settings");
+        }
+    };
+
+    const handlePrerequisiteChange = async (prerequisiteId: string) => {
+        try {
+            await onUpdate({ prerequisite_lesson_id: prerequisiteId || null });
+            toast.success("Prerequisite updated");
+        } catch (error) {
+            toast.error("Failed to update prerequisite");
+        }
+    };
+
+    // Don't show for first lesson in module
+    if (previousLessons.length === 0 && !isLoading) {
+        return null;
+    }
+
+    return (
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+            <div className="max-w-4xl mx-auto space-y-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Sequential Learning</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            Require students to complete a previous lesson first
+                        </p>
+                    </div>
+                    <Switch
+                        id="sequential-toggle"
+                        checked={lesson.sequential_unlock_enabled || false}
+                        onCheckedChange={handleToggleSequential}
+                        disabled={isLoading || previousLessons.length === 0}
+                    />
+                </div>
+
+                {lesson.sequential_unlock_enabled && previousLessons.length > 0 && (
+                    <div className="space-y-2 pl-4 border-l-2 border-orange-200 dark:border-orange-800">
+                        <Label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                            Previous Lesson Required
+                        </Label>
+                        <select
+                            className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                            value={lesson.prerequisite_lesson_id || ""}
+                            onChange={(e) => handlePrerequisiteChange(e.target.value)}
+                        >
+                            {previousLessons.map((prevLesson) => (
+                                <option key={prevLesson.id} value={prevLesson.id}>
+                                    {prevLesson.title} ({prevLesson.content_type})
+                                </option>
+                            ))}
+                        </select>
+                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                            🔒 Students must complete the selected lesson to unlock this one
+                        </p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

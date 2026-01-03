@@ -15,6 +15,7 @@ interface LessonNavigationProps {
     prevLessonId: string | null
     nextLessonId: string | null
     variant?: "default" | "header"
+    contentType?: "video" | "text" | "pdf" | "quiz" // NEW: Content type for conditional rendering
 }
 
 export function LessonNavigation({
@@ -22,7 +23,8 @@ export function LessonNavigation({
     currentLessonId,
     prevLessonId,
     nextLessonId,
-    variant = "default"
+    variant = "default",
+    contentType
 }: LessonNavigationProps) {
     const [userId, setUserId] = useState<string | null>(null)
     const { data: lessonProgress } = useLessonProgress(userId || undefined, courseId)
@@ -77,28 +79,30 @@ export function LessonNavigation({
                     )}
                 </Button>
 
-                {/* COMPLETE TOGGLE - Small circle on mobile */}
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                        "h-9 w-9 p-0 flex-shrink-0 md:w-auto md:px-4 md:h-9 gap-2 border-2 transition-all rounded-md",
-                        isCompleted ? "border-emerald-500/20 bg-emerald-50/10" : "border-muted-foreground/10"
-                    )}
-                    onClick={handleToggleComplete}
-                    disabled={isMarkingComplete || isMarkingIncomplete}
-                >
-                    {isMarkingComplete || isMarkingIncomplete ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : isCompleted ? (
-                        <CheckCircle className="h-4 w-4 text-emerald-500" />
-                    ) : (
-                        <Circle className="h-4 w-4 text-muted-foreground" />
-                    )}
-                    <span className="hidden md:inline text-xs font-bold tracking-wider uppercase">
-                        {isCompleted ? "DONE" : "COMPLETE"}
-                    </span>
-                </Button>
+                {/* COMPLETE TOGGLE - Only for text/PDF lessons */}
+                {(contentType === "text" || contentType === "pdf") && (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                            "h-9 w-9 p-0 flex-shrink-0 md:w-auto md:px-4 md:h-9 gap-2 border-2 transition-all rounded-md",
+                            isCompleted ? "border-emerald-500/20 bg-emerald-50/10" : "border-muted-foreground/10"
+                        )}
+                        onClick={handleToggleComplete}
+                        disabled={isMarkingComplete || isMarkingIncomplete}
+                    >
+                        {isMarkingComplete || isMarkingIncomplete ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : isCompleted ? (
+                            <CheckCircle className="h-4 w-4 text-emerald-500" />
+                        ) : (
+                            <Circle className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <span className="hidden md:inline text-xs font-bold tracking-wider uppercase">
+                            {isCompleted ? "DONE" : "COMPLETE"}
+                        </span>
+                    </Button>
+                )}
 
                 {/* NEXT BUTTON - Icon only on mobile */}
                 <Button
@@ -132,18 +136,21 @@ export function LessonNavigation({
                 )}
             </Button>
 
-            <Button
-                variant="ghost"
-                className="gap-2 text-muted-foreground hover:text-foreground flex w-full sm:w-auto order-3 sm:order-2"
-                onClick={handleToggleComplete}
-                disabled={isMarkingComplete || isMarkingIncomplete}
-            >
-                {isCompleted ? (
-                    <><CheckCircle className="h-5 w-5 text-emerald-500" /> Completed</>
-                ) : (
-                    <><Circle className="h-5 w-5" /> Mark Complete</>
-                )}
-            </Button>
+            {/* COMPLETE TOGGLE - Only for text/PDF lessons */}
+            {(contentType === "text" || contentType === "pdf") && (
+                <Button
+                    variant="ghost"
+                    className="gap-2 text-muted-foreground hover:text-foreground flex w-full sm:w-auto order-3 sm:order-2"
+                    onClick={handleToggleComplete}
+                    disabled={isMarkingComplete || isMarkingIncomplete}
+                >
+                    {isCompleted ? (
+                        <><CheckCircle className="h-5 w-5 text-emerald-500" /> Completed</>
+                    ) : (
+                        <><Circle className="h-5 w-5" /> Mark Complete</>
+                    )}
+                </Button>
+            )}
 
             <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 h-11 px-8 shadow-md shadow-emerald-500/10 w-full sm:w-auto order-1 sm:order-3 font-bold" disabled={!nextLessonId} asChild={!!nextLessonId}>
                 {nextLessonId ? (

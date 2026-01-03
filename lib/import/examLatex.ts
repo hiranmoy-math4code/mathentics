@@ -172,10 +172,21 @@ export async function parseExamLatex(file: File): Promise<ExamBlock> {
 }
 
 
-// 🔎 Insert Exam + Sections + Questions into Supabase
-export async function importExamLatex(file: File, adminId: string) {
+// 🔎 Insert Exam + Sections + Questions into Supabase (OPTIMIZED with BATCH INSERTS)
+export async function importExamLatex(
+  file: File,
+  adminId: string,
+  onProgress?: (progress: number, message: string) => void
+) {
   const supabase = createClient();
   const exam = await parseExamLatex(file);
+
+  // Progress helper
+  const updateProgress = (progress: number, message: string) => {
+    if (onProgress) onProgress(progress, message);
+  };
+
+  updateProgress(5, "Validating tenant...");
 
   // Get tenant ID from user's active tenant membership
   const { data: membership } = await supabase
@@ -191,11 +202,13 @@ export async function importExamLatex(file: File, adminId: string) {
     throw new Error('No active tenant found for user');
   }
 
+  updateProgress(10, "Creating exam...");
+
   // Insert exam with tenant_id
   const { data: examRow, error: examErr } = await supabase
     .from("exams")
     .insert({
-      tenant_id: tenantId,  // ✅ Added tenant_id
+      tenant_id: tenantId,
       admin_id: adminId,
       title: exam.title,
       description: exam.description,
@@ -212,96 +225,181 @@ export async function importExamLatex(file: File, adminId: string) {
 
   const examId = examRow.id;
 
-  // Insert sections + questions
-  for (const sec of exam.sections) {
+  updateProgress(20, "Creating sections...");
+
+  // 🚀 BATCH INSERT: All sections at once
+  const sectionsToInsert = exam.sections.map((sec) => {
     const sectionTotalMarks = sec.questions.reduce((sum, q) => {
       const m = Number.isFinite(q.marks) ? Number(q.marks) : 0;
       return sum + m;
     }, 0);
-    const { data: secRow, error: secErr } = await supabase
-      .from("sections")
-      .insert({
-        tenant_id: tenantId,  // ✅ Added tenant_id
-        exam_id: examId,
-        title: sec.title,
-        duration_minutes: 0, // optional to extend
-        total_marks: sectionTotalMarks,
-        section_order: sec.section_order,
-      })
-      .select("id")
-      .single();
-    if (secErr) throw secErr;
 
-    const secId = secRow.id;
+    return {
+      tenant_id: tenantId,
+      exam_id: examId,
+      title: sec.title,
+      duration_minutes: 0,
+      total_marks: sectionTotalMarks,
+      section_order: sec.section_order,
+    };
+  });
 
-    for (const q of sec.questions) {
-      // 1️⃣ Insert into question_bank
-      const { data: qbRow, error: qbErr } = await supabase
-        .from("question_bank")
-        .insert({
-          tenant_id: tenantId,  // ✅ Added tenant_id
-          admin_id: adminId,
-          title: q.title,
-          question_text: q.question_text,
-          question_type: q.question_type,
-          marks: q.marks,
-          negative_marks: q.negative_marks,
-          correct_answer: q.correct_answer,
-          explanation: q.explanation,
-          subject: sec.title,
-          topic: q.topic,
-          difficulty: q.difficulty,
-        })
-        .select("id")
-        .single();
-      if (qbErr) throw qbErr;
+  const { data: sectionRows, error: sectionsErr } = await supabase
+    .from("sections")
+    .insert(sectionsToInsert)
+    .select("id, section_order");
 
-      const qbId = qbRow.id;
+  if (sectionsErr) throw sectionsErr;
 
-      if (q.options.length) {
-        await supabase.from("question_bank_options").insert(
-          q.options.map((o, i) => ({
-            tenant_id: tenantId,  // ✅ Added tenant_id
-            question_id: qbId,
-            option_text: o.text,
-            option_order: i + 1,
-            is_correct: o.is_correct,
-          }))
-        );
+  // Create a map of section_order -> section_id for quick lookup
+  const sectionOrderToId = new Map(
+    sectionRows.map(row => [row.section_order, row.id])
+  );
+
+  updateProgress(30, "Preparing questions...");
+
+  // 🚀 BATCH PREPARATION: Collect all questions and options
+  const allQuestionsInserts: any[] = [];
+  const allQuestionBankInserts: any[] = [];
+  const questionToSectionMap: Array<{ sectionOrder: number; questionIndex: number }> = [];
+
+  exam.sections.forEach((sec) => {
+    const sectionId = sectionOrderToId.get(sec.section_order);
+    if (!sectionId) return;
+
+    sec.questions.forEach((q, qIndex) => {
+      // Track mapping for later option insertion
+      questionToSectionMap.push({
+        sectionOrder: sec.section_order,
+        questionIndex: qIndex
+      });
+
+      // 🎯 PRIORITY 1: Questions insert (for exam delivery)
+      allQuestionsInserts.push({
+        tenant_id: tenantId,
+        section_id: sectionId,
+        question_text: q.question_text,
+        question_type: q.question_type,
+        marks: q.marks,
+        negative_marks: q.negative_marks,
+        correct_answer: q.correct_answer,
+        explanation: q.explanation,
+        question_order: qIndex,
+      });
+
+      // 🎯 PRIORITY 2: Question bank insert (for reference/reuse)
+      allQuestionBankInserts.push({
+        tenant_id: tenantId,
+        admin_id: adminId,
+        title: q.title,
+        question_text: q.question_text,
+        question_type: q.question_type,
+        marks: q.marks,
+        negative_marks: q.negative_marks,
+        correct_answer: q.correct_answer,
+        explanation: q.explanation,
+        subject: sec.title,
+        topic: q.topic,
+        difficulty: q.difficulty,
+      });
+    });
+  });
+
+  updateProgress(40, `Inserting ${allQuestionsInserts.length} exam questions...`);
+
+  // 🚀 BATCH INSERT PRIORITY 1: All questions at once (EXAM DELIVERY)
+  const { data: questionRows, error: qErr } = await supabase
+    .from("questions")
+    .insert(allQuestionsInserts)
+    .select("id");
+
+  if (qErr) throw qErr;
+
+  updateProgress(55, "Inserting exam options...");
+
+  // 🚀 BATCH INSERT PRIORITY 1: All options at once (EXAM DELIVERY)
+  const allOptions: any[] = [];
+
+  exam.sections.forEach((sec) => {
+    sec.questions.forEach((q, qIdx) => {
+      const globalQuestionIndex = questionToSectionMap.findIndex(
+        m => m.sectionOrder === sec.section_order && m.questionIndex === qIdx
+      );
+
+      if (globalQuestionIndex === -1 || !questionRows[globalQuestionIndex]) return;
+
+      const questionId = questionRows[globalQuestionIndex].id;
+
+      if (q.options.length > 0) {
+        q.options.forEach((opt, optIdx) => {
+          allOptions.push({
+            tenant_id: tenantId,
+            question_id: questionId,
+            option_text: opt.text,
+            option_order: optIdx + 1,
+            is_correct: opt.is_correct,
+          });
+        });
       }
+    });
+  });
 
-      // 2️⃣ Insert into questions
-      const { data: qRow, error: qErr } = await supabase
-        .from("questions")
-        .insert({
-          tenant_id: tenantId,  // ✅ Added tenant_id
-          section_id: secId,
-          question_text: q.question_text,
-          question_type: q.question_type,
-          marks: q.marks,
-          negative_marks: q.negative_marks,
-          correct_answer: q.correct_answer,
-          explanation: q.explanation,
-        })
-        .select("id")
-        .single();
-      if (qErr) throw qErr;
+  if (allOptions.length > 0) {
+    const { error: optionsErr } = await supabase
+      .from("options")
+      .insert(allOptions);
 
-      const qId = qRow.id;
-
-      if (q.options.length) {
-        await supabase.from("options").insert(
-          q.options.map((o, i) => ({
-            tenant_id: tenantId,  // ✅ Added tenant_id
-            question_id: qId,
-            option_text: o.text,
-            option_order: i + 1,
-            is_correct: o.is_correct,
-          }))
-        );
-      }
-    }
+    if (optionsErr) throw optionsErr;
   }
 
-  return exam;
+  updateProgress(70, "Inserting questions into question bank...");
+
+  // 🚀 BATCH INSERT PRIORITY 2: All question_bank entries (REFERENCE)
+  const { data: questionBankRows, error: qbErr } = await supabase
+    .from("question_bank")
+    .insert(allQuestionBankInserts)
+    .select("id");
+
+  if (qbErr) throw qbErr;
+
+  updateProgress(85, "Inserting question bank options...");
+
+  // 🚀 BATCH INSERT PRIORITY 2: All question_bank_options (REFERENCE)
+  const allQuestionBankOptions: any[] = [];
+
+  exam.sections.forEach((sec) => {
+    sec.questions.forEach((q, qIdx) => {
+      const globalQuestionIndex = questionToSectionMap.findIndex(
+        m => m.sectionOrder === sec.section_order && m.questionIndex === qIdx
+      );
+
+      if (globalQuestionIndex === -1 || !questionBankRows[globalQuestionIndex]) return;
+
+      const questionBankId = questionBankRows[globalQuestionIndex].id;
+
+      if (q.options.length > 0) {
+        q.options.forEach((opt, optIdx) => {
+          allQuestionBankOptions.push({
+            tenant_id: tenantId,
+            question_id: questionBankId,
+            option_text: opt.text,
+            option_order: optIdx + 1,
+            is_correct: opt.is_correct,
+          });
+        });
+      }
+    });
+  });
+
+  if (allQuestionBankOptions.length > 0) {
+    const { error: qbOptionsErr } = await supabase
+      .from("question_bank_options")
+      .insert(allQuestionBankOptions);
+
+    if (qbOptionsErr) throw qbOptionsErr;
+  }
+
+  updateProgress(100, "Import completed!");
+
+  return { exam, examId };
 }

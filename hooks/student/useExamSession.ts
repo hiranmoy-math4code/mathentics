@@ -107,12 +107,13 @@ export function useExamSession(examId: string, userId: string | null, retakeAtte
                 }
             }
 
-            // 4. Fetch Sections with Questions and Options
+            // 4. Fetch Sections with Questions and Options (ORDERED)
             const { data: sections, error: sectionsError } = await supabase
                 .from("sections")
                 .select("*, questions(*, options(*))")
                 .eq("exam_id", examId)
                 .order("section_order")
+                .order("question_order", { referencedTable: "questions" })
 
             if (sectionsError) throw sectionsError
 
@@ -195,9 +196,29 @@ export function useExamSession(examId: string, userId: string | null, retakeAtte
                 }
             }
 
+            // 5. Apply section-wise shuffling if enabled
+            const shuffledSections = (sections as Section[]).map(section => {
+                // Check if this section has shuffle enabled
+                const sectionData = section as any;
+                if (sectionData.shuffle_questions === true && section.questions && section.questions.length > 0) {
+                    // Shuffle questions within this section using Fisher-Yates algorithm
+                    const shuffledQuestions = [...section.questions];
+                    for (let i = shuffledQuestions.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
+                    }
+                    return {
+                        ...section,
+                        questions: shuffledQuestions
+                    };
+                }
+                // Return section as-is if shuffle is disabled
+                return section;
+            });
+
             return {
                 exam: exam as Exam,
-                sections: sections as Section[],
+                sections: shuffledSections as Section[],
                 attempt: attempt as Attempt,
                 previousResponses
             }

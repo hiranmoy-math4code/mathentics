@@ -25,11 +25,21 @@ export function useSectionQuestions(sectionId: string) {
         queryFn: async () => {
             const { data, error } = await supabase
                 .from("questions")
-                .select("*")
+                .select("*, options(*)")
                 .eq("section_id", sectionId)
-                .order("created_at", { ascending: true })
+                .order("question_order", { ascending: true })
             if (error) throw error
-            return data || []
+
+            // Map option_text to text for all questions
+            const mappedData = (data || []).map(q => ({
+                ...q,
+                options: (q.options || []).map((opt: any) => ({
+                    ...opt,
+                    text: opt.option_text || opt.text || ""
+                })).sort((a: any, b: any) => (a.option_order || 0) - (b.option_order || 0))
+            }));
+
+            return mappedData;
         }
     })
 }

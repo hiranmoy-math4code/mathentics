@@ -62,7 +62,9 @@ export function ModuleList({
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
-                distance: 8,
+                distance: 5, // Reduced for better responsiveness
+                delay: 0,
+                tolerance: 5,
             },
         }),
         useSensor(KeyboardSensor, {
@@ -237,10 +239,12 @@ function SortableModuleItem({
 
     const style = {
         transform: CSS.Translate.toString(transform),
-        transition,
-        opacity: isDragging ? 0.5 : 1,
-        zIndex: isDragging ? 100 : "auto",
-        position: isDragging ? "relative" as "relative" : undefined,
+        transition: isDragging ? "none" : transition,
+        opacity: isDragging ? 0.7 : 1,
+        zIndex: isDragging ? 999 : "auto",
+        cursor: isDragging ? "grabbing" : "default",
+        boxShadow: isDragging ? "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" : "none",
+        scale: isDragging ? "1.01" : "1",
     };
 
     return (
@@ -250,7 +254,15 @@ function SortableModuleItem({
                 onClick={onToggle}
             >
                 {/* Drag Handle */}
-                <button className="cursor-grab touch-none p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 shrink-0" {...attributes} {...listeners}>
+                <button
+                    className={cn(
+                        "touch-none p-1 transition-colors shrink-0",
+                        isDragging ? "cursor-grabbing text-indigo-500" : "cursor-grab text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    )}
+                    {...attributes}
+                    {...listeners}
+                    onClick={(e) => e.stopPropagation()}
+                >
                     <GripVertical className="h-4 w-4" />
                 </button>
 
@@ -368,25 +380,35 @@ function SortableLessonItem({ lesson, isSelected, onSelect }: { lesson: Lesson, 
 
     const style = {
         transform: CSS.Translate.toString(transform),
-        transition,
-        opacity: isDragging ? 0.5 : 1,
-        zIndex: isDragging ? 10 : "auto",
-        position: isDragging ? "relative" as "relative" : undefined,
+        transition: isDragging ? "none" : transition,
+        opacity: isDragging ? 0.6 : 1,
+        zIndex: isDragging ? 999 : "auto",
+        cursor: isDragging ? "grabbing" : "grab",
+        boxShadow: isDragging ? "0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" : "none",
+        scale: isDragging ? "1.02" : "1",
     };
 
     return (
         <div
             ref={setNodeRef}
             style={style}
-            onClick={() => onSelect(lesson)}
+            onClick={() => !isDragging && onSelect(lesson)}
             className={cn(
-                "flex items-center gap-3 p-2 rounded-md cursor-pointer transition-colors group",
-                isSelected
-                    ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400"
-                    : "hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
+                "flex items-center gap-3 p-2 rounded-md transition-all duration-200 group",
+                isDragging && "bg-white dark:bg-slate-800 border-2 border-indigo-400 dark:border-indigo-500",
+                !isDragging && isSelected && "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400",
+                !isDragging && !isSelected && "hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 cursor-pointer"
             )}
         >
-            <button className="cursor-grab touch-none p-1 text-slate-300 hover:text-slate-500" {...attributes} {...listeners} onClick={(e) => e.stopPropagation()}>
+            <button
+                className={cn(
+                    "touch-none p-1 transition-colors",
+                    isDragging ? "cursor-grabbing text-indigo-500" : "cursor-grab text-slate-300 hover:text-slate-500"
+                )}
+                {...attributes}
+                {...listeners}
+                onClick={(e) => e.stopPropagation()}
+            >
                 <GripVertical className="h-3 w-3" />
             </button>
 
@@ -395,7 +417,7 @@ function SortableLessonItem({ lesson, isSelected, onSelect }: { lesson: Lesson, 
             {lesson.content_type === "pdf" && <File className="h-4 w-4 shrink-0" />}
             {lesson.content_type === "quiz" && <HelpCircle className="h-4 w-4 shrink-0" />}
             <span className="text-sm truncate flex-1">{lesson.title}</span>
-            <div className="opacity-0 group-hover:opacity-100 text-xs text-slate-400">
+            <div className="opacity-0 group-hover:opacity-100 text-xs text-slate-400 transition-opacity">
                 {lesson.is_free_preview ? "Free" : "Paid"}
             </div>
         </div>

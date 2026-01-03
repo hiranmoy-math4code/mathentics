@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { importExamToSupabase, parseExamWord } from "@/lib/import/examWord";
 import { importExamLatex, parseExamLatex } from "@/lib/import/examLatex";
@@ -13,6 +13,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { toast } from "sonner";
 import {
   Upload,
   FileText,
@@ -66,6 +68,7 @@ export default function ImportExam() {
   const [parseError, setParseError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false); // NEW: Edit mode toggle
   const [editedExam, setEditedExam] = useState<PreviewExam | null>(null); // NEW: Edited exam data
+  const [progressMessage, setProgressMessage] = useState<string>(""); // Progress message
 
   // Delete confirmation dialog state
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -221,35 +224,50 @@ export default function ImportExam() {
   const handleConfirmImport = async () => {
     if (!adminId || !fileForImport || !fileKind) return;
     setLoading(true);
-    setProgress(10);
-    try {
-      const total = totalQuestions || 1;
+    setProgress(0);
+    setProgressMessage("Starting import...");
 
-      const simulateProgress = setInterval(() => {
-        setProgress((p) => Math.min(90, p + 5));
-      }, 400);
+    try {
+      // Use edited exam data if available, otherwise use original preview
+      const examToImport = editedExam || preview;
+
+      // Progress callback
+      const onProgress = (prog: number, msg: string) => {
+        setProgress(prog);
+        setProgressMessage(msg);
+      };
 
       if (fileKind === "word") {
-        const result = await importExamToSupabase(fileForImport, adminId);
-        clearInterval(simulateProgress);
-        setProgress(100);
+        await importExamToSupabase(fileForImport, adminId, onProgress);
       } else {
-        const result = await importExamLatex(fileForImport, adminId);
-        clearInterval(simulateProgress);
-        setProgress(100);
+        await importExamLatex(fileForImport, adminId, onProgress);
       }
+
+      setProgressMessage("Import successful!");
+      toast.success(`Exam imported successfully! ${totalQuestions} questions added.`, {
+        description: "Redirecting to exams page...",
+        duration: 3000,
+      });
 
       setTimeout(() => {
         setShowPreview(false);
         setPreview(null);
+        setEditedExam(null);
         setFileForImport(null);
         setFileKind(null);
         setProgress(0);
+        setProgressMessage("");
         window.location.reload();
-      }, 1000);
+      }, 1500);
     } catch (e: any) {
       console.error(e);
-      setParseError("Import failed: " + (e?.message ?? "Unknown error"));
+      const errorMsg = e?.message ?? "Unknown error";
+      setParseError("Import failed: " + errorMsg);
+      setProgressMessage("");
+      toast.error("Import failed", {
+        description: errorMsg,
+        duration: 5000,
+      });
     } finally {
       setLoading(false);
     }
@@ -534,7 +552,7 @@ export default function ImportExam() {
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Importing exam...
+                        {progressMessage || "Importing exam..."}
                       </span>
                       <span className="text-sm text-slate-500 dark:text-slate-400">
                         {progress}%

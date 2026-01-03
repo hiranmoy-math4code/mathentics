@@ -106,14 +106,29 @@ export default function SectionsCard() {
     })
   );
 
+  // Optimization: Fetch tenant_id once when loading sections to avoid repeated fetches
+  const [tenantId, setTenantId] = useState<string | null>(null);
+
   const loadSections = async () => {
     const supabase = createClient();
+
+    // Fetch sections
     const { data } = await supabase
       .from("sections")
       .select("*")
       .eq("exam_id", examId)
       .order("section_order", { ascending: true });
     setSections(data || []);
+
+    // Fetch tenant_id if not set (lazy load)
+    if (!tenantId) {
+      const { data: exam } = await supabase
+        .from("exams")
+        .select("tenant_id")
+        .eq("id", examId)
+        .single();
+      if (exam) setTenantId(exam.tenant_id);
+    }
   };
 
   useEffect(() => {
@@ -128,16 +143,21 @@ export default function SectionsCard() {
     setIsAdding(true);
     const supabase = createClient();
 
-    // Get tenant_id from exam
-    const { data: exam } = await supabase
-      .from("exams")
-      .select("tenant_id")
-      .eq("id", examId)
-      .single();
+    // Use cached tenantId or fetch if missing (fallback)
+    let currentTenantId = tenantId;
+    if (!currentTenantId) {
+      const { data: exam } = await supabase
+        .from("exams")
+        .select("tenant_id")
+        .eq("id", examId)
+        .single();
+      currentTenantId = exam?.tenant_id;
+      setTenantId(currentTenantId);
+    }
 
     await supabase.from("sections").insert({
       exam_id: examId,
-      tenant_id: exam?.tenant_id,
+      tenant_id: currentTenantId,
       title: newSection.title,
       duration_minutes: Number(newSection.duration_minutes),
       total_marks: Number(newSection.total_marks),
@@ -171,12 +191,19 @@ export default function SectionsCard() {
       section_order: index + 1,
     }));
 
-    // Update all sections with new order
-    for (const update of updates) {
-      await supabase
-        .from("sections")
-        .update({ section_order: update.section_order })
-        .eq("id", update.id);
+    // Update all sections with new order concurrently
+    try {
+      await Promise.all(
+        updates.map(update =>
+          supabase
+            .from("sections")
+            .update({ section_order: update.section_order })
+            .eq("id", update.id)
+        )
+      );
+    } catch (error) {
+      console.error("Failed to reorder sections:", error);
+      // Optionally revert local state here
     }
   };
 

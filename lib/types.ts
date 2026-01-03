@@ -227,6 +227,9 @@ export interface Lesson {
   // Jitsi fields
   jitsi_meeting_id?: string | null
   jitsi_meeting_url?: string | null
+  // Sequential unlock fields
+  sequential_unlock_enabled?: boolean
+  prerequisite_lesson_id?: string | null
   created_at: string
   updated_at: string
 }

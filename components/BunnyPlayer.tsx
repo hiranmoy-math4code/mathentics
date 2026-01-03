@@ -1,6 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLessonContext } from '@/context/LessonContext';
+import { awardCoins } from '@/app/actions/rewardActions';
+import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
+import { useTenantId } from '@/hooks/useTenantId';
 
 interface BunnyPlayerProps {
     videoId: string;
@@ -21,6 +26,82 @@ export function BunnyPlayer({
 }: BunnyPlayerProps) {
     const [isLive, setIsLive] = useState(videoStatus === 'live');
     const [error, setError] = useState<string | null>(null);
+    const [rewarded, setRewarded] = useState(false);
+    const [userId, setUserId] = useState<string | null>(null);
+    const iframeRef = useRef<HTMLIFrameElement>(null);
+
+    // Get lesson context for auto-completion
+    let markComplete: (() => void) | null = null;
+    try {
+        const context = useLessonContext();
+        markComplete = context.markComplete;
+    } catch (error) {
+        // Context not available (e.g., in admin builder)
+        markComplete = null;
+    }
+
+    const tenantId = useTenantId();
+
+    // Get user ID
+    useEffect(() => {
+        const getUser = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) setUserId(user.id);
+        };
+        getUser();
+    }, []);
+
+    // Listen for Bunny.net iframe messages
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            // Verify origin is from Bunny.net
+            if (!event.origin.includes('mediadelivery.net')) return;
+
+            try {
+                const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+
+                // Bunny.net sends progress updates
+                if (data.event === 'timeupdate' && data.currentTime && data.duration) {
+                    const progress = data.currentTime / data.duration;
+
+                    // Auto-complete at 90% watch progress
+                    if (!rewarded && userId && progress >= 0.9) {
+                        setRewarded(true);
+
+                        // Award coins for watching video
+                        awardCoins(
+                            userId,
+                            'video_watch',
+                            videoId,
+                            `Watched Bunny video: ${videoId}`,
+                            tenantId || undefined
+                        ).then((res) => {
+                            if (res.success && res.message) {
+                                toast.success(res.message, { icon: "🎥" });
+                                window.dispatchEvent(new Event("rewards-updated"));
+                            }
+                        });
+
+                        // Mark lesson complete
+                        if (markComplete) {
+                            markComplete();
+                        }
+
+                        // Call onComplete callback if provided
+                        if (onComplete) {
+                            onComplete();
+                        }
+                    }
+                }
+            } catch (err) {
+                // Ignore parsing errors
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, [rewarded, userId, videoId, tenantId, markComplete, onComplete]);
 
     // Poll for live status if it's a live stream
     useEffect(() => {
@@ -38,8 +119,8 @@ export function BunnyPlayer({
         }
     }, [videoType, videoStatus]);
 
-    // Generate embed URL
-    const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}?autoplay=false&preload=true`;
+    // Generate embed URL with event tracking enabled
+    const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}?autoplay=false&preload=true&responsive=true`;
 
     // Handle different states
     if (videoStatus === 'processing') {
@@ -105,6 +186,7 @@ export function BunnyPlayer({
                 </div>
             )}
             <iframe
+                ref={iframeRef}
                 src={embedUrl}
                 loading="lazy"
                 style={{

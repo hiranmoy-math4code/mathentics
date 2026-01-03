@@ -32,7 +32,7 @@ export const useExamQuery = (examId: string) => {
         .select("*, questions(*)")
         .eq("exam_id", examId)
         .eq("tenant_id", tenantId) // ✅ SECURITY FIX
-        .order("order_index", { ascending: true });
+        .order("section_order", { ascending: true });
 
       if (sectionsError) {
         console.error("Section fetch error:", sectionsError);

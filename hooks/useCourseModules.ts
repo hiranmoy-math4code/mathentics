@@ -333,27 +333,34 @@ export const useCourseModules = (courseId: string, tenantId: string, initialData
                 supabase.from("lessons").update({ lesson_order: l.lesson_order, module_id: l.module_id }).eq("id", l.id)
             );
             await Promise.all(updates);
+            return orderedLessons;
         },
         onMutate: async (orderedLessons) => {
             await queryClient.cancelQueries({ queryKey });
             const previousModules = queryClient.getQueryData<ModuleWithLessons[]>(queryKey);
 
+            // Optimistic update - properly update the lessons array
             updateCache((old) => {
                 return old.map((m) => {
-                    const lessonsUpdateMap = new Map(orderedLessons.filter(l => l.module_id === m.id).map(l => [l.id, l.lesson_order]));
+                    // Get all lessons for this module from the ordered list
+                    const moduleLessons = orderedLessons.filter(l => l.module_id === m.id);
 
-                    const newLessons = m.lessons.map(l => {
-                        const newOrder = orderedLessons.find(ol => ol.id === l.id);
-                        if (newOrder) {
-                            return { ...l, lesson_order: newOrder.lesson_order, module_id: newOrder.module_id };
-                        }
-                        return l;
-                    });
+                    if (moduleLessons.length > 0) {
+                        // Create a map for quick lookup
+                        const orderMap = new Map(moduleLessons.map(l => [l.id, l.lesson_order]));
 
-                    if (lessonsUpdateMap.size > 0) {
+                        // Update lesson orders and sort
+                        const updatedLessons = m.lessons.map(l => {
+                            const newOrder = orderMap.get(l.id);
+                            if (newOrder !== undefined) {
+                                return { ...l, lesson_order: newOrder };
+                            }
+                            return l;
+                        }).sort((a, b) => a.lesson_order - b.lesson_order);
+
                         return {
                             ...m,
-                            lessons: newLessons.sort((a, b) => a.lesson_order - b.lesson_order)
+                            lessons: updatedLessons
                         };
                     }
                     return m;
@@ -368,9 +375,13 @@ export const useCourseModules = (courseId: string, tenantId: string, initialData
             }
             toast.error("Failed to reorder lessons");
         },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey });
-        }
+        onSuccess: () => {
+            toast.success("Lessons reordered successfully");
+        },
+        // Don't invalidate - the optimistic update is correct
+        // onSettled: () => {
+        //     queryClient.invalidateQueries({ queryKey });
+        // }
     });
 
     return {

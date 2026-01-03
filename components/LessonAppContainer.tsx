@@ -19,6 +19,10 @@ import { LessonTracker } from '@/components/LessonTracker';
 import { QuizSkeleton, VideoSkeleton, TextSkeleton } from '@/components/skeletons/LessonSkeletons';
 import { createClient } from '@/lib/supabase/client';
 import { fetchLessonDetailedData } from '@/lib/data/lesson';
+import { useLessonAccess } from '@/hooks/student/useLessonAccess';
+import { useLessonProgress } from '@/hooks/student/useLessonProgress';
+import { toast } from 'sonner';
+import { Lock } from 'lucide-react';
 
 interface LessonAppContainerProps {
     courseId: string;
@@ -97,6 +101,10 @@ export function LessonAppContainer({
         };
     }, [navigateToLesson]);
 
+    // ⚡ SEQUENTIAL ACCESS CHECK: Get lesson progress for access control
+    const { data: lessonProgress } = useLessonProgress(user?.id, courseId);
+    const lessonAccessMap = useLessonAccess(allLessons, lessonProgress);
+
     // ⚡ PREDICTIVE PREFETCHING: Prefetch next lesson for instant forward navigation
     useEffect(() => {
         if (!currentLesson || !allLessons.length) return;
@@ -143,13 +151,45 @@ export function LessonAppContainer({
         );
     }
 
-    // Access control
+    // Access control - Enrollment check
     if (!isEnrolled && !currentLesson.is_free_preview) {
         return (
             <div className="flex items-center justify-center h-full p-8">
                 <div className="text-center">
                     <h3 className="text-xl font-bold mb-2">Content Locked</h3>
                     <p className="text-muted-foreground">Enroll in this course to access this lesson.</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Access control - Sequential unlock check
+    const accessInfo = lessonAccessMap.get(currentLesson.id);
+    if (accessInfo?.isSequentialLocked) {
+        // Find the first unlocked lesson to redirect to
+        const firstUnlockedLesson = allLessons.find(l => {
+            const info = lessonAccessMap.get(l.id);
+            return !info?.isSequentialLocked && (isEnrolled || l.is_free_preview);
+        });
+
+        return (
+            <div className="flex items-center justify-center h-full p-8">
+                <div className="text-center max-w-md space-y-4">
+                    <div className="mx-auto w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
+                        <Lock className="h-8 w-8 text-orange-500" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Lesson Locked</h3>
+                    <p className="text-slate-600 dark:text-slate-400">
+                        You need to complete <span className="font-semibold text-orange-600 dark:text-orange-400">"{accessInfo.prerequisiteTitle}"</span> before accessing this lesson.
+                    </p>
+                    {firstUnlockedLesson && (
+                        <button
+                            onClick={() => navigateToLesson(firstUnlockedLesson.id)}
+                            className="mt-4 px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors"
+                        >
+                            Go to First Available Lesson
+                        </button>
+                    )}
                 </div>
             </div>
         );

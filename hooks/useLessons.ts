@@ -12,6 +12,8 @@ export interface LessonSummary {
     is_live?: boolean;
     meeting_url?: string;
     meeting_date?: string;
+    sequential_unlock_enabled?: boolean;
+    prerequisite_lesson_id?: string | null;
     created_at: string;
     updated_at: string;
     exam_details?: {
@@ -55,6 +57,8 @@ export const useLessons = (courseId: string) => {
                             is_free_preview, 
                             lesson_order, 
                             is_live,
+                            sequential_unlock_enabled,
+                            prerequisite_lesson_id,
                             created_at, 
                             updated_at,
                             exams (

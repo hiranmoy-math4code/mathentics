@@ -31,6 +31,8 @@ import { useLessons } from "@/hooks/useLessons"
 import { LessonNavigation } from "@/components/LessonNavigation"
 import { CommunityButton } from "@/components/CommunityButton"
 import { ClientSideLink } from "@/components/ClientSideLink"
+import { useLessonAccess } from "@/hooks/student/useLessonAccess"
+import { toast } from "sonner"
 
 interface CoursePlayerClientProps {
     courseId: string
@@ -101,6 +103,9 @@ export function CoursePlayerClient({
 
     // Fetch lesson progress
     const { data: lessonProgress } = useLessonProgress(userId || undefined, courseId)
+
+    // ⚡ ZERO DB QUERIES: Client-side sequential access check using cached data
+    const lessonAccessMap = useLessonAccess(allLessons, lessonProgress)
 
     // Calculate progress from lesson progress data
     const progressPercentage = useMemo(() => {
@@ -210,7 +215,10 @@ export function CoursePlayerClient({
                                             {module.lessons.map((lesson: any) => {
                                                 const isActive = currentLesson?.id === lesson.id;
                                                 const isCompleted = isLessonCompleted(lesson.id);
-                                                const isLocked = !isEnrolled && !lesson.is_free_preview;
+                                                const isEnrollmentLocked = !isEnrolled && !lesson.is_free_preview;
+                                                const accessInfo = lessonAccessMap.get(lesson.id);
+                                                const isSequentialLocked = accessInfo?.isSequentialLocked || false;
+                                                const shouldLock = isEnrollmentLocked || isSequentialLocked;
 
                                                 let Icon = BookOpen;
                                                 let typeLabel = "Reading";
@@ -218,24 +226,49 @@ export function CoursePlayerClient({
                                                 if (lesson.content_type === "quiz") { Icon = HelpCircle; typeLabel = "Quiz"; }
                                                 if (lesson.content_type === "pdf") { Icon = FileText; typeLabel = "PDF"; }
 
-                                                if (isLocked) {
+                                                if (shouldLock) {
                                                     return (
-                                                        <div
-                                                            key={lesson.id}
-                                                            className={cn(
-                                                                "group flex items-start gap-3 py-3 px-4 text-sm transition-all rounded-lg border-l-4 border-transparent text-muted-foreground/50 cursor-not-allowed bg-muted/10",
-                                                            )}
-                                                        >
-                                                            <Lock className="h-4 w-4 shrink-0 mt-0.5" />
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="font-medium line-clamp-2 leading-tight">
-                                                                    {lesson.title}
+                                                        <Tooltip key={lesson.id}>
+                                                            <TooltipTrigger asChild>
+                                                                <div
+                                                                    onClick={() => {
+                                                                        if (isSequentialLocked && accessInfo) {
+                                                                            toast.error(`Complete "${accessInfo.prerequisiteTitle}" first`, {
+                                                                                description: "This lesson is locked until you complete the previous one."
+                                                                            });
+                                                                        } else {
+                                                                            toast.info("Enroll to access this lesson");
+                                                                        }
+                                                                    }}
+                                                                    className={cn(
+                                                                        "group flex items-start gap-3 py-3 px-4 text-sm transition-all rounded-lg border-l-4 border-transparent cursor-not-allowed bg-muted/10",
+                                                                        isSequentialLocked ? "text-orange-400/60" : "text-muted-foreground/50"
+                                                                    )}
+                                                                >
+                                                                    <Lock className={cn("h-4 w-4 shrink-0 mt-0.5", isSequentialLocked ? "text-orange-400" : "text-muted-foreground/50")} />
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="font-medium line-clamp-2 leading-tight">
+                                                                            {lesson.title}
+                                                                        </div>
+                                                                        <div className="text-xs mt-1 flex items-center gap-1.5">
+                                                                            <span className="text-muted-foreground/40">{typeLabel}</span>
+                                                                            {isSequentialLocked && (
+                                                                                <Badge variant="outline" className="h-4 px-1 text-[9px] border-orange-300 text-orange-600 bg-orange-50 dark:bg-orange-900/20">
+                                                                                    Complete Previous
+                                                                                </Badge>
+                                                                            )}
+                                                                            {isEnrollmentLocked && <span className="text-muted-foreground/40">• Enroll</span>}
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="text-xs mt-1 text-muted-foreground/40">
-                                                                    {typeLabel} • Locked
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent side="right">
+                                                                {isSequentialLocked && accessInfo
+                                                                    ? `Complete "${accessInfo.prerequisiteTitle}" first`
+                                                                    : "Enroll to access this lesson"
+                                                                }
+                                                            </TooltipContent>
+                                                        </Tooltip>
                                                     )
                                                 }
 
@@ -372,7 +405,10 @@ export function CoursePlayerClient({
                                                     {module.lessons.map((lesson: any) => {
                                                         const isActive = currentLesson?.id === lesson.id;
                                                         const isCompleted = isLessonCompleted(lesson.id);
-                                                        const isLocked = !isEnrolled && !lesson.is_free_preview;
+                                                        const isEnrollmentLocked = !isEnrolled && !lesson.is_free_preview;
+                                                        const accessInfo = lessonAccessMap.get(lesson.id);
+                                                        const isSequentialLocked = accessInfo?.isSequentialLocked || false;
+                                                        const shouldLock = isEnrollmentLocked || isSequentialLocked;
 
                                                         let Icon = BookOpen;
                                                         let typeLabel = "Reading";
@@ -380,21 +416,37 @@ export function CoursePlayerClient({
                                                         if (lesson.content_type === "quiz") { Icon = HelpCircle; typeLabel = "Quiz"; }
                                                         if (lesson.content_type === "pdf") { Icon = FileText; typeLabel = "PDF"; }
 
-                                                        if (isLocked) {
+                                                        if (shouldLock) {
                                                             return (
                                                                 <div
                                                                     key={lesson.id}
+                                                                    onClick={() => {
+                                                                        if (isSequentialLocked && accessInfo) {
+                                                                            toast.error(`Complete "${accessInfo.prerequisiteTitle}" first`, {
+                                                                                description: "This lesson is locked until you complete the previous one."
+                                                                            });
+                                                                        } else {
+                                                                            toast.info("Enroll to access this lesson");
+                                                                        }
+                                                                    }}
                                                                     className={cn(
-                                                                        "group flex items-start gap-3 py-3 px-4 text-sm transition-all rounded-lg border-l-4 border-transparent text-muted-foreground/50 cursor-not-allowed bg-muted/10",
+                                                                        "group flex items-start gap-3 py-3 px-4 text-sm transition-all rounded-lg border-l-4 border-transparent cursor-not-allowed bg-muted/10",
+                                                                        isSequentialLocked ? "text-orange-400/60" : "text-muted-foreground/50"
                                                                     )}
                                                                 >
-                                                                    <Lock className="h-4 w-4 shrink-0 mt-0.5" />
+                                                                    <Lock className={cn("h-4 w-4 shrink-0 mt-0.5", isSequentialLocked ? "text-orange-400" : "text-muted-foreground/50")} />
                                                                     <div className="flex-1 min-w-0">
                                                                         <div className="font-medium line-clamp-2 leading-tight">
                                                                             {lesson.title}
                                                                         </div>
-                                                                        <div className="text-xs mt-1 text-muted-foreground/40">
-                                                                            {typeLabel} • Locked
+                                                                        <div className="text-xs mt-1 flex items-center gap-1.5">
+                                                                            <span className="text-muted-foreground/40">{typeLabel}</span>
+                                                                            {isSequentialLocked && (
+                                                                                <Badge variant="outline" className="h-4 px-1 text-[9px] border-orange-300 text-orange-600 bg-orange-50 dark:bg-orange-900/20">
+                                                                                    Complete Previous
+                                                                                </Badge>
+                                                                            )}
+                                                                            {isEnrollmentLocked && <span className="text-muted-foreground/40">• Enroll</span>}
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -551,6 +603,7 @@ export function CoursePlayerClient({
                                 prevLessonId={prevLessonId}
                                 nextLessonId={nextLessonId}
                                 variant="header"
+                                contentType={currentLesson?.content_type as any}
                             />
                         </div>
                     </div>

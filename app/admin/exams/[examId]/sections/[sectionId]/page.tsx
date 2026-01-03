@@ -3,11 +3,18 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, Home, FileQuestion, AlertCircle } from "lucide-react";
+import { ChevronRight, Home, FileQuestion, Settings, LayoutList } from "lucide-react";
 import Link from "next/link";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
+
 import SectionQuestionsCard from "./components/SectionQuestionsCard";
 import QuestionBankModal from "./components/QuestionBankModal";
-import { useSectionInfo, useSectionQuestions, useRemoveQuestion } from "@/hooks/admin/useSectionManagement";
+import { useSectionInfo, useSectionQuestions } from "@/hooks/admin/useSectionManagement";
+import { useSectionMutations } from "@/hooks/admin/exams/useSectionMutations";
 import { toast } from "sonner";
 
 export default function ManageSectionQuestionsPage() {
@@ -19,22 +26,17 @@ export default function ManageSectionQuestionsPage() {
 
   const { data: sectionInfo, isLoading: isInfoLoading } = useSectionInfo(sectionId);
   const { data: questions, isLoading: isQuestionsLoading, refetch: refetchQuestions } = useSectionQuestions(sectionId);
-  const { mutate: removeQuestion } = useRemoveQuestion();
-
-  const handleRemoveQuestion = (questionId: string) => {
-    toast("Are you sure you want to remove this question?", {
-      action: {
-        label: "Delete",
-        onClick: () => removeQuestion(questionId),
-      },
-      cancel: {
-        label: "Cancel",
-        onClick: () => { },
-      },
-    });
-  };
+  const { updateSection } = useSectionMutations(examId);
 
   const isLoading = isInfoLoading || isQuestionsLoading;
+
+  // Toggle Shuffle with Optimistic Update
+  const handleShuffleToggle = (checked: boolean) => {
+    updateSection.mutate({
+      sectionId,
+      updates: { shuffle_questions: checked }
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -99,20 +101,58 @@ export default function ManageSectionQuestionsPage() {
         <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
       </motion.div>
 
-      {/* Questions Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-      >
-        <SectionQuestionsCard
-          questions={questions || []}
-          isLoading={isLoading}
-          onRemoveQuestion={handleRemoveQuestion}
-          onAddFromBank={() => setShowBankModal(true)}
-          onReorder={() => { }} // TODO: Implement reorder mutation if needed
-        />
-      </motion.div>
+      {/* Tabs Interface */}
+      <Tabs defaultValue="questions" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+          <TabsTrigger value="questions" className="flex items-center gap-2">
+            <LayoutList className="w-4 h-4" />
+            Questions
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Settings
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="questions" className="mt-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            <SectionQuestionsCard
+              questions={questions || []}
+              isLoading={isLoading}
+              sectionId={sectionId}
+              onAddFromBank={() => setShowBankModal(true)}
+            />
+          </motion.div>
+        </TabsContent>
+
+        <TabsContent value="settings" className="mt-6">
+          <Card className="border-none shadow-xl bg-white dark:bg-slate-800">
+            <CardHeader>
+              <CardTitle>Section Settings</CardTitle>
+              <CardDescription>Configure behavior for this specific section</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between p-4 border rounded-lg bg-slate-50 dark:bg-slate-900/50">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Shuffle Questions</Label>
+                  <p className="text-sm text-slate-500">
+                    Randomize the order of questions for each student attempt.
+                  </p>
+                </div>
+                <Switch
+                  checked={sectionInfo?.shuffle_questions || false}
+                  onCheckedChange={handleShuffleToggle}
+                  disabled={updateSection.isPending}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Question Bank Modal */}
       <QuestionBankModal
@@ -124,3 +164,4 @@ export default function ManageSectionQuestionsPage() {
     </div>
   );
 }
+

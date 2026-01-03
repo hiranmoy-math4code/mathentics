@@ -11,6 +11,7 @@ import { QuizPlayer } from "@/components/QuizPlayer";
 import CustomPDFViewer from "@/components/CustomPDFViewer";
 import { CommunityButton } from "@/components/CommunityButton";
 import { QuizSkeleton, VideoSkeleton, TextSkeleton } from "@/components/skeletons/LessonSkeletons";
+import React from "react";
 
 export default function LessonContentClient({
     lessonId,
@@ -77,31 +78,43 @@ export default function LessonContentClient({
     }
 
     if (isVideo) {
+        // Live Class Check
+        if (lesson.is_live && lesson.meeting_url) {
+            return <LiveClassView lesson={lesson} author={author} />;
+        }
+
+        // Regular Video Lesson
         return (
             <div className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-background animate-in fade-in slide-in-from-right-4 duration-500">
                 {/* Video Section */}
-                <div className="w-full bg-black relative shadow-lg z-20 shrink-0">
-                    <div className="w-full h-auto aspect-video max-h-[70vh] mx-auto bg-black flex items-center justify-center">
-                        {lesson.content_url || lesson.bunny_video_id || lesson.bunny_stream_id ? (
-                            <>
-                                {lesson.video_provider === 'bunny' && (lesson.bunny_video_id || lesson.bunny_stream_id) ? (
-                                    <BunnyPlayer
-                                        videoId={lesson.bunny_video_id || lesson.bunny_stream_id || ''}
-                                        libraryId={lesson.bunny_library_id || ''}
-                                        videoType={lesson.video_type || 'vod'}
-                                        videoStatus={lesson.video_status}
-                                        className="w-full h-full"
-                                    />
-                                ) : (
-                                    <VideoPlayer url={lesson.content_url} />
-                                )}
-                            </>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center text-white/50">
-                                <PlayCircle className="h-16 w-16 mb-2 opacity-50" />
-                                <span className="text-sm">Video content unavailable</span>
-                            </div>
-                        )}
+                <div className="w-full bg-background relative shadow-lg z-20 shrink-0 py-4 md:py-6">
+                    <div className="max-w-7xl mx-auto px-4 md:px-6">
+                        <div className="w-full h-auto aspect-video bg-background flex items-center justify-center overflow-hidden rounded-xl shadow-2xl">
+                            {lesson.content_url || lesson.bunny_video_id || lesson.bunny_stream_id ? (
+                                <>
+                                    {lesson.video_provider === 'bunny' && (lesson.bunny_video_id || lesson.bunny_stream_id) ? (
+                                        <BunnyPlayer
+                                            videoId={lesson.bunny_video_id || lesson.bunny_stream_id || ''}
+                                            libraryId={lesson.bunny_library_id || ''}
+                                            videoType={lesson.video_type || 'vod'}
+                                            videoStatus={lesson.video_status}
+                                            className="w-full h-full"
+                                        />
+                                    ) : (
+                                        <VideoPlayer
+                                            url={lesson.content_url}
+                                            className="w-full h-full"
+                                            thumbUrl={lesson.thumbnail_url}
+                                        />
+                                    )}
+                                </>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center text-white/50">
+                                    <PlayCircle className="h-16 w-16 mb-2 opacity-50" />
+                                    <span className="text-sm">Video content unavailable</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -342,6 +355,226 @@ export default function LessonContentClient({
                     <p className="text-muted-foreground italic text-center text-sm">
                         End of lesson. Mark as complete to continue.
                     </p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// Live Class View Component with Countdown Timer
+function LiveClassView({ lesson, author }: { lesson: any; author: any }) {
+    const [timeLeft, setTimeLeft] = React.useState<{
+        days: number;
+        hours: number;
+        minutes: number;
+        seconds: number;
+        isLive: boolean;
+        hasEnded: boolean;
+    }>({ days: 0, hours: 0, minutes: 0, seconds: 0, isLive: false, hasEnded: false });
+
+    React.useEffect(() => {
+        const calculateTimeLeft = () => {
+            if (!lesson.meeting_date) {
+                setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isLive: true, hasEnded: false });
+                return;
+            }
+
+            const meetingTime = new Date(lesson.meeting_date).getTime();
+            const now = new Date().getTime();
+            const difference = meetingTime - now;
+
+            // Meeting has ended (more than 2 hours past)
+            if (difference < -7200000) {
+                setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isLive: false, hasEnded: true });
+                return;
+            }
+
+            // Meeting is live (within ±15 minutes window)
+            // 900000 ms = 15 minutes
+            if (difference < 900000 && difference > -900000) {
+                setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isLive: true, hasEnded: false });
+                return;
+            }
+
+            // Meeting is upcoming
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            setTimeLeft({ days, hours, minutes, seconds, isLive: false, hasEnded: false });
+        };
+
+        calculateTimeLeft();
+        const timer = setInterval(calculateTimeLeft, 1000);
+
+        return () => clearInterval(timer);
+    }, [lesson.meeting_date]);
+
+    const handleJoinMeeting = () => {
+        if (lesson.meeting_url) {
+            window.open(lesson.meeting_url, '_blank', 'noopener,noreferrer');
+        }
+    };
+
+    const handleCopyLink = () => {
+        if (lesson.meeting_url) {
+            navigator.clipboard.writeText(lesson.meeting_url);
+            // You can add a toast notification here
+        }
+    };
+
+    return (
+        <div className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-gradient-to-br from-background via-background to-muted/20 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="flex-1 flex items-center justify-center p-4 md:p-8">
+                <div className="w-full max-w-4xl space-y-6">
+                    {/* Main Live Class Card */}
+                    <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
+                        {/* Animated Background Gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-pink-500/10" />
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
+
+                        <div className="relative p-8 md:p-12 space-y-8">
+                            {/* Header */}
+                            <div className="text-center space-y-4">
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 dark:border-blue-500/30">
+                                    <div className={`w-2 h-2 rounded-full ${timeLeft.isLive ? 'bg-red-500 animate-pulse' : 'bg-blue-500'}`} />
+                                    <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                                        {timeLeft.isLive ? 'LIVE NOW' : timeLeft.hasEnded ? 'ENDED' : 'UPCOMING'}
+                                    </span>
+                                </div>
+
+                                <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                                    {lesson.title}
+                                </h1>
+
+                                {lesson.meeting_platform && (
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-muted text-xs font-medium text-muted-foreground">
+                                        <PlayCircle className="h-3 w-3" />
+                                        {lesson.meeting_platform.toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Countdown Timer or Live Status */}
+                            {!timeLeft.hasEnded && (
+                                <div className="bg-gradient-to-br from-muted/50 to-muted/30 dark:from-muted/30 dark:to-muted/20 rounded-2xl p-8 border border-border/50">
+                                    {timeLeft.isLive ? (
+                                        <div className="text-center space-y-4">
+                                            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg shadow-red-500/50">
+                                                <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+                                                <span className="text-lg font-bold">Class is Live!</span>
+                                            </div>
+                                            <p className="text-muted-foreground">Join now to participate in the live session</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            <p className="text-center text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                                                Starts In
+                                            </p>
+                                            <div className="grid grid-cols-4 gap-3 md:gap-4">
+                                                {[
+                                                    { label: 'Days', value: timeLeft.days },
+                                                    { label: 'Hours', value: timeLeft.hours },
+                                                    { label: 'Minutes', value: timeLeft.minutes },
+                                                    { label: 'Seconds', value: timeLeft.seconds }
+                                                ].map((item) => (
+                                                    <div key={item.label} className="flex flex-col items-center">
+                                                        <div className="w-full aspect-square flex items-center justify-center rounded-xl bg-gradient-to-br from-background to-muted border border-border shadow-sm">
+                                                            <span className="text-2xl md:text-4xl font-bold bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
+                                                                {String(item.value).padStart(2, '0')}
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-xs font-medium text-muted-foreground mt-2 uppercase tracking-wide">
+                                                            {item.label}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Meeting Info */}
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {/* Instructor Card */}
+                                <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border/50">
+                                    <Avatar className="h-12 w-12 border-2 border-border">
+                                        <AvatarImage src={author?.avatar_url || ""} />
+                                        <AvatarFallback>IN</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="text-sm font-medium text-foreground">{author?.full_name || 'Instructor'}</p>
+                                        <p className="text-xs text-muted-foreground">Host</p>
+                                    </div>
+                                </div>
+
+                                {/* Date/Time Card */}
+                                {lesson.meeting_date && (
+                                    <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border/50">
+                                        <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+                                            <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-foreground">
+                                                {new Date(lesson.meeting_date).toLocaleDateString('en-US', {
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    year: 'numeric'
+                                                })}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {new Date(lesson.meeting_date).toLocaleTimeString('en-US', {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Action Buttons */}
+                            {!timeLeft.hasEnded && (
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                    <button
+                                        onClick={handleJoinMeeting}
+                                        disabled={!timeLeft.isLive && timeLeft.days > 0}
+                                        className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-semibold text-white shadow-lg transition-all duration-200 ${timeLeft.isLive
+                                            ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 shadow-red-500/50 hover:shadow-red-500/70 hover:scale-105'
+                                            : timeLeft.days > 0
+                                                ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                                                : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-blue-500/50 hover:shadow-blue-500/70 hover:scale-105'
+                                            }`}
+                                    >
+                                        <PlayCircle className="h-5 w-5" />
+                                        {timeLeft.isLive ? 'Join Live Class' : 'Join Meeting'}
+                                    </button>
+                                    <button
+                                        onClick={handleCopyLink}
+                                        className="px-6 py-4 rounded-xl font-semibold border-2 border-border hover:bg-muted transition-all duration-200 hover:scale-105"
+                                    >
+                                        Copy Link
+                                    </button>
+                                </div>
+                            )}
+
+                            {timeLeft.hasEnded && (
+                                <div className="text-center p-6 rounded-xl bg-muted/50 border border-border/50">
+                                    <p className="text-muted-foreground">This live class has ended. Recording may be available soon.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Description Card */}
+                    {lesson.description && (
+                        <div className="rounded-2xl border border-border bg-card p-6 shadow-lg">
+                            <h3 className="text-lg font-semibold mb-3 text-foreground">About This Class</h3>
+                            <p className="text-muted-foreground leading-relaxed">{lesson.description}</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
