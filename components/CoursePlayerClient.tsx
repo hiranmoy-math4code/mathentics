@@ -33,6 +33,7 @@ import { CommunityButton } from "@/components/CommunityButton"
 import { ClientSideLink } from "@/components/ClientSideLink"
 import { useLessonAccess } from "@/hooks/student/useLessonAccess"
 import { toast } from "sonner"
+import { useLessonPrefetch } from "@/hooks/useLessonPrefetch"
 
 interface CoursePlayerClientProps {
     courseId: string
@@ -84,6 +85,15 @@ export function CoursePlayerClient({
         const next = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1].id : null;
         return { prevLessonId: prev, nextLessonId: next };
     }, [currentLesson, allLessons]);
+
+    // ⚡ AUTO-PREFETCH: Load next lesson in background
+    const { prefetchLesson } = useLessonPrefetch();
+
+    useEffect(() => {
+        if (nextLessonId) {
+            prefetchLesson(nextLessonId, courseId);
+        }
+    }, [nextLessonId, courseId, prefetchLesson]);
 
     const isQuiz = currentLesson?.content_type === "quiz";
 

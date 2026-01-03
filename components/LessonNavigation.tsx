@@ -9,6 +9,8 @@ import { toast } from "sonner"
 import { ClientSideLink } from "@/components/ClientSideLink"
 import { cn } from "@/lib/utils"
 
+import { useLessonPrefetch } from "@/hooks/useLessonPrefetch"
+
 interface LessonNavigationProps {
     courseId: string
     currentLessonId: string
@@ -30,6 +32,7 @@ export function LessonNavigation({
     const { data: lessonProgress } = useLessonProgress(userId || undefined, courseId)
     const { mutate: markComplete, isPending: isMarkingComplete } = useMarkLessonComplete()
     const { mutate: markIncomplete, isPending: isMarkingIncomplete } = useMarkLessonIncomplete()
+    const { prefetchLesson } = useLessonPrefetch()
 
     useEffect(() => {
         const getUser = async () => {
@@ -68,6 +71,7 @@ export function LessonNavigation({
                     className="h-9 w-9 p-0 flex-shrink-0 md:w-auto md:px-4 md:h-9 gap-2 border-2 border-muted-foreground/10 hover:border-muted-foreground/30 rounded-md"
                     disabled={!prevLessonId}
                     asChild={!!prevLessonId}
+                    onMouseEnter={() => prevLessonId && prefetchLesson(prevLessonId, courseId)}
                 >
                     {prevLessonId ? (
                         <ClientSideLink href={`/learn/${courseId}?lessonId=${prevLessonId}`} lessonId={prevLessonId}>
@@ -109,6 +113,7 @@ export function LessonNavigation({
                     className="h-9 w-9 p-0 flex-shrink-0 md:w-auto md:px-5 md:h-9 gap-2 bg-orange-500 hover:bg-orange-600 text-white shadow-sm rounded-md"
                     disabled={!nextLessonId}
                     asChild={!!nextLessonId}
+                    onMouseEnter={() => nextLessonId && prefetchLesson(nextLessonId, courseId)}
                 >
                     {nextLessonId ? (
                         <ClientSideLink href={`/learn/${courseId}?lessonId=${nextLessonId}`} lessonId={nextLessonId}>
@@ -126,7 +131,13 @@ export function LessonNavigation({
     // Default Bottom Navigation
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between mt-12 pt-8 border-t border-border gap-4">
-            <Button variant="outline" className="gap-2 h-11 px-6 w-full sm:w-auto order-2 sm:order-1" disabled={!prevLessonId} asChild={!!prevLessonId}>
+            <Button
+                variant="outline"
+                className="gap-2 h-11 px-6 w-full sm:w-auto order-2 sm:order-1"
+                disabled={!prevLessonId}
+                asChild={!!prevLessonId}
+                onMouseEnter={() => prevLessonId && prefetchLesson(prevLessonId, courseId)}
+            >
                 {prevLessonId ? (
                     <ClientSideLink href={`/learn/${courseId}?lessonId=${prevLessonId}`} lessonId={prevLessonId}>
                         <ChevronLeft className="h-4 w-4" /> Prev Lesson
@@ -152,7 +163,12 @@ export function LessonNavigation({
                 </Button>
             )}
 
-            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 h-11 px-8 shadow-md shadow-emerald-500/10 w-full sm:w-auto order-1 sm:order-3 font-bold" disabled={!nextLessonId} asChild={!!nextLessonId}>
+            <Button
+                className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 h-11 px-8 shadow-md shadow-emerald-500/10 w-full sm:w-auto order-1 sm:order-3 font-bold"
+                disabled={!nextLessonId}
+                asChild={!!nextLessonId}
+                onMouseEnter={() => nextLessonId && prefetchLesson(nextLessonId, courseId)}
+            >
                 {nextLessonId ? (
                     <ClientSideLink href={`/learn/${courseId}?lessonId=${nextLessonId}`} lessonId={nextLessonId}>
                         Next Lesson <ChevronRight className="h-4 w-4" />

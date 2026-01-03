@@ -403,7 +403,7 @@ export default function CourseBuilder({ course, initialModules }: CourseBuilderP
                             setSelectedLesson={setSelectedLesson}
                             addLesson={addLesson}
                             reorderModules={reorderModules}
-                            reorderLessons={reorderLessons}
+                            reorderLessons={async (items) => { await reorderLessons(items); }}
                         />
                     </div>
 

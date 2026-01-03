@@ -32,6 +32,15 @@ const extractYouTubeId = (s?: string | null) => {
     if (shortMatch) return shortMatch[1];
     const embMatch = str.match(/embed\/([\w-]{11})/);
     if (embMatch) return embMatch[1];
+
+    // Support Live streams
+    const liveMatch = str.match(/\/live\/([\w-]{11})/);
+    if (liveMatch) return liveMatch[1];
+
+    // Support Shorts
+    const shortsMatch = str.match(/\/shorts\/([\w-]{11})/);
+    if (shortsMatch) return shortsMatch[1];
+
     return null;
 };
 
@@ -73,6 +82,9 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
     const ytRef = useRef<any>(null);
     const rpRef = useRef<any>(null);
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Tenant ID for rewards - MOVED UP TO FIX REFERENCE ERROR
+    const tenantId = useTenantId();
 
     const [mounted, setMounted] = useState(false);
     const [usingYouTube, setUsingYouTube] = useState(false);
@@ -161,6 +173,32 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
         else { setShowControls(true); if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current); }
     }, [isPlayingState, startHideControlsTimer]);
 
+    // --- COMPLETION LOGIC ---
+    const checkCompletion = useCallback((current: number, total: number) => {
+        if (!rewarded && userId && total > 0 && current / total > 0.9) {
+            setRewarded(true);
+            if (userId) {
+                awardCoins(userId, 'video_watch', url, `Watched video: ${url}`, tenantId || undefined).then((res) => {
+                    if (res.success && res.message) {
+                        toast.success(res.message, { icon: "🎥" });
+                        window.dispatchEvent(new Event("rewards-updated"));
+                    }
+                });
+                if (markComplete) markComplete();
+            }
+        }
+    }, [rewarded, userId, url, tenantId, markComplete]);
+
+    // Refs to permit access inside closures without re-triggering effects
+    const seekingRef = useRef(seeking);
+    const durationRef = useRef(duration);
+    const checkCompletionRef = useRef(checkCompletion);
+
+    // Update refs when state changes
+    useEffect(() => { seekingRef.current = seeking; }, [seeking]);
+    useEffect(() => { durationRef.current = duration; }, [duration]);
+    useEffect(() => { checkCompletionRef.current = checkCompletion; }, [checkCompletion]);
+
     useEffect(() => {
         let pollTimer: number | null = null;
         const initYT = async () => {
@@ -168,11 +206,17 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
             try { await loadYouTubeIframeAPI(); } catch { setErrorMsg("Load Error"); return; }
             if (ytRef.current) { try { ytRef.current.destroy(); } catch { } ytRef.current = null; }
 
+            // Double check container exists
+            if (!containerRef.current) return;
+
             containerRef.current.innerHTML = "";
             const el = document.createElement("div");
-            el.id = `yt - player - ${youtubeId} -${Date.now()} `;
+            el.id = `yt-player-${youtubeId}-${Date.now()}`;
             el.style.width = "100%"; el.style.height = "100%";
             el.style.pointerEvents = "none";
+
+            // Triple check
+            if (!containerRef.current) return;
             containerRef.current.appendChild(el);
 
             ytRef.current = new (window as any).YT.Player(el.id, {
@@ -188,22 +232,33 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
                         try { const d = ev.target.getDuration(); if (d > 0) setDuration(d); } catch { }
                         updateQualityOptions(ev.target);
                         pollTimer = window.setInterval(() => {
-                            if (seeking) return;
+                            // Use Ref to avoid stale closure without adding dependency
+                            if (seekingRef.current) return;
                             try {
                                 const t = ev.target.getCurrentTime?.() || 0;
-                                const d = ev.target.getDuration?.() || duration || 0;
+                                const d = ev.target.getDuration?.() || durationRef.current || 0;
                                 setCurrentTime(t);
-                                if (d > 0) { setDuration(d); setSliderValue(t / d); }
+                                if (d > 0) {
+                                    setDuration(d);
+                                    setSliderValue(t / d);
+                                    // Use Ref for completion logic
+                                    checkCompletionRef.current(t, d);
+                                }
                             } catch { }
                         }, 250) as unknown as number;
                     },
                     onStateChange: (e: any) => {
                         const s = e.data;
-                        if (s === 1) {
+                        if (s === 1) { // Playing
                             setIsPlayingState(true); setIsPaused(false); setShowCover(false);
                             updateQualityOptions(e.target);
-                        } else if (s === 2 || s === 0) {
+                        } else if (s === 2) { // Paused
                             setIsPlayingState(false); setIsPaused(true);
+                        } else if (s === 0) { // Ended
+                            setIsPlayingState(false); setIsPaused(true);
+                            // ✅ Force completion check on end using Ref
+                            const d = e.target.getDuration?.() || durationRef.current || 1;
+                            checkCompletionRef.current(d, d);
                         }
                     },
                     onError: () => { setErrorMsg("Error"); setIsReady(true); }
@@ -212,13 +267,10 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
         };
         if (usingYouTube) initYT();
         return () => { if (pollTimer) clearInterval(pollTimer); if (ytRef.current) { try { ytRef.current.destroy(); } catch { } } };
-    }, [usingYouTube, youtubeId]);
+    }, [usingYouTube, youtubeId]); // Removed 'checkCompletion' from dependencies
 
     const onRPReady = () => { setIsReady(true); try { const d = rpRef.current?.getDuration(); if (d > 0) setDuration(d); } catch { } };
 
-
-    // Tenant ID for rewards
-    const tenantId = useTenantId();
 
     const onRPProgress = useCallback((state: any) => {
         if (!isPlayingState) return; // Use isPlayingState instead of 'playing'
@@ -230,28 +282,8 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
         setCurrentTime(state.playedSeconds); // Update currentTime as per original logic
         setSliderValue(state.played); // Update sliderValue as per original logic
 
-        // Check for reward (90% completion)
-        if (!rewarded && userId && state.playedSeconds / duration > 0.9) { // Use 'rewarded' and 'userId' from state
-            setRewarded(true);
-            // const user = getUser(); // getUser is not defined, use userId from state
-            if (userId) {
-                // Award coins for watching video
-                // const userId = user.id; // Already have userId from state
-                // We don't await here to avoid blocking playback
-                awardCoins(userId, 'video_watch', url, `Watched video: ${url}`, tenantId || undefined).then((res) => {
-                    if (res.success && res.message) {
-                        toast.success(res.message, { icon: "🎥" });
-                        // Trigger reward update
-                        window.dispatchEvent(new Event("rewards-updated"));
-                    }
-                });
-                // Mark lesson complete via context (if available)
-                if (markComplete) {
-                    markComplete();
-                }
-            }
-        }
-    }, [isPlayingState, duration, rewarded, userId, url, tenantId, markComplete]); // Added dependencies for useCallback
+        checkCompletion(state.playedSeconds, duration); // ✅ Use reusable function
+    }, [isPlayingState, duration, checkCompletion]);
     const onRPPause = () => { setIsPlayingState(false); setIsPaused(true); };
     const onRPPlay = () => { setIsPlayingState(true); setIsPaused(false); setShowCover(false); };
 

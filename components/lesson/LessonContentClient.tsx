@@ -12,6 +12,7 @@ import CustomPDFViewer from "@/components/CustomPDFViewer";
 import { CommunityButton } from "@/components/CommunityButton";
 import { QuizSkeleton, VideoSkeleton, TextSkeleton } from "@/components/skeletons/LessonSkeletons";
 import React from "react";
+import { toast } from "sonner";
 
 export default function LessonContentClient({
     lessonId,
@@ -389,9 +390,9 @@ function LiveClassView({ lesson, author }: { lesson: any; author: any }) {
                 return;
             }
 
-            // Meeting is live (within ±15 minutes window)
-            // 900000 ms = 15 minutes
-            if (difference < 900000 && difference > -900000) {
+            // Meeting is live (Starts 15 mins before, continues until 2 hours after)
+            // 900000 ms = 15 minutes before start
+            if (difference < 900000) {
                 setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isLive: true, hasEnded: false });
                 return;
             }
@@ -412,15 +413,15 @@ function LiveClassView({ lesson, author }: { lesson: any; author: any }) {
     }, [lesson.meeting_date]);
 
     const handleJoinMeeting = () => {
-        if (lesson.meeting_url) {
+        if (!timeLeft.hasEnded && lesson.meeting_url) {
             window.open(lesson.meeting_url, '_blank', 'noopener,noreferrer');
         }
     };
 
     const handleCopyLink = () => {
-        if (lesson.meeting_url) {
+        if (!timeLeft.hasEnded && lesson.meeting_url) {
             navigator.clipboard.writeText(lesson.meeting_url);
-            // You can add a toast notification here
+            toast.success("Meeting link copied!");
         }
     };
 
@@ -438,7 +439,7 @@ function LiveClassView({ lesson, author }: { lesson: any; author: any }) {
                             {/* Header */}
                             <div className="text-center space-y-4">
                                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 dark:border-blue-500/30">
-                                    <div className={`w-2 h-2 rounded-full ${timeLeft.isLive ? 'bg-red-500 animate-pulse' : 'bg-blue-500'}`} />
+                                    <div className={`w-2 h-2 rounded-full ${timeLeft.isLive ? 'bg-red-500 animate-pulse' : timeLeft.hasEnded ? 'bg-slate-500' : 'bg-blue-500'}`} />
                                     <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                                         {timeLeft.isLive ? 'LIVE NOW' : timeLeft.hasEnded ? 'ENDED' : 'UPCOMING'}
                                     </span>
@@ -457,7 +458,7 @@ function LiveClassView({ lesson, author }: { lesson: any; author: any }) {
                             </div>
 
                             {/* Countdown Timer or Live Status */}
-                            {!timeLeft.hasEnded && (
+                            {(!timeLeft.hasEnded || timeLeft.isLive) && !timeLeft.hasEnded && (
                                 <div className="bg-gradient-to-br from-muted/50 to-muted/30 dark:from-muted/30 dark:to-muted/20 rounded-2xl p-8 border border-border/50">
                                     {timeLeft.isLive ? (
                                         <div className="text-center space-y-4">
@@ -493,6 +494,13 @@ function LiveClassView({ lesson, author }: { lesson: any; author: any }) {
                                             </div>
                                         </div>
                                     )}
+                                </div>
+                            )}
+
+                            {timeLeft.hasEnded && (
+                                <div className="text-center p-6 rounded-xl bg-muted/50 border border-border/50">
+                                    <p className="text-muted-foreground font-medium">This live class has ended.</p>
+                                    <p className="text-xs text-muted-foreground mt-1">Recording may be available soon.</p>
                                 </div>
                             )}
 
@@ -536,35 +544,33 @@ function LiveClassView({ lesson, author }: { lesson: any; author: any }) {
                             </div>
 
                             {/* Action Buttons */}
-                            {!timeLeft.hasEnded && (
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    <button
-                                        onClick={handleJoinMeeting}
-                                        disabled={!timeLeft.isLive && timeLeft.days > 0}
-                                        className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-semibold text-white shadow-lg transition-all duration-200 ${timeLeft.isLive
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button
+                                    onClick={handleJoinMeeting}
+                                    disabled={timeLeft.hasEnded || (!timeLeft.isLive && timeLeft.days > 0)}
+                                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-semibold text-white shadow-lg transition-all duration-200 ${timeLeft.hasEnded
+                                        ? 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 shadow-none cursor-not-allowed border border-slate-200 dark:border-slate-700'
+                                        : timeLeft.isLive
                                             ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 shadow-red-500/50 hover:shadow-red-500/70 hover:scale-105'
                                             : timeLeft.days > 0
                                                 ? 'bg-muted text-muted-foreground cursor-not-allowed'
                                                 : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 shadow-blue-500/50 hover:shadow-blue-500/70 hover:scale-105'
-                                            }`}
-                                    >
-                                        <PlayCircle className="h-5 w-5" />
-                                        {timeLeft.isLive ? 'Join Live Class' : 'Join Meeting'}
-                                    </button>
-                                    <button
-                                        onClick={handleCopyLink}
-                                        className="px-6 py-4 rounded-xl font-semibold border-2 border-border hover:bg-muted transition-all duration-200 hover:scale-105"
-                                    >
-                                        Copy Link
-                                    </button>
-                                </div>
-                            )}
-
-                            {timeLeft.hasEnded && (
-                                <div className="text-center p-6 rounded-xl bg-muted/50 border border-border/50">
-                                    <p className="text-muted-foreground">This live class has ended. Recording may be available soon.</p>
-                                </div>
-                            )}
+                                        }`}
+                                >
+                                    <PlayCircle className="h-5 w-5" />
+                                    {timeLeft.hasEnded ? 'Class Ended' : timeLeft.isLive ? 'Join Live Class' : 'Join Meeting'}
+                                </button>
+                                <button
+                                    onClick={handleCopyLink}
+                                    disabled={timeLeft.hasEnded}
+                                    className={`px-6 py-4 rounded-xl font-semibold border-2 transition-all duration-200 ${timeLeft.hasEnded
+                                        ? 'border-slate-200 text-slate-300 dark:border-slate-700 dark:text-slate-600 cursor-not-allowed bg-transparent'
+                                        : 'border-border hover:bg-muted hover:scale-105'
+                                        }`}
+                                >
+                                    Copy Link
+                                </button>
+                            </div>
                         </div>
                     </div>
 
