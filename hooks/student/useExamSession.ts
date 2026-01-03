@@ -44,135 +44,136 @@ export function useExamSession(examId: string, userId: string | null, retakeAtte
             if (!userId) throw new Error("User not logged in")
             if (!tenantId) throw new Error("Tenant context not found")
 
-            // 1. Fetch Exam Details
-            const { data: exam, error: examError } = await supabase
-                .from("exams")
-                .select("*")
-                .eq("id", examId)
-                .eq("tenant_id", tenantId)
-                .single()
+            // ============================================================
+            // STEP 1: PARALLEL FETCH (Exam, Prereqs, Sections, Existing Attempts)
+            // ============================================================
+            const [examResult, prereqCheckResult, sectionsResult, attemptsResult] = await Promise.all([
+                // 1. Exam Details
+                supabase
+                    .from("exams")
+                    .select("*")
+                    .eq("id", examId)
+                    .eq("tenant_id", tenantId)
+                    .single(),
 
-            if (examError) throw examError
-            if (!exam) throw new Error("Exam not found")
+                // 2. Prerequisite Check (Lesson-based)
+                (async () => {
+                    const { data: currentLesson } = await supabase
+                        .from("lessons")
+                        .select("id, title, prerequisite_lesson_id, sequential_unlock_enabled")
+                        .eq("exam_id", examId)
+                        .eq("content_type", "quiz")
+                        .single()
 
-            // 2. Check exam scheduling (start_time and end_time)
-            const now = new Date()
-            const examData = exam as any
+                    if (currentLesson?.sequential_unlock_enabled && currentLesson.prerequisite_lesson_id) {
+                        const { data: prereqLesson } = await supabase
+                            .from("lessons")
+                            .select("id, title, exam_id")
+                            .eq("id", currentLesson.prerequisite_lesson_id)
+                            .single()
 
-            if (examData.start_time) {
-                const startTime = new Date(examData.start_time)
-                if (now < startTime) {
-                    throw new Error(`This exam is not yet available. It will start on ${startTime.toLocaleString()}.`)
-                }
-            }
+                        if (prereqLesson?.exam_id) {
+                            const { data: validAttempt } = await supabase
+                                .from("exam_attempts")
+                                .select("id")
+                                .eq("exam_id", prereqLesson.exam_id)
+                                .eq("student_id", userId)
+                                .eq("status", "submitted")
+                                .limit(1)
+                                .single()
 
-            if (examData.end_time) {
-                const endTime = new Date(examData.end_time)
-                if (now > endTime) {
-                    throw new Error(`This exam has ended. It was available until ${endTime.toLocaleString()}.`)
-                }
-            }
-
-            // 3. Check LESSON-based prerequisite (quiz lessons only)
-            const { data: currentLesson } = await supabase
-                .from("lessons")
-                .select("id, title, prerequisite_lesson_id, sequential_unlock_enabled")
-                .eq("exam_id", examId)
-                .eq("content_type", "quiz")
-                .single()
-
-            if (currentLesson?.sequential_unlock_enabled && currentLesson.prerequisite_lesson_id) {
-                // Get the prerequisite lesson and its exam
-                const { data: prereqLesson } = await supabase
-                    .from("lessons")
-                    .select("id, title, exam_id")
-                    .eq("id", currentLesson.prerequisite_lesson_id)
-                    .single()
-
-                if (prereqLesson?.exam_id) {
-                    // Check if student has completed the prerequisite lesson's exam
-                    const { data: prerequisiteAttempts, error: prereqError } = await supabase
-                        .from("exam_attempts")
-                        .select("id, status")
-                        .eq("exam_id", prereqLesson.exam_id)
-                        .eq("student_id", userId)
-                        .eq("status", "submitted")
-
-                    if (prereqError) throw prereqError
-
-                    if (!prerequisiteAttempts || prerequisiteAttempts.length === 0) {
-                        const prereqTitle = prereqLesson.title || "the previous quiz"
-                        throw new Error(`You must complete ${prereqTitle} before accessing this exam.`)
+                            if (!validAttempt) {
+                                return { blocked: true, prereqTitle: prereqLesson.title || "the previous quiz" }
+                            }
+                        }
                     }
-                }
+                    return { blocked: false }
+                })(),
+
+                // 3. Sections & Questions
+                supabase
+                    .from("sections")
+                    .select("*, questions(*, options(*))")
+                    .eq("exam_id", examId)
+                    .order("section_order")
+                    .order("question_order", { referencedTable: "questions" }),
+
+                // 4. Existing Attempts
+                supabase
+                    .from("exam_attempts")
+                    .select("*")
+                    .eq("exam_id", examId)
+                    .eq("student_id", userId)
+                    .eq("tenant_id", tenantId)
+                    .order("created_at", { ascending: false })
+            ])
+
+            // Handle Fetch Errors
+            if (examResult.error) throw examResult.error
+            if (!examResult.data) throw new Error("Exam not found")
+            if (sectionsResult.error) throw sectionsResult.error
+            if (attemptsResult.error) throw attemptsResult.error
+
+            // Check Prerequisite Blocking
+            if (prereqCheckResult.blocked) {
+                throw new Error(`You must complete ${prereqCheckResult.prereqTitle} before accessing this exam.`)
             }
 
-            // 4. Fetch Sections with Questions and Options (ORDERED)
-            const { data: sections, error: sectionsError } = await supabase
-                .from("sections")
-                .select("*, questions(*, options(*))")
-                .eq("exam_id", examId)
-                .order("section_order")
-                .order("question_order", { referencedTable: "questions" })
+            const exam = examResult.data
+            const sections = sectionsResult.data || []
+            const existingAttempts = attemptsResult.data || []
 
-            if (sectionsError) throw sectionsError
+            // ============================================================
+            // STEP 2: VALIDATE EXAM AVAILABILITY
+            // ============================================================
+            const now = new Date()
+            if (exam.start_time && now < new Date(exam.start_time)) {
+                throw new Error(`This exam is not yet available. It will start on ${new Date(exam.start_time).toLocaleString()}.`)
+            }
+            if (exam.end_time && now > new Date(exam.end_time)) {
+                throw new Error(`This exam has ended. It was available until ${new Date(exam.end_time).toLocaleString()}.`)
+            }
 
-            // 5. Find or Create Attempt
+            // ============================================================
+            // STEP 3: ATTEMPT HANDLING (Find or Create)
+            // ============================================================
             let attempt: Attempt | null = null
-
-            const { data: existingAttempts, error: attemptsError } = await supabase
-                .from("exam_attempts")
-                .select("*")
-                .eq("exam_id", examId)
-                .eq("student_id", userId)
-                .eq("tenant_id", tenantId)
-                .order("created_at", { ascending: false })
-
-            if (attemptsError) throw attemptsError
-
-            // Check if there's an in-progress attempt
-            const inProgressAttempt = existingAttempts?.find(a => a.status === "in_progress")
-            const submittedAttempts = existingAttempts?.filter(a => a.status === "submitted") || []
-
-
+            const inProgressAttempt = existingAttempts.find(a => a.status === "in_progress")
+            const submittedAttempts = existingAttempts.filter(a => a.status === "submitted")
 
             if (inProgressAttempt) {
                 attempt = inProgressAttempt
             } else {
-
-
-                // Check if there are submitted attempts and NOT retaking
+                // Validate Max Attempts
                 if (submittedAttempts.length > 0 && retakeAttempt === 0) {
                     throw new Error("This exam has already been submitted. Please return to the test series page to retake the exam.")
                 }
 
                 const maxAttempts = (exam as any).max_attempts
-                const hasAttemptsRemaining = !maxAttempts || submittedAttempts.length < maxAttempts
-
-                if (hasAttemptsRemaining) {
-                    // Get tenant_id from exam
-                    const tenantId = (exam as any).tenant_id;
-
-                    const { data: newAttempt, error: createError } = await supabase
-                        .from("exam_attempts")
-                        .insert({
-                            tenant_id: tenantId,  // ✅ Added tenant_id
-                            exam_id: examId,
-                            student_id: userId,
-                            status: "in_progress",
-                            total_time_spent: 0
-                        })
-                        .select()
-                        .single()
-
-                    if (createError) throw createError
-                    attempt = newAttempt
-                } else {
+                if (maxAttempts && submittedAttempts.length >= maxAttempts) {
                     throw new Error(`You have reached the maximum number of attempts (${maxAttempts}) for this exam.`)
                 }
+
+                // Create New Attempt
+                const { data: newAttempt, error: createError } = await supabase
+                    .from("exam_attempts")
+                    .insert({
+                        tenant_id: tenantId,
+                        exam_id: examId,
+                        student_id: userId,
+                        status: "in_progress",
+                        total_time_spent: 0
+                    })
+                    .select()
+                    .single()
+
+                if (createError) throw createError
+                attempt = newAttempt
             }
 
-            // 4. Fetch Existing Responses
+            // ============================================================
+            // STEP 4: FETCH RESPONSES (Only if attempt exists)
+            // ============================================================
             let previousResponses: Record<string, any> = {}
             if (attempt) {
                 const { data: responses, error: respError } = await supabase
@@ -183,36 +184,28 @@ export function useExamSession(examId: string, userId: string | null, retakeAtte
 
                 if (respError) throw respError
 
-                if (responses) {
-                    responses.forEach((r) => {
-                        try {
-                            // Try to parse if it's JSON (for arrays/MSQ), otherwise keep as is
-                            const parsed = JSON.parse(r.student_answer)
-                            previousResponses[r.question_id] = parsed
-                        } catch {
-                            previousResponses[r.question_id] = r.student_answer
-                        }
-                    })
-                }
+                responses?.forEach((r) => {
+                    try {
+                        previousResponses[r.question_id] = JSON.parse(r.student_answer)
+                    } catch {
+                        previousResponses[r.question_id] = r.student_answer
+                    }
+                })
             }
 
-            // 5. Apply section-wise shuffling if enabled
+            // ============================================================
+            // STEP 5: SHUFFLE LOGIC
+            // ============================================================
             const shuffledSections = (sections as Section[]).map(section => {
-                // Check if this section has shuffle enabled
                 const sectionData = section as any;
-                if (sectionData.shuffle_questions === true && section.questions && section.questions.length > 0) {
-                    // Shuffle questions within this section using Fisher-Yates algorithm
+                if (sectionData.shuffle_questions === true && section.questions?.length > 0) {
                     const shuffledQuestions = [...section.questions];
                     for (let i = shuffledQuestions.length - 1; i > 0; i--) {
                         const j = Math.floor(Math.random() * (i + 1));
                         [shuffledQuestions[i], shuffledQuestions[j]] = [shuffledQuestions[j], shuffledQuestions[i]];
                     }
-                    return {
-                        ...section,
-                        questions: shuffledQuestions
-                    };
+                    return { ...section, questions: shuffledQuestions };
                 }
-                // Return section as-is if shuffle is disabled
                 return section;
             });
 
@@ -224,7 +217,7 @@ export function useExamSession(examId: string, userId: string | null, retakeAtte
             }
         },
         enabled: !!examId && !!userId && enabled,
-        staleTime: 0, // Always refetch to ensure fresh data, especially for retakes
+        staleTime: 0,
         refetchOnWindowFocus: false,
     })
 }

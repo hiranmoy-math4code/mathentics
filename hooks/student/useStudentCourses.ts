@@ -124,23 +124,27 @@ export function useStudentCourses(userId: string | undefined) {
 
             // ✅ OPTIMIZATION: Single query for all courses' lessons
             // একটা query দিয়ে সব courses এর lessons count করছি
-            const { data: lessonsData } = await supabase
-                .from('modules')
-                .select(`
-                    course_id,
-                    lessons!inner(id)
-                `)
-                .in('course_id', courseIds)
-                .in('course_id', courseIds);
+            // ✅ OPTIMIZATION: Parallel query for all courses' lessons and completed lessons
+            const [lessonsResult, completedResult] = await Promise.all([
+                supabase
+                    .from('modules')
+                    .select(`
+                        course_id,
+                        lessons!inner(id)
+                    `)
+                    .in('course_id', courseIds)
+                    .in('course_id', courseIds),
 
-            // ✅ OPTIMIZATION: Single query for all completed lessons
-            // একটা query দিয়ে সব completed lessons নিয়ে আসছি
-            const { data: completedData } = await supabase
-                .from('lesson_progress')
-                .select('course_id, lesson_id')
-                .eq('user_id', userId)
-                .eq('completed', true)
-                .in('course_id', courseIds);
+                supabase
+                    .from('lesson_progress')
+                    .select('course_id, lesson_id')
+                    .eq('user_id', userId)
+                    .eq('completed', true)
+                    .in('course_id', courseIds)
+            ]);
+
+            const lessonsData = lessonsResult.data;
+            const completedData = completedResult.data;
 
             // ============================================================================
             // STEP 3: Calculate Counts (Memory তে করছি, DB তে না)

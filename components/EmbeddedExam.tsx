@@ -718,12 +718,11 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
             return
         }
 
-        setInitialTime(Math.floor(remaining))
-        timeRef.current = Math.floor(remaining)
-
-        // Auto-enter fullscreen when exam starts
+        // Try to auto-entered fullscreen (might be blocked by browser, which is fine)
         if (examContainerRef.current && !document.fullscreenElement) {
-            toggleFullscreen()
+            toggleFullscreen().catch(() => {
+                // Ignore errors if browser blocks auto-fullscreen
+            })
         }
     }, [sessionData])
 

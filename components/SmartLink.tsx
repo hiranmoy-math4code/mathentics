@@ -69,7 +69,11 @@ export function SmartLink({
         }
 
         // Always prefetch the route for instant navigation
-        router.prefetch(href);
+        try {
+            router.prefetch(href);
+        } catch (err) {
+            // Ignore prefetch errors (often 404s on fresh deployments/Cloudflare)
+        }
     };
 
     const handleClick = (e: React.MouseEvent) => {

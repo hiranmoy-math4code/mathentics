@@ -70,24 +70,28 @@ export function useStudentTestSeries(userId: string | undefined) {
                 return [];
             }
 
-            // ✅ OPTIMIZED: Batch query for lesson counts (tests in test series)
-            const { data: lessonsData } = await supabase
-                .from('modules')
-                .select(`
-                    course_id,
-                    lessons!inner(id)
-                `)
-                .in('course_id', testSeriesIds)
-                .abortSignal(signal);
+            // ✅ OPTIMIZED: Parallel query for lesson counts and completed tests
+            const [lessonsResult, completedResult] = await Promise.all([
+                supabase
+                    .from('modules')
+                    .select(`
+                        course_id,
+                        lessons!inner(id)
+                    `)
+                    .in('course_id', testSeriesIds)
+                    .abortSignal(signal),
 
-            // ✅ OPTIMIZED: Batch query for completed tests
-            const { data: completedData } = await supabase
-                .from('lesson_progress')
-                .select('course_id, lesson_id')
-                .eq('user_id', userId)
-                .eq('completed', true)
-                .in('course_id', testSeriesIds)
-                .abortSignal(signal);
+                supabase
+                    .from('lesson_progress')
+                    .select('course_id, lesson_id')
+                    .eq('user_id', userId)
+                    .eq('completed', true)
+                    .in('course_id', testSeriesIds)
+                    .abortSignal(signal)
+            ]);
+
+            const lessonsData = lessonsResult.data;
+            const completedData = completedResult.data;
 
             // Calculate counts per test series
             const testCounts: Record<string, number> = {};

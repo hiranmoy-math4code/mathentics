@@ -151,6 +151,7 @@ export default function MobileNav({
             <Link
               key={item.label}
               href={item.href}
+              prefetch={false} // Disable aggressive prefetching to avoid Cloudflare 404s
               className="flex-1 h-full flex"
             >
               {content}
