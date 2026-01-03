@@ -1,18 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getStudentsWithEnrollments, addStudent, resetStudentSessions, getStudentDetailsAction } from '@/actions/admin/students';
+import { getOptimizedStudentsWithEnrollments, addStudent, resetStudentSessions, getStudentDetailsAction } from '@/actions/admin/students';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { getTenantId } from '@/lib/tenant';
 
-export function useAdminStudents(filters?: { status?: 'all' | 'active' | 'expired'; expiringWithinDays?: number }) {
+export function useAdminStudents(filters?: {
+    status?: 'all' | 'active' | 'expired';
+    expiringWithinDays?: number;
+    page?: number;
+    pageSize?: number;
+    includeCrossTenant?: boolean;
+}) {
     return useQuery({
         queryKey: ['admin-students', filters],
         queryFn: async () => {
-            const res = await getStudentsWithEnrollments(filters);
+            const res = await getOptimizedStudentsWithEnrollments(filters);
             if (res.error) throw new Error(res.error);
-            return res.data || [];
+            return res; // Return full response with pagination
         },
-        staleTime: 1000 * 60 * 10, // 10 minutes
+        staleTime: 1000 * 60 * 5, // 5 minutes (reduced for pagination)
         gcTime: 1000 * 60 * 30,    // 30 minutes
     });
 }

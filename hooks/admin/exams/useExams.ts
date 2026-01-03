@@ -7,15 +7,20 @@ import { getTenantId } from "@/lib/tenant";
 
 export const useExams = () => {
   const supabase = createClient();
-  const tenantId = getTenantId(); // ✅ Get tenant ID
+  const tenantId = getTenantId();
 
   return useQuery({
-    queryKey: ["exams", tenantId], // ✅ Include tenant
+    queryKey: ["exams", tenantId],
     queryFn: async () => {
+      // Get current user for ownership filter
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       const { data, error } = await supabase
         .from("exams")
         .select("*")
-        .eq("tenant_id", tenantId) // ✅ SECURITY FIX
+        .eq("tenant_id", tenantId) // ✅ Tenant filter
+        .eq("admin_id", user.id) // ✅ Owner filter (admin_id is the creator)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

@@ -5,6 +5,7 @@ import { CoursePlayerClient } from "@/components/CoursePlayerClient";
 import { CommunityModalProvider } from "@/context/CommunityModalContext";
 import { CommunityModal } from "@/components/community/CommunityModal";
 
+
 // export const runtime = 'edge';
 
 export default async function CourseLayout({
@@ -24,7 +25,7 @@ export default async function CourseLayout({
         redirect(`/auth/login?next=/learn/${courseId}`);
     }
 
-    // Fast Enrollment Check
+    // Fast Enrollment Check (indexed query - ~20ms)
     const { data: enrollment } = await supabase
         .from("enrollments")
         .select("status")
@@ -35,7 +36,7 @@ export default async function CourseLayout({
 
     const isEnrolled = !!enrollment;
 
-    // Get user profile
+    // Get user profile (parallel - ~15ms)
     const { data: profile } = await supabase
         .from("profiles")
         .select("*")

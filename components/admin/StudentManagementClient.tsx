@@ -45,16 +45,25 @@ interface Student {
 export default function StudentManagementClient({ courses, testSeries }: any) {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired'>('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize] = useState(50);
 
     const [addStudentOpen, setAddStudentOpen] = useState(false);
     const [grantAccessOpen, setGrantAccessOpen] = useState(false);
     const [editExpiryOpen, setEditExpiryOpen] = useState(false);
     const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
 
-    // ⚡ REACT QUERY: Managed fetching and caching
-    const { data: students = [], isLoading: loading, refetch } = useAdminStudents({
-        status: statusFilter
+    // ⚡ REACT QUERY: Managed fetching and caching with pagination
+    const { data: response, isLoading: loading, refetch } = useAdminStudents({
+        status: statusFilter,
+        page: currentPage,
+        pageSize: pageSize,
+        includeCrossTenant: true
     });
+
+    const students = response?.data || [];
+    const pagination = response?.pagination;
+    const meta = response?.meta;
 
     // Client-side filtering
     const filteredStudents = useMemo(() => {
@@ -289,6 +298,99 @@ export default function StudentManagementClient({ courses, testSeries }: any) {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    )}
+
+                    {/* Pagination */}
+                    {!loading && filteredStudents.length > 0 && pagination && (
+                        <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                {/* Page Info */}
+                                <div className="text-sm text-slate-600 dark:text-slate-400">
+                                    Showing <span className="font-semibold text-slate-900 dark:text-white">{((currentPage - 1) * pageSize) + 1}</span> to{' '}
+                                    <span className="font-semibold text-slate-900 dark:text-white">
+                                        {Math.min(currentPage * pageSize, pagination.total)}
+                                    </span>{' '}
+                                    of <span className="font-semibold text-slate-900 dark:text-white">{pagination.total}</span> students
+                                    {meta && meta.crossTenant > 0 && (
+                                        <span className="ml-2 text-xs">
+                                            (<span className="text-blue-600 dark:text-blue-400 font-semibold">{meta.crossTenant} cross-tenant</span>)
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Pagination Controls */}
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCurrentPage(1)}
+                                        disabled={currentPage === 1}
+                                        className="h-9"
+                                    >
+                                        First
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                        className="h-9"
+                                    >
+                                        Previous
+                                    </Button>
+
+                                    {/* Page Numbers */}
+                                    <div className="flex items-center gap-1">
+                                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                                            let pageNum;
+                                            if (pagination.totalPages <= 5) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage <= 3) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage >= pagination.totalPages - 2) {
+                                                pageNum = pagination.totalPages - 4 + i;
+                                            } else {
+                                                pageNum = currentPage - 2 + i;
+                                            }
+
+                                            return (
+                                                <Button
+                                                    key={pageNum}
+                                                    variant={currentPage === pageNum ? "default" : "outline"}
+                                                    size="sm"
+                                                    onClick={() => setCurrentPage(pageNum)}
+                                                    className={cn(
+                                                        "h-9 w-9",
+                                                        currentPage === pageNum && "bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
+                                                    )}
+                                                >
+                                                    {pageNum}
+                                                </Button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCurrentPage(p => Math.min(pagination.totalPages, p + 1))}
+                                        disabled={!pagination.hasMore}
+                                        className="h-9"
+                                    >
+                                        Next
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCurrentPage(pagination.totalPages)}
+                                        disabled={currentPage === pagination.totalPages}
+                                        className="h-9"
+                                    >
+                                        Last
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </Card>

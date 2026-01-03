@@ -19,6 +19,20 @@ export function useEnrollCourse() {
             const supabase = createClient();
             const tenantId = useTenantId();
 
+            // ✅ NEW: Fetch course and validate tenant
+            const { data: course, error: courseError } = await supabase
+                .from("courses")
+                .select("tenant_id, title, price")
+                .eq("id", courseId)
+                .single();
+
+            if (courseError) throw courseError;
+
+            // ✅ NEW: Prevent cross-tenant enrollment
+            if (course.tenant_id !== tenantId) {
+                throw new Error("This course is not available on this platform");
+            }
+
             // Check if already enrolled - use maybeSingle() to avoid 406 error
             const { data: existingEnrollment } = await supabase
                 .from("enrollments")
