@@ -137,14 +137,24 @@ function QuestionAnalysisView({
                                     else if (isSelected && !isRightOption) optClass = "border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-1 ring-rose-500"
 
                                     return (
-                                        <div key={opt.id} className={`p-3 rounded-lg border flex items-center gap-3 ${optClass}`}>
-                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isRightOption ? "bg-emerald-500 text-white" :
-                                                isSelected ? "bg-rose-500 text-white" :
-                                                    "border border-muted-foreground/30"
-                                                }`}>
-                                                {isRightOption ? <CheckCircle2 className="w-3 h-3" /> : isSelected ? <X className="w-3 h-3" /> : String.fromCharCode(65 + optIdx)}
+                                        <div key={opt.id} className={`p-3 rounded-lg border flex items-center justify-between gap-3 ${optClass}`}>
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isRightOption ? "bg-emerald-500 text-white" :
+                                                    isSelected ? "bg-rose-500 text-white" :
+                                                        "border border-muted-foreground/30"
+                                                    }`}>
+                                                    {isRightOption ? <CheckCircle2 className="w-3 h-3" /> : isSelected ? <X className="w-3 h-3" /> : String.fromCharCode(65 + optIdx)}
+                                                </div>
+                                                <span className="text-sm">{renderWithLatex(opt.option_text)}</span>
                                             </div>
-                                            <span className="text-sm">{renderWithLatex(opt.option_text)}</span>
+                                            {isSelected && (
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isRightOption
+                                                    ? "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800"
+                                                    : "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800"
+                                                    }`}>
+                                                    Your Answer
+                                                </span>
+                                            )}
                                         </div>
                                     )
                                 })}
@@ -705,6 +715,9 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
                 setIsTimerActive(true)
             }
         }
+
+        setInitialTime(Math.floor(remaining))
+        timeRef.current = Math.floor(remaining)
 
         // If time is up, submit immediately
         if (remaining <= 0) {
