@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useCurrentUser } from "@/hooks/student/useCurrentUser";
 import { importExamToSupabase, parseExamWord } from "@/lib/import/examWord";
 import { importExamLatex, parseExamLatex } from "@/lib/import/examLatex";
 import { motion, AnimatePresence } from "framer-motion";
@@ -58,7 +59,7 @@ type PreviewExam = {
 
 export default function ImportExam() {
   const supabase = createClient();
-  const [adminId, setAdminId] = useState<string | null>(null);
+  // const [adminId, setAdminId] = useState<string | null>(null); // Replaced by hook
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [fileForImport, setFileForImport] = useState<File | null>(null);
@@ -92,12 +93,16 @@ export default function ImportExam() {
   } | null>(null);
 
 
+  const { data: userProfile } = useCurrentUser();
+  const adminId = userProfile?.id || null;
+  /* REMOVED: Manual getUser effect
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setAdminId(user?.id ?? null);
     })();
   }, [supabase]);
+  */
 
   const totalQuestions = useMemo(
     () => (editedExam || preview)?.sections.reduce((s, sec) => s + sec.questions.length, 0) ?? 0,

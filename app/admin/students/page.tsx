@@ -4,16 +4,19 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import StudentManagementClient from "@/components/admin/StudentManagementClient";
 import { useQuery } from "@tanstack/react-query";
+import { useCurrentUser } from "@/hooks/student/useCurrentUser";
 import Loading from "../dashboard/components/Loading";
 
 const supabase = createClient();
 
 export default function StudentsPage() {
-  const [userId, setUserId] = useState<string | null>(null);
-
+  const { data: userProfile } = useCurrentUser();
+  const userId = userProfile?.id || null;
+  /* REMOVED: Manual getUser effect
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id || null));
   }, []);
+  */
 
   const { data: initialData, isLoading } = useQuery({
     queryKey: ["admin-students-init", userId],

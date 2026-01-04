@@ -38,13 +38,14 @@ export default function StudentClientLayout({ children }: { children: React.Reac
             href: "/student/results",
             prefetch: async () => {
                 // Prefetch results data on hover
+                // Optimization: Use cached profile ID if available
+                if (!profile?.id) return null;
+
                 const supabase = (await import('@/lib/supabase/client')).createClient();
                 const { getTenantId } = await import('@/lib/tenant');
-
-                const { data: { user } } = await supabase.auth.getUser();
                 const tenantId = await getTenantId();
 
-                if (!user || !tenantId) return null;
+                if (!tenantId) return null;
 
                 const { data } = await supabase
                     .from("results")
@@ -58,7 +59,7 @@ export default function StudentClientLayout({ children }: { children: React.Reac
                             )
                         )
                     `)
-                    .eq("exam_attempts.student_id", user.id)
+                    .eq("exam_attempts.student_id", profile.id)
                     .eq("tenant_id", tenantId)
                     .order("created_at", { ascending: false });
 
@@ -73,9 +74,9 @@ export default function StudentClientLayout({ children }: { children: React.Reac
     // If we have cached data, we skip this and render immediately.
     if (isLoading && !profile) {
         return (
-            <div className="flex items-center justify-center h-screen text-gray-600">
-                {/* Optional: Add a spinner here if desired, but text is fine */}
-                Checking access...
+            <div className="flex flex-col items-center justify-center h-screen bg-white">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-4"></div>
+                <p className="text-sm font-medium text-slate-600 animate-pulse">Verifying secure access...</p>
             </div>
         );
     }

@@ -5,7 +5,12 @@ import { usePublicTestSeries } from "@/hooks/usePublicTestSeries";
 import { ExamCard } from "./ExamCard";
 
 export const ExamSeriesSection: React.FC = () => {
-    const { data: tests, isLoading } = usePublicTestSeries();
+    const { data: tests, isLoading, isError, error } = usePublicTestSeries();
+
+    if (isError) {
+        console.error("Test Series Section Error:", error);
+        return null; // Hide section on error
+    }
 
     return (
         <section id="exams" className="py-20 bg-white border-t border-gray-100">

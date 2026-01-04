@@ -34,6 +34,7 @@ import { ClientSideLink } from "@/components/ClientSideLink"
 import { useLessonAccess } from "@/hooks/student/useLessonAccess"
 import { toast } from "sonner"
 import { useLessonPrefetch } from "@/hooks/useLessonPrefetch"
+import { useCurrentUser } from "@/hooks/student/useCurrentUser"
 
 interface CoursePlayerClientProps {
     courseId: string
@@ -97,19 +98,17 @@ export function CoursePlayerClient({
 
     const isQuiz = currentLesson?.content_type === "quiz";
 
-    // Refetch user execution handled by hooks/props usually, keeping legacy effect for safety or removal
+    // Use centralized user hook
+    const { data: userProfile } = useCurrentUser()
+    // Prioritize prop user, then hook user
+    const finalUserId = userId || userProfile?.id || null
+
+    // Sync state if needed (mainly for initial prop hydration)
     useEffect(() => {
-        if (!userId) {
-            const getUser = async () => {
-                const supabase = createClient()
-                const { data: { user } } = await supabase.auth.getUser()
-                if (user) {
-                    setUserId(user.id)
-                }
-            }
-            getUser()
+        if (!userId && userProfile?.id) {
+            setUserId(userProfile.id)
         }
-    }, [userId])
+    }, [userId, userProfile?.id])
 
     // Fetch lesson progress
     const { data: lessonProgress } = useLessonProgress(userId || undefined, courseId)

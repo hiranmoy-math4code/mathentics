@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react"
 import { useMarkLessonComplete } from "@/hooks/student/useLessonProgress"
 import { createClient } from "@/lib/supabase/client"
 import { checkModuleCompletion, checkFirstLessonReward } from "@/app/actions/rewardActions"
+import { useCurrentUser } from "@/hooks/student/useCurrentUser"
 // Force HMR Update
 import { toast } from "sonner"
 import LessonContext from "@/context/LessonContext"
@@ -20,32 +21,33 @@ export function LessonTracker({ lessonId, courseId, moduleId, contentType = "tex
     const { mutate: markCompleteMutation } = useMarkLessonComplete()
     const [isCompleted, setIsCompleted] = useState(false)
 
-    const handleMarkComplete = useCallback(() => {
-        if (isCompleted) return
+    // Use centralized user hook
+    const { data: userProfile } = useCurrentUser()
+    const userId = userProfile?.id
 
-        const supabase = createClient()
-        supabase.auth.getUser().then(async ({ data: { user } }) => {
-            if (user && lessonId) {
-                markCompleteMutation({
-                    userId: user.id,
-                    lessonId,
-                    courseId,
-                }, {
-                    onSuccess: async () => {
-                        setIsCompleted(true)
-                        if (moduleId) {
-                            const res = await checkModuleCompletion(user.id, moduleId)
-                            if (res?.success && res.message) {
-                                toast.success(res.message, { icon: "🪙" })
-                            }
+    const handleMarkComplete = useCallback(() => {
+        if (isCompleted || !userId) return
+
+        if (lessonId) {
+            markCompleteMutation({
+                userId: userId,
+                lessonId,
+                courseId,
+            }, {
+                onSuccess: async () => {
+                    setIsCompleted(true)
+                    if (moduleId) {
+                        const res = await checkModuleCompletion(userId, moduleId)
+                        if (res?.success && res.message) {
+                            toast.success(res.message, { icon: "🪙" })
                         }
-                        // Check for first lesson reward (referral)
-                        await checkFirstLessonReward(user.id)
                     }
-                })
-            }
-        })
-    }, [isCompleted, lessonId, courseId, moduleId, markCompleteMutation])
+                    // Check for first lesson reward (referral)
+                    await checkFirstLessonReward(userId)
+                }
+            })
+        }
+    }, [isCompleted, lessonId, courseId, moduleId, markCompleteMutation, userId])
 
     useEffect(() => {
         // Reset completion state when lesson changes

@@ -44,7 +44,7 @@ export function useCurrentUser() {
         },
         // Production Policy: Retry 3 times with delay to wait for DB Trigger
         retry: 3,
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000), // 1s, 2s, 3s
+        retryDelay: (attemptIndex) => Math.min(200 * 2 ** attemptIndex, 2000), // 200ms, 400ms, 800ms...
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 }

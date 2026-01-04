@@ -263,10 +263,10 @@ export default function StudentDashboard() {
       <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700 overflow-x-auto pb-1 scrollbar-hide">
         {[
           { id: "overview", label: "Overview" },
-          { id: "my-courses", label: "My Courses" },
-          { id: "all-courses", label: "All Courses" },
           { id: "test-series", label: "Test Series" },
           { id: "all-test-series", label: "All Test Series" },
+          { id: "my-courses", label: "My Courses" },
+          { id: "all-courses", label: "All Courses" },
         ].map((tab) => (
           <button
             key={tab.id}

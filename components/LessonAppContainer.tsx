@@ -119,16 +119,14 @@ export function LessonAppContainer({
             if (cached) return; // Already prefetched
 
             // Prefetch next lesson in background
-            const supabase = createClient();
-            supabase.auth.getUser().then(({ data: { user } }) => {
-                if (user) {
-                    queryClient.prefetchQuery({
-                        queryKey: ['lesson', nextLesson.id, courseId],
-                        queryFn: () => fetchLessonDetailedData(supabase, nextLesson.id, courseId, user.id),
-                        staleTime: 1000 * 60 * 10, // 10 minutes
-                    });
-                }
-            });
+            if (user?.id) {
+                const supabase = createClient();
+                queryClient.prefetchQuery({
+                    queryKey: ['lesson', nextLesson.id, courseId],
+                    queryFn: () => fetchLessonDetailedData(supabase, nextLesson.id, courseId, user.id),
+                    staleTime: 1000 * 60 * 10, // 10 minutes
+                });
+            }
         }
     }, [currentLesson, allLessons, courseId, queryClient]);
 

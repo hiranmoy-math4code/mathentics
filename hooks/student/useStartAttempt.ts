@@ -6,15 +6,13 @@ import { createClient } from "@/lib/supabase/client";
 export const useStartAttempt = () => {
   const supabase = createClient();
   return useMutation({
-    mutationFn: async (examId: string) => {
-      const { data: u } = await supabase.auth.getUser();
-      const studentId = u?.user?.id;
-      if (!studentId) throw new Error("Not authenticated");
+    mutationFn: async ({ examId, userId }: { examId: string; userId: string }) => {
+      if (!userId) throw new Error("Not authenticated");
 
       // create attempt
       const { data, error } = await supabase
         .from("exam_attempts")
-        .insert([{ exam_id: examId, student_id: studentId }])
+        .insert([{ exam_id: examId, student_id: userId }])
         .select("*")
         .single();
       if (error) throw error;

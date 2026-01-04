@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useLessonContext } from "@/context/LessonContext";
 import { useTenantId } from "@/hooks/useTenantId";
+import { useCurrentUser } from "@/hooks/student/useCurrentUser";
 
 // Dynamically import ReactPlayer to avoid hydration errors
 const ReactPlayer = dynamic(() => import("react-player"), { ssr: false }) as any;
@@ -99,8 +100,9 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
     const [sliderValue, setSliderValue] = useState<number>(0);
     const [seeking, setSeeking] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    // const [rewarded, setRewarded] = useState(false);
     const [rewarded, setRewarded] = useState(false);
-    const [userId, setUserId] = useState<string | null>(null);
+    // const [userId, setUserId] = useState<string | null>(null); // Replaced by hook
 
     // Make lesson context optional - it may not exist in admin builder
     let markComplete: (() => void) | null = null;
@@ -146,6 +148,11 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
         }
     }, [url]);
 
+    // Use centralized user hook
+    const { data: userProfile } = useCurrentUser();
+    const userId = userProfile?.id || null;
+
+    /* REMOVED: Manual getUser effect
     useEffect(() => {
         const getUser = async () => {
             const supabase = await createClient();
@@ -154,6 +161,7 @@ export default function VideoPlayer({ url, className = "", thumbUrl }: VideoPlay
         };
         getUser();
     }, []);
+    */
 
     const startHideControlsTimer = useCallback(() => {
         if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);

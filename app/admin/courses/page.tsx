@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import CoursesList from "./components/CoursesList";
 import { useQuery } from "@tanstack/react-query";
+import { useCurrentUser } from "@/hooks/student/useCurrentUser";
 
 const supabase = createClient();
 
@@ -18,11 +19,14 @@ async function fetchCourses(userId: string) {
 }
 
 export default function CoursesPage() {
-    const [userId, setUserId] = useState<string | null>(null);
+    const { data: userProfile } = useCurrentUser();
+    const userId = userProfile?.id || null;
 
+    /* REMOVED: Manual getUser effect
     useEffect(() => {
         supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id || null));
     }, []);
+    */
 
     const { data: courses, isLoading } = useQuery({
         queryKey: ["admin-courses", userId],

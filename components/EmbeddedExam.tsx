@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client"
 import { useTenantId } from "@/hooks/useTenantId"
 import { awardCoins } from "@/app/actions/rewardActions"
 import { useExamSession, useSubmitExam, useSaveAnswer, useUpdateTimer } from "@/hooks/student/useExamSession"
+import { useCurrentUser } from "@/hooks/student/useCurrentUser"
 import { useExamResult } from "@/hooks/useExamResult"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -622,7 +623,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
     const router = useRouter()
     const examContainerRef = useRef<HTMLDivElement>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
-    const [userId, setUserId] = useState<string | null>(null)
+    // const [userId, setUserId] = useState<string | null>(null) // REMOVED: Derived from hook now
     const [responses, setResponses] = useState<Record<string, any>>({})
     const [marked, setMarked] = useState<Record<string, boolean>>({})
     const [visited, setVisited] = useState<Record<string, boolean>>({})
@@ -644,15 +645,15 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
     const { markComplete } = useLessonContext()
     const tenantId = useTenantId()
 
-    // Auth check
+    // Use centralized user hook (handles retries and caching)
+    const { data: userProfile, isLoading: isUserLoading } = useCurrentUser()
+    const userId = userProfile?.id || null
+
     useEffect(() => {
-        const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return router.push("/auth/login")
-            setUserId(user.id)
+        if (!isUserLoading && !userId) {
+            router.push("/auth/login")
         }
-        checkUser()
-    }, [router, supabase])
+    }, [isUserLoading, userId, router])
 
     const { data: sessionData, isLoading, error } = useExamSession(examId, userId, retakeAttempt, !showResults)
     const { mutate: submitExam, isPending: isSubmitting } = useSubmitExam()
@@ -1017,12 +1018,35 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
         return isValid
     }
 
+    const [showTimeout, setShowTimeout] = useState(false)
+
+    useEffect(() => {
+        let timer: NodeJS.Timeout
+        if (isLoading) {
+            timer = setTimeout(() => setShowTimeout(true), 10000) // 10s timeout
+        }
+        return () => clearTimeout(timer)
+    }, [isLoading])
+
     if (isLoading || !userId) {
         return (
             <div className="flex items-center justify-center h-96 text-muted-foreground">
-                <div className="flex flex-col items-center gap-3">
+                <div className="flex flex-col items-center gap-4">
                     <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
                     <p>Loading Quiz...</p>
+                    {showTimeout && (
+                        <div className="flex flex-col items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+                            <p className="text-xs text-amber-600">Taking longer than expected?</p>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.location.reload()}
+                                className="gap-2"
+                            >
+                                <TrendingUp className="w-4 h-4" /> Reload Page
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
         )
