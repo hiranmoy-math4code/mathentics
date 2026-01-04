@@ -30,9 +30,9 @@ async function getTenantFromHostname(hostname: string, supabase: any): Promise<s
 
   // Extract subdomain or use full domain
   // Examples: 
-  // - math4code.com -> math4code
+  // - mathentics.com -> mathentics
   // - tenant-a.localhost:3000 -> tenant-a
-  // - www.math4code.com -> math4code (after normalization)
+  // - www.mathentics.com -> mathentics (after normalization)
 
   // Normalize: remove www.
   const normalizedHost = hostname.replace(/^www\./, '');
@@ -50,7 +50,7 @@ async function getTenantFromHostname(hostname: string, supabase: any): Promise<s
   } else if (parts.length === 2) {
     // domain.com - might be a custom domain, or we might want to try parts[0] as slug?
     // Usually better to leave as full host to match custom_domain, 
-    // BUT if you want math4code.com -> math4code slug, you can add that fallback logic in DB query logic.
+    // BUT if you want mathentics.com -> mathentics slug, you can add that fallback logic in DB query logic.
     // For now, let's keep it as is, but rely on 'normalizedHost' for cleaner lookups.
     subdomain = normalizedHost.split(':')[0];
   } else {

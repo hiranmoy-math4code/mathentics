@@ -36,6 +36,9 @@ export const usePublicCourses = () => {
             return data as PublicCourse[];
         },
         staleTime: 1000 * 60 * 5, // 5 minutes
+        gcTime: 1000 * 60 * 10, // 10 minutes (garbage collection)
+        retry: 2,
+        retryDelay: 1000,
     });
 };
 
@@ -60,5 +63,8 @@ export const usePublicCoursesByCategory = (category?: string) => {
             return data as PublicCourse[];
         },
         staleTime: 1000 * 60 * 5,
+        gcTime: 1000 * 60 * 10,
+        retry: 2,
+        retryDelay: 1000,
     });
 };

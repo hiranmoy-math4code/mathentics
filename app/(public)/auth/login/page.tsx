@@ -23,27 +23,36 @@ function LoginForm() {
   // Check if user is already logged in
   useEffect(() => {
     const checkAuth = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      try {
+        const supabase = createClient();
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) throw error;
 
-      if (user) {
-        // User is already logged in, redirect to dashboard
-        const { data: memberships } = await supabase
-          .from('user_tenant_memberships')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('is_active', true);
+        if (user) {
+          // User is already logged in, redirect to dashboard
+          const { data: memberships } = await supabase
+            .from('user_tenant_memberships')
+            .select('role')
+            .eq('user_id', user.id)
+            .eq('is_active', true);
 
-        const isAdmin = memberships?.some(m =>
-          m.role === 'admin' || m.role === 'creator'
-        );
+          const isAdmin = memberships?.some(m =>
+            m.role === 'admin' || m.role === 'creator'
+          );
 
-        if (isAdmin) {
-          router.push('/admin/dashboard');
+          if (isAdmin) {
+            router.push('/admin/dashboard');
+          } else {
+            router.push(next || '/student/dashboard');
+          }
         } else {
-          router.push(next || '/student/dashboard');
+          setIsCheckingAuth(false);
         }
-      } else {
+      } catch (error: any) {
+        // Only log if it's NOT an AuthSessionMissingError (which is expected when not logged in)
+        if (error?.name !== 'AuthSessionMissingError' && error?.message !== 'Auth session missing!') {
+          console.error("Auth check failed:", error);
+        }
         setIsCheckingAuth(false);
       }
     };
@@ -140,7 +149,7 @@ function LoginForm() {
         } else if (parts.length === 2) {
           tenantSlug = parts[0];
         } else {
-          tenantSlug = 'math4code';
+          tenantSlug = 'mathentics';
         }
         if (tenantSlug) {
           redirectTo.searchParams.set("tenant_slug", tenantSlug);

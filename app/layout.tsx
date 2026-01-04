@@ -10,6 +10,8 @@ import { Toaster as SonnerToaster } from "sonner"
 import { Toaster } from "@/components/ui/toaster"
 import AIMentor from "@/components/landing/AIMentor"
 import { RewardInitializerWrapper } from "@/components/RewardInitializerWrapper"
+import Script from "next/script"
+import { GA_MEASUREMENT_ID } from "@/lib/analytics"
 
 
 
@@ -40,15 +42,15 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.math4code.com"),
+  metadataBase: new URL("https://www.mathentics.com"),
   title: {
-    default: "math4code - Master IIT-JAM, CSIR NET & GATE Mathematics | By Hiranmoy Mandal",
-    template: "%s | math4code",
+    default: "mathentics - Master IIT-JAM, CSIR NET & GATE Mathematics | By Hiranmoy Mandal",
+    template: "%s | mathentics",
   },
   description: "Premium online mathematics learning platform by Hiranmoy Mandal. Expert-curated courses, AI-powered tutoring, practice tests, and personalized learning paths for IIT-JAM, CSIR NET & GATE Mathematics preparation. Join thousands of successful students.",
   keywords: [
     // Brand & Creator
-    "math4code",
+    "mathentics",
     "Hiranmoy Mandal",
     "Hiranmoy",
     "mathematics online courses",
@@ -91,11 +93,11 @@ export const metadata: Metadata = {
     "study material",
     "mathematics tutor"
   ],
-  authors: [{ name: "Hiranmoy Mandal", url: "https://www.math4code.com" }],
+  authors: [{ name: "Hiranmoy Mandal", url: "https://www.mathentics.com" }],
   creator: "Hiranmoy Mandal",
-  publisher: "math4code",
+  publisher: "mathentics",
   generator: "Next.js",
-  applicationName: "math4code",
+  applicationName: "mathentics",
   referrer: "origin-when-cross-origin",
   formatDetection: {
     email: false,
@@ -106,7 +108,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "math4code",
+    title: "mathentics",
   },
   icons: {
     icon: "/favicon.ico",
@@ -115,24 +117,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://www.math4code.com",
-    title: "math4code - Master IIT-JAM, CSIR NET & GATE Mathematics | By Hiranmoy Mandal",
+    url: "https://www.mathentics.com",
+    title: "mathentics - Master IIT-JAM, CSIR NET & GATE Mathematics | By Hiranmoy Mandal",
     description: "Premium mathematics learning platform by Hiranmoy Mandal. AI-powered tutoring, expert courses, and comprehensive test series for IIT-JAM, CSIR NET & GATE Mathematics.",
-    siteName: "math4code",
+    siteName: "mathentics",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "math4code - Mathematics Learning Platform",
+        alt: "mathentics - Mathematics Learning Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "math4code - Master IIT-JAM, CSIR NET & GATE Mathematics",
+    title: "mathentics - Master IIT-JAM, CSIR NET & GATE Mathematics",
     description: "Premium mathematics learning platform by Hiranmoy Mandal. AI-powered tutoring and expert courses for competitive exam preparation.",
-    creator: "@math4code",
+    creator: "@mathentics",
     images: ["/og-image.png"],
   },
   robots: {
@@ -149,7 +151,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://www.math4code.com",
+    canonical: "https://www.mathentics.com",
   },
   category: "Education",
 }
@@ -179,8 +181,8 @@ export default function RootLayout({
         <ReactQueryProviders>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
+            defaultTheme="light"
+            enableSystem={false}
             disableTransitionOnChange
           >
             <MathJaxContext version={3} config={config}>
@@ -193,6 +195,22 @@ export default function RootLayout({
           </ThemeProvider>
         </ReactQueryProviders>
         {/* <Analytics /> */}
+        {GA_MEASUREMENT_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_MEASUREMENT_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   )

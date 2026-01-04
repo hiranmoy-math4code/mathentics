@@ -53,7 +53,7 @@ export default function ContactPage() {
                                         </div>
                                         <div>
                                             <p className="font-medium text-slate-900">Office</p>
-                                            <p className="text-slate-600">math4code,Kolkata, India</p>
+                                            <p className="text-slate-600">mathentics,Kolkata, India</p>
                                         </div>
                                     </div>
                                 </div>

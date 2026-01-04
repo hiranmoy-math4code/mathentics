@@ -60,7 +60,7 @@ export function useStudentCourses(userId: string | undefined) {
                 return [];
             }
 
-            console.log('✅ Using tenant ID for student courses:', tenantId);
+
 
             // ============================================================================
             // STEP 0.5: Use standard client (tenant_id already in .env)
@@ -170,7 +170,9 @@ export function useStudentCourses(userId: string | undefined) {
             const courses = enrollments
                 .filter((e: any) => {
                     const isCourse = e.courses?.course_type === 'course';
-                    if (!isCourse) console.log("⚠️ Filtered out:", e.course_id, e.courses?.course_type);
+                    if (!isCourse && process.env.NODE_ENV === 'development') {
+                        console.log("⚠️ Filtered out:", e.course_id, e.courses?.course_type);
+                    }
                     return isCourse;
                 }) // Only courses, not test series
                 .map((enrollment: any) => ({
@@ -189,5 +191,8 @@ export function useStudentCourses(userId: string | undefined) {
         },
         enabled: !!userId,
         staleTime: 1000 * 60 * 5, // 5 minutes cache (progress updates via trigger)
+        gcTime: 1000 * 60 * 10, // 10 minutes (garbage collection)
+        retry: 2,
+        retryDelay: 1000,
     })
 }

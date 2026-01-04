@@ -85,7 +85,7 @@ function SignUpForm() {
     try {
       // MULTI-TENANT: Detect tenant from hostname
       const hostname = window.location.hostname;
-      let tenantSlug = 'math4code'; // default
+      let tenantSlug = 'mathentics'; // default
 
       // Extract tenant from hostname
       if (hostname === 'tenant-a.local') {
@@ -94,8 +94,8 @@ function SignUpForm() {
         tenantSlug = 'tenant-b';
       } else if (hostname === 'localhost') {
         tenantSlug = 'localhost';
-      } else if (hostname.includes('math4code')) {
-        tenantSlug = 'math4code';
+      } else if (hostname.includes('mathentics')) {
+        tenantSlug = 'mathentics';
       } else if (hostname.includes('mathentics')) {
         tenantSlug = 'mathentics';
       }
@@ -169,7 +169,7 @@ function SignUpForm() {
         } else if (parts.length === 2) {
           tenantSlug = parts[0];
         } else {
-          tenantSlug = 'math4code';
+          tenantSlug = 'mathentics';
         }
 
         if (tenantSlug) {

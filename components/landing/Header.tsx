@@ -38,18 +38,24 @@ export const Header = () => {
     useEffect(() => {
         // Check authentication status
         const checkAuth = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            setUser(user);
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                setUser(user);
 
-            if (user) {
-                // Fetch user profile including avatar
-                const { data: profile } = await supabase
-                    .from("profiles")
-                    .select("role, avatar_url, full_name")
-                    .eq("id", user.id)
-                    .single();
-                setUserProfile(profile);
-                setUserRole(profile?.role || null);
+                if (user) {
+                    // Fetch user profile including avatar
+                    const { data: profile } = await supabase
+                        .from("profiles")
+                        .select("role, avatar_url, full_name")
+                        .eq("id", user.id)
+                        .single();
+                    setUserProfile(profile);
+                    setUserRole(profile?.role || null);
+                }
+            } catch (error) {
+                // Silently handle auth errors (e.g. no session)
+                console.warn("Auth check:", error);
+                setUser(null);
             }
         };
 
@@ -99,9 +105,9 @@ export const Header = () => {
             <motion.header
                 initial={{ y: -100 }}
                 animate={{ y: 0 }}
-                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/70 ${isScrolled
-                    ? "bg-white/70 backdrop-blur-lg border-b border-white/20 py-2 shadow-lg shadow-black/5"
-                    : "bg-white/50 backdrop-blur-md border-b border-white/10 py-3"
+                className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${isScrolled || isMobileMenuOpen
+                    ? "bg-white/95 backdrop-blur-lg border-b border-gray-100 py-2 shadow-sm"
+                    : "bg-white/80 backdrop-blur-md border-b border-transparent py-3"
                     }`}
             >
                 <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
@@ -109,8 +115,8 @@ export const Header = () => {
                     <Link href="/" className="flex items-center gap-3 group">
                         <div className="relative h-12 w-auto transition-all group-hover:scale-105">
                             <Image
-                                src="/mathlogo.png"
-                                alt="math4code Academy Logo"
+                                src="/mathentics-logo-new.png"
+                                alt="mathentics Academy Logo"
                                 width={500}
                                 height={100}
                                 className="h-12 w-auto object-contain"
@@ -235,66 +241,79 @@ export const Header = () => {
 
                     {/* Mobile Menu Toggle */}
                     <button
-                        className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors z-[101]"
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        aria-label="Toggle menu"
                     >
                         {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                     </button>
                 </div>
             </motion.header>
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu Overlay & Content */}
             <AnimatePresence>
                 {isMobileMenuOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="fixed top-[60px] left-0 right-0 bg-white border-b border-slate-200 z-40 md:hidden overflow-hidden shadow-xl"
-                    >
-                        <div className="p-6 space-y-4">
-                            {navLinks.map((link) => (
-                                <Link
-                                    key={link.name}
-                                    href={link.href}
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 text-slate-600 hover:text-indigo-600 transition-colors"
-                                >
-                                    <span className="font-medium">{link.name}</span>
-                                    <ChevronRight className="w-4 h-4 opacity-50" />
-                                </Link>
-                            ))}
-                            <div className="pt-4 border-t border-slate-100">
-                                {user ? (
-                                    <div className="space-y-2">
-                                        <Link href={getDashboardLink()} onClick={() => setIsMobileMenuOpen(false)}>
-                                            <Button variant="outline" className="w-full justify-start gap-2 border-slate-200 text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600">
-                                                <LayoutDashboard className="w-4 h-4" />
-                                                Dashboard
+                    <>
+                        {/* Backdrop Overlay - Clicks here close the menu */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[80] md:hidden pt-[72px]"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        />
+
+                        {/* Menu Content */}
+                        <motion.div
+                            initial={{ y: -20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: -20, opacity: 0 }}
+                            className="fixed top-[72px] left-0 right-0 bg-white z-[90] md:hidden overflow-hidden border-b border-gray-100 shadow-xl rounded-b-2xl mx-2"
+                        >
+                            <div className="px-6 py-6 space-y-2 max-h-[80vh] overflow-y-auto">
+                                {navLinks.map((link) => (
+                                    <Link
+                                        key={link.name}
+                                        href={link.href}
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 text-gray-900 font-semibold border-b border-gray-100 last:border-0 hover:text-indigo-600 transition-colors"
+                                    >
+                                        <span className="text-base">{link.name}</span>
+                                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                                    </Link>
+                                ))}
+                                <div className="pt-4 border-t border-slate-100">
+                                    {user ? (
+                                        <div className="space-y-2">
+                                            <Link href={getDashboardLink()} onClick={() => setIsMobileMenuOpen(false)}>
+                                                <Button variant="outline" className="w-full justify-start gap-2 border-slate-200 text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600">
+                                                    <LayoutDashboard className="w-4 h-4" />
+                                                    Dashboard
+                                                </Button>
+                                            </Link>
+                                            <Button onClick={() => { handleSignOut(); setIsMobileMenuOpen(false); }} variant="outline" className="w-full justify-start gap-2 border-rose-200 text-rose-600 hover:bg-rose-50">
+                                                <LogOut className="w-4 h-4" />
+                                                Sign out
                                             </Button>
-                                        </Link>
-                                        <Button onClick={() => { handleSignOut(); setIsMobileMenuOpen(false); }} variant="outline" className="w-full justify-start gap-2 border-rose-200 text-rose-600 hover:bg-rose-50">
-                                            <LogOut className="w-4 h-4" />
-                                            Sign out
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
-                                            <Button variant="outline" className="w-full justify-center border-slate-200 text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600">
-                                                Log in
-                                            </Button>
-                                        </Link>
-                                        <Link href="/auth/sign-up" onClick={() => setIsMobileMenuOpen(false)}>
-                                            <Button className="w-full justify-center bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20">
-                                                Sign up
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                )}
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
+                                                <Button variant="outline" className="w-full justify-center border-slate-200 text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600">
+                                                    Log in
+                                                </Button>
+                                            </Link>
+                                            <Link href="/auth/sign-up" onClick={() => setIsMobileMenuOpen(false)}>
+                                                <Button className="w-full justify-center bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/20">
+                                                    Sign up
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    </motion.div>
+                        </motion.div>
+                    </>
                 )}
             </AnimatePresence>
         </>

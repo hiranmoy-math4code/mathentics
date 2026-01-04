@@ -32,5 +32,8 @@ export const usePublicTestSeries = () => {
             return data as PublicTestSeries[];
         },
         staleTime: 1000 * 60 * 5, // 5 minutes
+        gcTime: 1000 * 60 * 10, // 10 minutes (garbage collection)
+        retry: 2,
+        retryDelay: 1000,
     });
 };

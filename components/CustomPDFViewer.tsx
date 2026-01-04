@@ -73,7 +73,7 @@ export default function CustomPDFViewer({
                     )}
                     <p className="text-xs md:text-sm text-muted-foreground">
                         Secured PDF viewer • Watermarked by{" "}
-                        <span className="font-semibold">math4code</span>
+                        <span className="font-semibold">mathentics</span>
                     </p>
                 </div>
 
@@ -167,7 +167,7 @@ export default function CustomPDFViewer({
                             {/* Big diagonal brand text */}
                             <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
                                 <div className="text-5xl md:text-7xl font-extrabold tracking-[0.3em] uppercase text-slate-900/5 dark:text-white/5 -rotate-30 select-none">
-                                    math4code
+                                    mathentics
                                 </div>
                             </div>
 
@@ -179,7 +179,7 @@ export default function CustomPDFViewer({
                                         className="flex items-center justify-center rotate-[-18deg]"
                                     >
                                         <span className="text-xs md:text-sm font-semibold tracking-widest text-slate-500/70">
-                                            math4code • do not share
+                                            mathentics • do not share
                                         </span>
                                     </div>
                                 ))}

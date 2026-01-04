@@ -59,7 +59,7 @@ BEGIN
     IF current_tenant_id IS NULL THEN
         SELECT id INTO current_tenant_id
         FROM public.tenants
-        WHERE slug = 'math4code'  -- Default tenant
+        WHERE slug = 'mathentics'  -- Default tenant
         AND is_active = true
         LIMIT 1;
     END IF;

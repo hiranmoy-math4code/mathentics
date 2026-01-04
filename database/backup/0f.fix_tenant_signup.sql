@@ -28,11 +28,11 @@ BEGIN
     LIMIT 1;
   END IF;
 
-  -- Fallback to math4code if no tenant found
+  -- Fallback to mathentics if no tenant found
   IF signup_tenant_id IS NULL THEN
     SELECT id INTO signup_tenant_id
     FROM public.tenants
-    WHERE slug = 'math4code'
+    WHERE slug = 'mathentics'
     LIMIT 1;
   END IF;
 

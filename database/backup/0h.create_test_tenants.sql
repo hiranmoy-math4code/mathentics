@@ -28,7 +28,7 @@ SELECT
   is_active,
   created_at
 FROM tenants 
-WHERE slug IN ('tenant-a', 'tenant-b', 'math4code', 'localhost')
+WHERE slug IN ('tenant-a', 'tenant-b', 'mathentics', 'localhost')
 ORDER BY created_at;
 
 -- Success message

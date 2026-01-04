@@ -23,7 +23,6 @@ export function useAllCourses(userId: string | undefined) {
             const supabase = createClient();
             const tenantId = getTenantId(); // ✅ Get from environment (no DB query!)
 
-            console.log('✅ Using tenant ID for courses:', tenantId);
 
             // Fetch courses with tenant filtering
             const { data, error } = await supabase

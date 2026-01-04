@@ -63,20 +63,6 @@ BEGIN
       AND indexname LIKE 'idx_course_payments_%';
     
     RAISE NOTICE '✅ Total payment indexes: %', idx_count;
-    
-    -- Show index sizes
-    RAISE NOTICE '📊 Index sizes:';
-    FOR idx_count IN 
-        SELECT 
-            indexname,
-            pg_size_pretty(pg_relation_size(indexrelid)) as size
-        FROM pg_stat_user_indexes
-        WHERE schemaname = 'public'
-          AND relname = 'course_payments'
-    LOOP
-        -- Loop to display results
-    END LOOP;
-    
     RAISE NOTICE '🚀 Payment scalability indexes created successfully!';
     RAISE NOTICE '💡 Run ANALYZE course_payments; to update statistics';
 END $$;

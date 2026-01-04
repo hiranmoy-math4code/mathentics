@@ -1,6 +1,6 @@
 # Exam LaTeX Format Guide
 
-এই ডকুমেন্টে Math4Code ওয়েবসাইটে ব্যবহৃত Exam এর LaTeX ফরম্যাট বর্ণনা করা হয়েছে।
+এই ডকুমেন্টে mathentics ওয়েবসাইটে ব্যবহৃত Exam এর LaTeX ফরম্যাট বর্ণনা করা হয়েছে।
 
 ## Overview
 
@@ -327,4 +327,4 @@ x + y = 5 \\
 
 ---
 
-**Created for Math4Code Exam Platform**
+**Created for mathentics Exam Platform**

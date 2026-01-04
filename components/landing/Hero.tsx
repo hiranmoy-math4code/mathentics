@@ -56,14 +56,14 @@ export const Hero: React.FC = () => {
 
             {/* Main Heading */}
             <div className="space-y-6">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight tracking-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-4xl xl:text-5xl font-extrabold leading-tight tracking-tight">
                 <span className="block text-slate-900 mb-2">Master Mathematics</span>
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-teal-500">
-                  With AI-Powered Learning
+                  With Authentic Learning.
                 </span>
               </h1>
 
-              <p className="text-lg lg:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              <p className="text-base lg:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                 Ace <span className="font-semibold text-blue-600">IIT-JAM</span>, <span className="font-semibold text-purple-600">CSIR NET</span> & <span className="font-semibold text-teal-600">GATE</span> with intelligent mock tests, step-by-step AI guidance, and data-driven insights.
               </p>
             </div>
@@ -162,7 +162,7 @@ export const Hero: React.FC = () => {
             className="relative perspective-1000"
           >
             {/* Main Demo Card */}
-            <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 lg:p-8 max-w-lg mx-auto transform lg:rotate-6 lg:scale-105 hover:rotate-0 hover:scale-100 transition-all duration-500 ease-out">
+            <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 lg:p-8 max-w-md mx-auto transform lg:rotate-2 hover:rotate-0 transition-all duration-500 ease-out">
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">

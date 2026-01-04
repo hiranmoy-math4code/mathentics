@@ -22,7 +22,7 @@ export const FeaturesGrid: React.FC = () => {
         <section id="features" className="py-20 bg-linear-to-b from-slate-50 to-white">
             <div className="max-w-7xl mx-auto px-6 lg:px-8">
                 <motion.h2 initial="hidden" animate="show" variants={fadeUp} className="text-3xl font-bold text-slate-900">
-                    Why students choose math4code
+                    Why students choose mathentics
                 </motion.h2>
                 <p className="mt-2 text-slate-600 max-w-2xl">Premium features built for focused math practice — designed by exam coaches and coders.</p>
 

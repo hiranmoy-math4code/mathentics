@@ -59,7 +59,7 @@ export async function addStudent(data: {
                         full_name: data.fullName,
                         role: 'student'
                     },
-                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.math4code.com'}/auth/callback`
+                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mathentics.com'}/auth/callback`
                 }
             );
 

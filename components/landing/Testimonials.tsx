@@ -17,7 +17,7 @@ const TESTIMONIALS = [
         id: 2,
         name: 'Sarah L.',
         role: 'IIT-JAM Student',
-        text: "math4code bridges the gap between theory and practice. The analytics-driven insights helped me identify my weak areas instantly.",
+        text: "mathentics bridges the gap between theory and practice. The analytics-driven insights helped me identify my weak areas instantly.",
         score: 'AIR 127',
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah'
     },
@@ -59,7 +59,7 @@ export const Testimonials: React.FC = () => {
                         Success Stories
                     </h2>
                     <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                        See how students are achieving their dreams with math4code
+                        See how students are achieving their dreams with mathentics
                     </p>
                 </motion.div>
 
@@ -135,8 +135,8 @@ export const Testimonials: React.FC = () => {
                             key={i}
                             onClick={() => setIndex(i)}
                             className={`transition-all duration-300 rounded-full ${i === index
-                                    ? 'w-12 h-3 bg-gradient-to-r from-blue-600 to-purple-600'
-                                    : 'w-3 h-3 bg-slate-300 hover:bg-slate-400'
+                                ? 'w-12 h-3 bg-gradient-to-r from-blue-600 to-purple-600'
+                                : 'w-3 h-3 bg-slate-300 hover:bg-slate-400'
                                 }`}
                             aria-label={`Go to testimonial ${i + 1}`}
                         />

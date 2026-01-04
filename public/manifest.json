@@ -1,6 +1,6 @@
 {
-    "name": "math4code",
-    "short_name": "math4code",
+    "name": "mathentics",
+    "short_name": "mathentics",
     "description": "Premium online exam system for IIT JEE and IIT JAM preparation",
     "start_url": "/",
     "display": "standalone",

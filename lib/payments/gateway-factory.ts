@@ -54,45 +54,6 @@ export async function initiatePayment(
             .eq('is_active', true)
             .maybeSingle();
 
-        console.log("this is data Hiranmoy ", data)
-
-        // ============================================================================
-        // STEP 2: Fallback to math4code tenant gateway if tenant doesn't have one
-        // ============================================================================
-        if (!data) {
-            console.log(`⚠️ No tenant-specific gateway for ${tenantId}, trying math4code default...`);
-
-            // Get math4code tenant's gateway as fallback
-            const { data: defaultTenant } = await supabase
-                .from('tenants')
-                .select('id')
-                .eq('slug', 'math4code')
-                .eq('is_active', true)
-                .maybeSingle();
-
-            console.log("this is defalut tanent ", defaultTenant?.id)
-
-            if (defaultTenant) {
-                const { data: defaultGateway, error } = await supabase
-                    .from('payment_gateway_settings')
-                    .select('*')
-                    .eq('tenant_id', defaultTenant?.id)
-                    .eq('is_active', true)
-                    .maybeSingle();
-
-                console.log("this is defalut gateway error ", defaultGateway)
-
-                if (defaultGateway) {
-                    console.log(`✅ Using math4code default gateway: ${defaultGateway.gateway_type}`);
-                    data = defaultGateway;
-                } else {
-                    console.error('❌ No math4code default gateway found either');
-                }
-            }
-        } else {
-            console.log(`✅ Using tenant-specific gateway: ${data.gateway_type}`);
-        }
-
         if (error || !data) {
             console.error('No active payment gateway found for tenant:', tenantId);
             return {
@@ -199,36 +160,6 @@ export async function verifyPayment(
             .eq('tenant_id', tenantId)
             .eq('is_active', true)
             .maybeSingle();
-
-        // ============================================================================
-        // STEP 2: Fallback to math4code tenant gateway if tenant doesn't have one
-        // ============================================================================
-        if (!data) {
-            console.log(`⚠️ No tenant-specific gateway for verification, trying math4code default...`);
-
-            // Get math4code tenant's gateway as fallback
-            const { data: defaultTenant } = await supabase
-                .from('tenants')
-                .select('id')
-                .eq('slug', 'math4code')
-                .eq('is_active', true)
-                .maybeSingle();
-
-            if (defaultTenant) {
-                const { data: defaultGateway } = await supabase
-                    .from('payment_gateway_settings')
-                    .select('*')
-                    .eq('tenant_id', defaultTenant.id)
-                    .eq('is_active', true)
-                    .maybeSingle();
-
-                if (defaultGateway) {
-                    console.log(`✅ Using math4code default gateway for verification`);
-                    data = defaultGateway;
-                }
-            }
-        }
-
         if (error || !data) {
             return {
                 success: false,

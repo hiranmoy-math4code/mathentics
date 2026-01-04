@@ -55,7 +55,7 @@ Run in Supabase SQL Editor:
 ### Test 2: Manual Login Test
 
 1. Open browser in incognito mode
-2. Navigate to your Math4Code instance
+2. Navigate to your mathentics instance
 3. Login as a student
 4. **Expected:** See toast "⭐ +5 coins!"
 5. Check Supabase → `reward_transactions` table

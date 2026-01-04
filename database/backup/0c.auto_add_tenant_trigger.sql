@@ -28,11 +28,11 @@ BEGIN
     LIMIT 1;
   END IF;
 
-  -- If no tenant found, use default tenant (Math4Code)
+  -- If no tenant found, use default tenant (mathentics)
   IF current_tenant_id IS NULL THEN
     SELECT id INTO current_tenant_id
     FROM public.tenants
-    WHERE slug = 'math4code'
+    WHERE slug = 'mathentics'
     LIMIT 1;
   END IF;
 
@@ -67,7 +67,7 @@ CREATE TRIGGER trigger_auto_add_user_to_tenant
 INSERT INTO public.user_tenant_memberships (user_id, tenant_id, role, is_active)
 SELECT 
   p.id,
-  (SELECT id FROM public.tenants WHERE slug = 'math4code' LIMIT 1),
+  (SELECT id FROM public.tenants WHERE slug = 'mathentics' LIMIT 1),
   p.role,
   true
 FROM public.profiles p

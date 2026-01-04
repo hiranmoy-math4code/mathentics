@@ -7,7 +7,7 @@ PhonePe uses **OAuth 2.0** (Client Credentials Grant)
 
 ### **Step 1: Get OAuth Token**
 **API:** `POST /v1/oauth/token`
-**File:** [`lib/phonepe.ts:31-63`](file:///e:/PROJECT%202025%20-%20October/math4code-website/lib/phonepe.ts#L31-L63)
+**File:** [`lib/phonepe.ts:31-63`](file:///e:/PROJECT%202025%20-%20October/mathentics-website/lib/phonepe.ts#L31-L63)
 
 ```typescript
 // Called BEFORE every payment operation
@@ -35,7 +35,7 @@ grant_type=client_credentials
 
 ### **Step 2: Initiate Payment**
 **API:** `POST /checkout/v2/pay`
-**File:** [`lib/phonepe.ts:68-141`](file:///e:/PROJECT%202025%20-%20October/math4code-website/lib/phonepe.ts#L68-L141)
+**File:** [`lib/phonepe.ts:68-141`](file:///e:/PROJECT%202025%20-%20October/mathentics-website/lib/phonepe.ts#L68-L141)
 
 ```typescript
 // Request
@@ -94,7 +94,7 @@ Content-Type: application/json
 
 ### **Step 4: Status Check (Manual)**
 **API:** `GET /checkout/v2/order/{orderId}/status`
-**File:** [`lib/phonepe.ts:146-179`](file:///e:/PROJECT%202025%20-%20October/math4code-website/lib/phonepe.ts#L146-L179)
+**File:** [`lib/phonepe.ts:146-179`](file:///e:/PROJECT%202025%20-%20October/mathentics-website/lib/phonepe.ts#L146-L179)
 
 ```typescript
 // Called by verification API
@@ -127,7 +127,7 @@ Cashfree uses **API Key** (x-client-id + x-client-secret headers)
 
 ### **Step 1: Create Order**
 **API:** `POST /pg/orders`
-**File:** [`lib/payments/cashfree.ts:120-152`](file:///e:/PROJECT%202025%20-%20October/math4code-website/lib/payments/cashfree.ts#L120-L152)
+**File:** [`lib/payments/cashfree.ts:120-152`](file:///e:/PROJECT%202025%20-%20October/mathentics-website/lib/payments/cashfree.ts#L120-L152)
 
 ```typescript
 // Request
@@ -220,7 +220,7 @@ x-webhook-signature: {signature}
 
 ### **Step 4: Status Check (Manual)**
 **API:** `GET /pg/orders/{order_id}`
-**File:** [`lib/payments/cashfree.ts:173-210`](file:///e:/PROJECT%202025%20-%20October/math4code-website/lib/payments/cashfree.ts#L173-L210)
+**File:** [`lib/payments/cashfree.ts:173-210`](file:///e:/PROJECT%202025%20-%20October/mathentics-website/lib/payments/cashfree.ts#L173-L210)
 
 ```typescript
 // Called by verification API

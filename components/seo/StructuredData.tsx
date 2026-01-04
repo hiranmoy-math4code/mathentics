@@ -8,9 +8,9 @@ interface OrganizationSchemaProps {
 }
 
 export function OrganizationSchema({
-    name = 'math4code',
-    url = 'https://www.math4code.com',
-    logo = 'https://www.math4code.com/mathlogo.png',
+    name = 'mathentics',
+    url = 'https://www.mathentics.com',
+    logo = 'https://www.mathentics.com/mathentics-logo-new.png',
     description = 'Online learning platform for mathematics and competitive exam preparation'
 }: OrganizationSchemaProps) {
     const schema = {
@@ -51,7 +51,7 @@ interface CourseSchemaProps {
 export function CourseSchema({
     name,
     description,
-    provider = 'math4code',
+    provider = 'mathentics',
     instructor,
     price,
     currency = 'INR',

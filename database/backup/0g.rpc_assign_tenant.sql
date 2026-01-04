@@ -28,7 +28,7 @@ BEGIN
   IF v_tenant_id IS NULL THEN
     SELECT id INTO v_tenant_id
     FROM public.tenants
-    WHERE slug = 'math4code'
+    WHERE slug = 'mathentics'
     LIMIT 1;
   END IF;
 

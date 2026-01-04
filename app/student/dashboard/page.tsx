@@ -149,12 +149,12 @@ export default function StudentDashboard() {
       icon: <FileText className="w-6 h-6 text-orange-500" />,
       color: "from-orange-50 to-amber-100 dark:from-slate-800 dark:to-slate-900",
     },
-    {
-      title: "Rank",
-      value: statsLoading ? "..." : `#${stats?.rank || 0}`,
-      icon: <Award className="w-6 h-6 text-yellow-500" />,
-      color: "from-yellow-50 to-amber-100 dark:from-slate-800 dark:to-slate-900",
-    },
+    // {
+    //   title: "Rank",
+    //   value: statsLoading ? "..." : `#${stats?.rank || 0}`,
+    //   icon: <Award className="w-6 h-6 text-yellow-500" />,
+    //   color: "from-yellow-50 to-amber-100 dark:from-slate-800 dark:to-slate-900",
+    // },
   ];
 
   if (userLoading) {
@@ -285,7 +285,7 @@ export default function StudentDashboard() {
       {activeTab === "overview" && (
         <div className="space-y-6">
           {/* Recent Courses & Test Series */}
-          {((myCourses && myCourses.length > 0) || (testSeries && testSeries.length > 0)) && (
+          {((myCourses && myCourses.length > 0) || (testSeries && testSeries.length > 0)) ? (
             <motion.div
               variants={fadeIn}
               initial="hidden"
@@ -374,6 +374,76 @@ export default function StudentDashboard() {
                     </div>
                   </motion.div>
                 ))}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              variants={fadeIn}
+              initial="hidden"
+              animate="visible"
+              custom={5}
+              className="rounded-3xl bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 p-12 shadow-xl border border-indigo-100 dark:border-slate-700"
+            >
+              <div className="text-center max-w-2xl mx-auto space-y-6">
+                {/* Icon */}
+                <div className="flex justify-center">
+                  <div className="relative">
+                    <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl">
+                      <GraduationCap className="w-12 h-12 text-white" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg">
+                      <Star className="w-5 h-5 text-yellow-900" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div className="space-y-3">
+                  <h3 className="text-3xl font-bold text-slate-800 dark:text-white">
+                    Start Your Learning Journey! 🚀
+                  </h3>
+                  <p className="text-lg text-slate-600 dark:text-slate-300">
+                    You haven't enrolled in any courses or test series yet.
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Explore our comprehensive courses and test series designed to help you ace IIT-JAM, CSIR NET & GATE exams.
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+                  <Button
+                    onClick={() => setActiveTab("all-courses")}
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-6 text-lg shadow-xl hover:shadow-2xl transition-all"
+                  >
+                    <BookOpen className="w-5 h-5 mr-2" />
+                    Browse Courses
+                  </Button>
+                  <Button
+                    onClick={() => setActiveTab("all-test-series")}
+                    variant="outline"
+                    className="border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-400 dark:hover:bg-slate-700 px-8 py-6 text-lg"
+                  >
+                    <FileText className="w-5 h-5 mr-2" />
+                    Browse Test Series
+                  </Button>
+                </div>
+
+                {/* Features */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-8">
+                  <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm">
+                    <CheckCircle2 className="w-8 h-8 text-green-500" />
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Expert Content</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm">
+                    <TrendingUp className="w-8 h-8 text-blue-500" />
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Track Progress</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm">
+                    <Award className="w-8 h-8 text-yellow-500" />
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Achieve Goals</p>
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}

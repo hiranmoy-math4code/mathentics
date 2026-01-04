@@ -65,7 +65,7 @@ export const CTA: React.FC = () => {
                                 transition={{ delay: 0.3 }}
                                 className="text-lg lg:text-xl text-blue-50 leading-relaxed max-w-xl"
                             >
-                                Join thousands of students using <span className="font-bold text-white">math4code</span> for authentic learning and data-driven progress. No credit card required for the trial.
+                                Join thousands of students using <span className="font-bold text-white">mathentics</span> for authentic learning and data-driven progress. No credit card required for the trial.
                             </motion.p>
 
                             <motion.div

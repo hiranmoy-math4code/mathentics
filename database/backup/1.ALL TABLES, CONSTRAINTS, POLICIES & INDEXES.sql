@@ -1,7 +1,7 @@
 -- ALL TABLES, CONSTRAINTS, POLICIES & INDEXES
 -- ============================================================================
 -- This file contains complete table definitions with all constraints,
--- RLS policies, and indexes for the Math4Code database
+-- RLS policies, and indexes for the mathentics database
 -- 
 -- IMPORTANT: This file is SAFE to run on EXISTING databases!
 -- All constraints use exception handling to skip if they already exist.

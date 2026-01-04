@@ -95,7 +95,6 @@ export function StudentProfile({ studentId }: StudentProfileProps) {
     if (!details) return null;
 
     const { student, enrollments, attempts, logs, stats } = details;
-    console.log("hiranmo attempts", attempts)
 
     // Separate enrollments by course_type
     const courseEnrollments = enrollments?.filter((e: any) => e.courses?.course_type === 'course') || [];

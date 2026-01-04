@@ -81,9 +81,9 @@ ALTER TABLE public.enrollment_logs ADD COLUMN IF NOT EXISTS tenant_id UUID REFER
 INSERT INTO public.tenants (id, name, slug, custom_domain, is_active)
 VALUES (
   '00000000-0000-0000-0000-000000000001',
-  'Math4Code',
-  'math4code',
-  'www.math4code.com',
+  'mathentics',
+  'mathentics',
+  'www.mathentics.com',
   true
 ) ON CONFLICT (id) DO NOTHING;
 

@@ -42,7 +42,7 @@ settings: {}
 ## Step 4: Verify Tenants Created
 
 1. In `tenants` table, you should see:
-   - Math4Code (existing)
+   - mathentics (existing)
    - Tenant A (Port 3000) ✅
    - Tenant B (Port 3001) ✅
 

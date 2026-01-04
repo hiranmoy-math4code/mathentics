@@ -40,13 +40,13 @@ async function processRedirect(req: Request, transactionId: string) {
       .single();
 
     if (!gatewaySettings) {
-      // Fallback to math4code default if needed
-      const { data: math4codeTenant } = await supabase.from("tenants").select("id").eq("slug", "math4code").single();
-      if (math4codeTenant) {
+      // Fallback to mathentics default if needed
+      const { data: mathenticsTenant } = await supabase.from("tenants").select("id").eq("slug", "mathentics").single();
+      if (mathenticsTenant) {
         const { data: defaultSettings } = await supabase
           .from("payment_gateway_settings")
           .select("*")
-          .eq("tenant_id", math4codeTenant.id)
+          .eq("tenant_id", mathenticsTenant.id)
           .eq("gateway_type", "phonepe")
           .eq("is_active", true)
           .single();
@@ -118,7 +118,7 @@ async function processRedirect(req: Request, transactionId: string) {
 
     // 1. Mobile App Redirect (Deep Link)
     if (source === "mobile") {
-      const deepLink = `math4code://payment/verify?txnId=${transactionId}&status=${status}`;
+      const deepLink = `mathentics://payment/verify?txnId=${transactionId}&status=${status}`;
       return NextResponse.redirect(deepLink, 303);
     }
 
