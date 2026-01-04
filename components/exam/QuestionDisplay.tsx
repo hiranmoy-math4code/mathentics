@@ -130,6 +130,12 @@ function QuestionDisplayComponent({
                                     placeholder="Enter numeric value..."
                                     value={response || ""}
                                     onChange={(e) => onSave(question.id, e.target.value)}
+                                    // Mobile Keyboard Fix: Scroll input into clear view
+                                    onFocus={(e) => {
+                                        setTimeout(() => {
+                                            e.target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                                        }, 300); // Small delay to wait for keyboard animation
+                                    }}
                                 />
                             </div>
                         )}

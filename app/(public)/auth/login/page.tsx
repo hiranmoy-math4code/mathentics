@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Loader2, Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff, BookOpen, Calculator, Rocket, CheckCircle2 } from "lucide-react";
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import { cn } from "@/lib/utils";
+import { useCurrentUser } from "@/hooks/student/useCurrentUser";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -15,25 +16,31 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
 
-  // Check if user is already logged in
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const supabase = createClient();
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error) throw error;
+  const { data: userProfile, isLoading: isUserLoading } = useCurrentUser();
 
-        if (user) {
-          // User is already logged in, redirect to dashboard
+  // State to show manual navigation button if redirect takes too long (common on mobile)
+  const [showManualNav, setShowManualNav] = useState(false);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    const checkUserRedirect = async () => {
+      if (!isUserLoading && userProfile) {
+        // Set a timeout to show the manual button if redirect is slow
+        timeoutId = setTimeout(() => setShowManualNav(true), 2000);
+
+        try {
+          const supabase = createClient();
+          // Check for admin/creator roles
           const { data: memberships } = await supabase
             .from('user_tenant_memberships')
             .select('role')
-            .eq('user_id', user.id)
+            .eq('user_id', userProfile.id)
             .eq('is_active', true);
 
           const isAdmin = memberships?.some(m =>
@@ -45,26 +52,46 @@ function LoginForm() {
           } else {
             router.push(next || '/student/dashboard');
           }
-        } else {
-          setIsCheckingAuth(false);
+        } catch (error) {
+          console.error("Redirect check failed", error);
+          // If check fails, we might just let them stay on login or default to student
+          // But best to default to student if we know they are logged in
+          router.push('/student/dashboard');
         }
-      } catch (error: any) {
-        // Only log if it's NOT an AuthSessionMissingError (which is expected when not logged in)
-        if (error?.name !== 'AuthSessionMissingError' && error?.message !== 'Auth session missing!') {
-          console.error("Auth check failed:", error);
-        }
-        setIsCheckingAuth(false);
       }
     };
+    checkUserRedirect();
 
-    checkAuth();
-  }, [router, next]);
+    return () => clearTimeout(timeoutId);
+  }, [userProfile, isUserLoading, router, next]);
 
   // Show loading while checking authentication
-  if (isCheckingAuth) {
+  // We only show loader if the hook is loading OR if we found a user and are deciding where to redirect
+  // (Note: userProfile being present means we are technically "loading" the redirect)
+  if (isUserLoading || userProfile) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+        <p className="text-sm text-muted-foreground animate-pulse">
+          {userProfile ? "Redirecting you..." : "Checking authentication..."}
+        </p>
+
+        {/* Fallback for mobile networks that might hang on router.push */}
+        {showManualNav && userProfile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center gap-2 mt-2"
+          >
+            <p className="text-xs text-amber-600">Taking longer than usual?</p>
+            <button
+              onClick={() => window.location.href = (next || '/student/dashboard')}
+              className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-bold hover:bg-indigo-200 transition-colors"
+            >
+              Click here to go to Dashboard
+            </button>
+          </motion.div>
+        )}
       </div>
     );
   }

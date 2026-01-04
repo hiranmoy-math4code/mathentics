@@ -724,7 +724,7 @@ export default function StudentDashboard() {
                   <h4 className="font-semibold text-slate-800 dark:text-white mb-2">{series.title}</h4>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">{series.description}</p>
                   <div className="flex justify-between text-xs mb-3 text-slate-500 dark:text-slate-400">
-                    <span>{series.total_lessons || 0} exams</span>
+                    <span>All exams</span>
                     <span className="font-semibold text-indigo-600 dark:text-indigo-400">
                       {series.price === 0 ? "Free" : `₹${series.price}`}
                     </span>

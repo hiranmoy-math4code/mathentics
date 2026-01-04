@@ -1101,7 +1101,7 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
     if (!sessionData) return null
 
     return (
-        <div ref={examContainerRef} className="grid grid-cols-1 lg:grid-cols-[1fr_360px] bg-background text-foreground rounded-xl overflow-hidden border border-border h-full">
+        <div ref={examContainerRef} className={`grid grid-cols-1 lg:grid-cols-[1fr_360px] bg-background text-foreground overflow-hidden ${isFullscreen ? "fixed inset-0 z-50 w-full h-[100dvh] rounded-none border-0" : "rounded-xl border border-border h-full"}`}>
             {/* LEFT PANEL */}
             <div className="flex flex-col min-h-0 p-3 md:p-6 relative bg-background">
                 {/* HEADER - Compact NTA Style */}
