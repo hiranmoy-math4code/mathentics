@@ -40,11 +40,14 @@ export default function AdminClientLayout({
   ];
 
   useEffect(() => {
+    // Cleanup: Remove any conflicting theme keys
+    if (localStorage.getItem("theme")) {
+      localStorage.removeItem("theme");
+    }
+
+    // Get saved theme from localStorage, default to "light" if not found
     const saved = localStorage.getItem("m4c_theme");
-    const prefersDark =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const initial = saved || (prefersDark ? "dark" : "light");
+    const initial = saved || "light"; // Always default to light mode
     setTheme(initial);
     applyTheme(initial);
   }, []);

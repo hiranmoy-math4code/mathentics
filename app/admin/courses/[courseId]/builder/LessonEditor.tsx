@@ -506,7 +506,16 @@ export function LessonEditor({ lesson, course, onUpdate, onDelete }: LessonEdito
 function SequentialLearningSection({ lesson, onUpdate }: { lesson: Lesson, onUpdate: (updates: Partial<Lesson>) => Promise<any> }) {
     const [previousLessons, setPreviousLessons] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    // Local state for immediate UI update
+    const [isSequentialEnabled, setIsSequentialEnabled] = useState(lesson.sequential_unlock_enabled || false);
+    const [prerequisiteId, setPrerequisiteId] = useState(lesson.prerequisite_lesson_id || "");
     const supabase = createClient();
+
+    // Sync local state with prop changes
+    useEffect(() => {
+        setIsSequentialEnabled(lesson.sequential_unlock_enabled || false);
+        setPrerequisiteId(lesson.prerequisite_lesson_id || "");
+    }, [lesson.sequential_unlock_enabled, lesson.prerequisite_lesson_id]);
 
     // Load previous lessons in the same module
     useEffect(() => {
@@ -533,6 +542,9 @@ function SequentialLearningSection({ lesson, onUpdate }: { lesson: Lesson, onUpd
     };
 
     const handleToggleSequential = async (enabled: boolean) => {
+        // Immediate UI update
+        setIsSequentialEnabled(enabled);
+
         try {
             const updates: Partial<Lesson> = {
                 sequential_unlock_enabled: enabled,
@@ -541,18 +553,34 @@ function SequentialLearningSection({ lesson, onUpdate }: { lesson: Lesson, onUpd
                     ? previousLessons[previousLessons.length - 1].id
                     : null
             };
+
+            // Update prerequisite ID in local state if auto-selecting
+            if (enabled && previousLessons.length > 0) {
+                setPrerequisiteId(previousLessons[previousLessons.length - 1].id);
+            } else if (!enabled) {
+                setPrerequisiteId("");
+            }
+
             await onUpdate(updates);
             toast.success(enabled ? "Sequential unlock enabled" : "Sequential unlock disabled");
         } catch (error) {
+            // Revert on error
+            setIsSequentialEnabled(!enabled);
             toast.error("Failed to update sequential settings");
         }
     };
 
-    const handlePrerequisiteChange = async (prerequisiteId: string) => {
+    const handlePrerequisiteChange = async (newPrerequisiteId: string) => {
+        // Immediate UI update
+        const previousValue = prerequisiteId;
+        setPrerequisiteId(newPrerequisiteId);
+
         try {
-            await onUpdate({ prerequisite_lesson_id: prerequisiteId || null });
+            await onUpdate({ prerequisite_lesson_id: newPrerequisiteId || null });
             toast.success("Prerequisite updated");
         } catch (error) {
+            // Revert on error
+            setPrerequisiteId(previousValue);
             toast.error("Failed to update prerequisite");
         }
     };
@@ -574,20 +602,20 @@ function SequentialLearningSection({ lesson, onUpdate }: { lesson: Lesson, onUpd
                     </div>
                     <Switch
                         id="sequential-toggle"
-                        checked={lesson.sequential_unlock_enabled || false}
+                        checked={isSequentialEnabled}
                         onCheckedChange={handleToggleSequential}
                         disabled={isLoading || previousLessons.length === 0}
                     />
                 </div>
 
-                {lesson.sequential_unlock_enabled && previousLessons.length > 0 && (
+                {isSequentialEnabled && previousLessons.length > 0 && (
                     <div className="space-y-2 pl-4 border-l-2 border-orange-200 dark:border-orange-800">
                         <Label className="text-xs font-medium text-slate-700 dark:text-slate-300">
                             Previous Lesson Required
                         </Label>
                         <select
                             className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                            value={lesson.prerequisite_lesson_id || ""}
+                            value={prerequisiteId}
                             onChange={(e) => handlePrerequisiteChange(e.target.value)}
                         >
                             {previousLessons.map((prevLesson) => (

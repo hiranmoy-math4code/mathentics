@@ -98,6 +98,47 @@ export const Header = () => {
         return "/student/dashboard";
     };
 
+    // Lock body scroll when mobile menu is open
+    useEffect(() => {
+        if (isMobileMenuOpen) {
+            // Save current scroll position
+            const scrollY = window.scrollY;
+
+            // Lock scroll
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${scrollY}px`;
+            document.body.style.width = '100%';
+        } else {
+            // Get the scroll position before unlocking
+            const scrollY = document.body.style.top;
+
+            // Unlock scroll
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+
+            // Restore scroll position
+            if (scrollY) {
+                window.scrollTo(0, parseInt(scrollY || '0') * -1);
+            }
+        }
+
+        // Cleanup on unmount - ALWAYS unlock scroll
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+        };
+    }, [isMobileMenuOpen]);
+
+    // Force close menu on route change to prevent stuck states
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [pathname]);
+
     const navLinks = [
         { name: "Courses", href: "/courses" },
         { name: "Test Series", href: "/test-series" },
