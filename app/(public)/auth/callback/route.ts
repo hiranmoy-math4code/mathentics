@@ -87,47 +87,54 @@ export async function GET(request: NextRequest) {
                 }
 
                 // ============================================================
-                // STEP 2: Get tenant config from environment (no DB hit)
+                // STEP 2: Get tenant config (prioritize searchParams over env)
                 // ============================================================
-                const tenantId = process.env.NEXT_PUBLIC_TENANT_ID;
-                const tenantSlug = process.env.NEXT_PUBLIC_TENANT_SLUG;
+                const finalTenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+                const envTenantSlug = process.env.NEXT_PUBLIC_TENANT_SLUG;
 
-                if (!tenantId || !tenantSlug) {
-                    console.error(`[AUTH] Tenant configuration missing in environment!`);
+                // Priority for RPC call: searchParams > environment variable
+                // Tenant ID always comes from environment
+                const finalTenantSlug = tenantSlug || envTenantSlug;
+
+                if (!finalTenantId || !finalTenantSlug) {
+                    console.error(`[AUTH] Tenant configuration missing!`);
                     return NextResponse.redirect(`${origin}/auth/login?error=Configuration error. Please contact support.`);
                 }
+
+                console.log(`[AUTH] Assigning user to tenant: ${finalTenantSlug} (slug from ${tenantSlug ? 'searchParams' : 'ENV'})`);
 
                 // Use RPC to assign user to tenant (same as email signup)
                 try {
                     await supabase.rpc('assign_user_to_tenant', {
                         p_user_id: user.id,
-                        p_tenant_slug: tenantSlug,
+                        p_tenant_slug: finalTenantSlug,
                         p_role: userRole
                     });
+                    console.log(`[AUTH] RPC assign_user_to_tenant completed successfully`);
                 } catch (rpcError) {
                     console.error('[AUTH] RPC failed:', rpcError);
                 }
 
 
                 // ============================================================
-                // STEP 3: Ensure tenant membership exists
+                // STEP 3: Ensure tenant membership exists (verify RPC worked)
                 // ============================================================
-                if (tenantId) {
+                if (finalTenantId) {
                     const { data: existingMembership } = await supabase
                         .from('user_tenant_memberships')
                         .select('id, role')
                         .eq('user_id', user.id)
-                        .eq('tenant_id', tenantId)
+                        .eq('tenant_id', finalTenantId)
                         .single();
 
                     if (!existingMembership) {
-                        console.log(`[AUTH] Creating tenant membership for ${user.email} in tenant ${tenantId}`);
+                        console.log(`[AUTH] RPC didn't create membership, creating manually for ${user.email} in tenant ${finalTenantId}`);
 
                         const { error: membershipError } = await supabase
                             .from('user_tenant_memberships')
                             .insert({
                                 user_id: user.id,
-                                tenant_id: tenantId,
+                                tenant_id: finalTenantId,
                                 role: userRole,
                                 is_active: true
                             });
@@ -137,6 +144,8 @@ export async function GET(request: NextRequest) {
                         } else {
                             console.log(`[AUTH] Tenant membership created successfully`);
                         }
+                    } else {
+                        console.log(`[AUTH] Tenant membership already exists (RPC succeeded)`);
                     }
                 } else {
                     console.warn(`[AUTH] No tenant ID available - user may have access issues`);
