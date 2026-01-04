@@ -139,7 +139,33 @@ export async function middleware(request: NextRequest) {
   // 6. Session Update (for Auth)
   await updateSession(request)
 
-  // 7. Admin Route Protection
+  // 7. Redirect logged-in users away from auth pages
+  if (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/sign-up')) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        // User is logged in, check their role and redirect
+        const { data: membership } = await supabase
+          .from('user_tenant_memberships')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('tenant_id', tenantId)
+          .eq('is_active', true)
+          .limit(1)
+          .maybeSingle()
+
+        const isAdmin = membership?.role === 'admin' || membership?.role === 'creator'
+        const redirectUrl = request.nextUrl.clone()
+        redirectUrl.pathname = isAdmin ? '/admin/dashboard' : '/student/dashboard'
+        return NextResponse.redirect(redirectUrl)
+      }
+    } catch (error) {
+      console.error('Auth redirect error:', error)
+    }
+  }
+
+  // 8. Admin Route Protection
   if (pathname.startsWith('/admin')) {
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -169,7 +195,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 8. Final Response
+  // 9. Final Response
   return NextResponse.next({
     request: {
       headers: requestHeaders,

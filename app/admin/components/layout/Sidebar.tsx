@@ -317,14 +317,9 @@ export default function Sidebar({
             >
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-3">
+                <SmartLink href="/" queryKey={['route', '/']} className="flex items-center gap-3">
                   <img src="/mathentics-logo-new.png" alt="mathentics Academy" className="h-10 w-auto object-contain" />
-                  <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                      Admin Panel
-                    </p>
-                  </div>
-                </div>
+                </SmartLink>
 
                 <button
                   onClick={() => setIsMobileOpen(false)}

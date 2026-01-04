@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronRight, User, LogOut, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -83,8 +84,12 @@ export const Header = () => {
         return () => subscription.unsubscribe();
     }, []);
 
+    const queryClient = useQueryClient();
+
     const handleSignOut = async () => {
         await supabase.auth.signOut();
+        // Clear React Query cache to prevent stale user data
+        queryClient.invalidateQueries({ queryKey: ["current-user"] });
         router.push("/");
     };
 

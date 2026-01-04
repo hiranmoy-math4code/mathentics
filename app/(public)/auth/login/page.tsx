@@ -1,15 +1,12 @@
 "use client";
 
-import React, { useState, Suspense, useEffect } from "react";
+import React, { useState, Suspense, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2, Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff, BookOpen, Calculator, Rocket, CheckCircle2 } from "lucide-react";
-import { FaGoogle, FaGithub } from "react-icons/fa";
-import { cn } from "@/lib/utils";
+import { Loader2, Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff, BookOpen, Calculator, Rocket } from "lucide-react";
 import { useCurrentUser } from "@/hooks/student/useCurrentUser";
-import { useQueryClient } from "@tanstack/react-query";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -17,103 +14,50 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
 
   const { data: userProfile, isLoading: isUserLoading } = useCurrentUser();
+  const hasRedirected = useRef(false);
+  const routerRef = useRef(router);
+  const nextRef = useRef(next);
 
-  // State to show manual navigation button if redirect takes too long (common on mobile)
-  const [showManualNav, setShowManualNav] = useState(false);
-  // Force fresh auth check on mount (handle stale cache from mobile/back-button)
-  const queryClient = useQueryClient();
+  // Update refs when values change
   useEffect(() => {
-    // Invalidate and RESET the user query to ensure we don't use stale data
-    // This solves the issue where a user might be logged out but the cache still thinks they are logged in
-    queryClient.removeQueries({ queryKey: ["current-user"] });
-    queryClient.invalidateQueries({ queryKey: ["current-user"] });
-  }, [queryClient]);
+    routerRef.current = router;
+    nextRef.current = next;
+  }, [router, next]);
 
-  // State to force show login form if auth check hangs
-  const [forceShowForm, setForceShowForm] = useState(false);
-
-  // Force show form after 1.5 seconds if auth check is stuck
+  // Instant redirect for logged-in users
   useEffect(() => {
-    const timer = setTimeout(() => setForceShowForm(true), 1500);
-    return () => clearTimeout(timer);
-  }, []);
+    if (hasRedirected.current || !userProfile || isUserLoading) return;
+    hasRedirected.current = true;
 
-  // Redirect if already logged in
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    const redirect = async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('user_tenant_memberships')
+          .select('role')
+          .eq('user_id', userProfile.id)
+          .eq('is_active', true)
+          .limit(1)
+          .maybeSingle();
 
-    const checkUserRedirect = async () => {
-      if (!isUserLoading && userProfile) {
-        // Set a timeout to show the manual button if redirect is slow
-        timeoutId = setTimeout(() => setShowManualNav(true), 2000);
-
-        try {
-          const supabase = createClient();
-          // Check for admin/creator roles
-          const { data: memberships } = await supabase
-            .from('user_tenant_memberships')
-            .select('role')
-            .eq('user_id', userProfile.id)
-            .eq('is_active', true);
-
-          const isAdmin = memberships?.some(m =>
-            m.role === 'admin' || m.role === 'creator'
-          );
-
-          if (isAdmin) {
-            router.push('/admin/dashboard');
-          } else {
-            router.push(next || '/student/dashboard');
-          }
-        } catch (error) {
-          console.error("Redirect check failed", error);
-          // If check fails, we might just let them stay on login or default to student
-          // But best to default to student if we know they are logged in
-          router.push('/student/dashboard');
-        }
+        const isAdmin = data?.role === 'admin' || data?.role === 'creator';
+        routerRef.current.replace(nextRef.current || (isAdmin ? '/admin/dashboard' : '/student/dashboard'));
+      } catch {
+        routerRef.current.replace('/student/dashboard');
       }
     };
-    checkUserRedirect();
 
-    return () => clearTimeout(timeoutId);
-  }, [userProfile, isUserLoading, router, next]);
+    redirect();
+  }, [userProfile, isUserLoading]);
 
-  // Case 1: User is confirmed logged in -> Show Redirecting Screen
-  if (userProfile) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-        <p className="text-sm text-muted-foreground animate-pulse">
-          Redirecting you...
-        </p>
-
-        {/* Fallback for mobile networks that might hang on router.push */}
-        {showManualNav && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex flex-col items-center gap-2 mt-2"
-          >
-            <p className="text-xs text-amber-600">Taking longer than usual?</p>
-            <button
-              onClick={() => window.location.href = (next || '/student/dashboard')}
-              className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-bold hover:bg-indigo-200 transition-colors"
-            >
-              Click here to go to Dashboard
-            </button>
-          </motion.div>
-        )}
-      </div>
-    );
-  }
-
-  // Case 2: Still loading AND haven't timed out yet -> Show Checking Screen
-  if (isUserLoading && !forceShowForm) {
+  // Show spinner while checking or redirecting
+  if (isUserLoading || userProfile) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
@@ -121,108 +65,72 @@ function LoginForm() {
     );
   }
 
-  // Case 3: Not logged in OR Loading timed out -> Show Login Form (Fallthrough)
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const supabase = createClient();
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
-      if (error) throw error;
+      if (authError) throw authError;
+      if (!data.user) throw new Error("No user data");
 
-      // Check if user has a profile
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // If "next" param exists (e.g. from Enroll button), redirect there
-        if (next) {
-          router.push(next);
-          router.refresh();
-          return;
-        }
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id, role')
-          .eq('id', user.id)
-          .single();
-
-        if (!profile) {
-          setError("Account exists but profile is missing. Please contact support.");
-          return;
-        }
-
-        // MULTI-TENANT: Check user role in any tenant
-        const { data: memberships, error: membershipError } = await supabase
-          .from('user_tenant_memberships')
-          .select('role, tenant_id, tenants(slug)')
-          .eq('user_id', user.id)
-          .eq('is_active', true);
-
-        const isAdmin = memberships?.some(m =>
-          m.role === 'admin' || m.role === 'creator'
-        );
-
-        // Role-based routing
-        if (isAdmin) {
-          router.push("/admin/dashboard");
-        } else {
-          router.push("/student/dashboard");
-        }
-        router.refresh();
+      if (next) {
+        router.replace(next);
+        return;
       }
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Invalid login credentials");
-    } finally {
+
+      const { data: memberships } = await supabase
+        .from('user_tenant_memberships')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .eq('is_active', true)
+        .limit(1)
+        .single();
+
+      const isAdmin = memberships?.role === 'admin' || memberships?.role === 'creator';
+      router.replace(isAdmin ? '/admin/dashboard' : '/student/dashboard');
+    } catch (err: any) {
+      setError(err?.message || "Invalid credentials");
       setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    const supabase = createClient();
     setIsLoading(true);
     try {
+      const supabase = createClient();
       const redirectTo = new URL(`${window.location.origin}/auth/callback`);
-      if (next) {
-        redirectTo.searchParams.set("next", next);
-      }
+      if (next) redirectTo.searchParams.set("next", next);
 
-      // MULTI-TENANT: Only extract tenant slug if NEXT_PUBLIC_TENANT_ID is not set
       if (!process.env.NEXT_PUBLIC_TENANT_ID) {
         const hostname = window.location.hostname;
-        let tenantSlug: string | null = null;
-        const parts = hostname.split('.');
-        if (parts.length > 2) {
-          tenantSlug = parts[0];
-        } else if (parts.length === 2) {
-          tenantSlug = parts[0];
-        } else {
-          tenantSlug = 'mathentics';
+        let tenantSlug = 'mathentics'; // Default tenant
+
+        if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+          const parts = hostname.split('.');
+          // Check for subdomain (e.g., test.mathentics.com)
+          // But exclude 'www' as it's not a tenant
+          if (parts.length >= 3 && parts[0] !== 'www') {
+            tenantSlug = parts[0]; // Override with subdomain if exists
+          }
         }
-        if (tenantSlug) {
-          redirectTo.searchParams.set("tenant_slug", tenantSlug);
-        }
+
+        redirectTo.searchParams.set("tenant_slug", tenantSlug);
       }
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: redirectTo.toString(),
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
+          queryParams: { access_type: 'offline', prompt: 'consent' },
         },
       });
       if (error) throw error;
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred with Google Sign In");
+    } catch (err: any) {
+      setError(err?.message || "Google Sign In failed");
       setIsLoading(false);
     }
   };
@@ -235,9 +143,7 @@ function LoginForm() {
       className="w-full max-w-[1000px] bg-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col md:flex-row min-h-[580px] border border-slate-100"
     >
       {/* LEFT PANEL: Features */}
-      {/* LEFT PANEL: Features */}
       <div className="hidden md:flex flex-col w-[45%] bg-[#F8FAFC] p-10 lg:p-12 relative overflow-hidden border-r border-slate-100">
-        {/* Background Decorations */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
           <div className="absolute top-[-100px] right-[-100px] w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl" />
           <div className="absolute bottom-[-100px] left-[-100px] w-64 h-64 bg-blue-500/5 rounded-full blur-3xl" />
@@ -250,13 +156,11 @@ function LoginForm() {
           </div>
 
           <div className="space-y-6">
-            {/* Learn */}
             <div className="flex gap-4 p-4 rounded-2xl transition-all duration-300 hover:bg-white hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 border border-transparent hover:border-indigo-100 group cursor-default">
               <div className="relative shrink-0">
                 <div className="w-12 h-12 rounded-2xl bg-white border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm group-hover:scale-110 transition-transform duration-300 z-10 relative">
                   <BookOpen className="w-6 h-6" />
                 </div>
-                {/* Connecting Line */}
                 <div className="absolute top-12 left-6 w-0.5 h-12 bg-indigo-100/50" />
               </div>
               <div className="pt-1">
@@ -265,13 +169,11 @@ function LoginForm() {
               </div>
             </div>
 
-            {/* Apply */}
             <div className="flex gap-4 p-4 rounded-2xl transition-all duration-300 hover:bg-white hover:shadow-xl hover:shadow-pink-500/10 hover:-translate-y-1 border border-transparent hover:border-pink-100 group cursor-default">
               <div className="relative shrink-0">
                 <div className="w-12 h-12 rounded-2xl bg-white border border-pink-100 flex items-center justify-center text-pink-600 shadow-sm group-hover:scale-110 transition-transform duration-300 z-10 relative">
                   <Calculator className="w-6 h-6" />
                 </div>
-                {/* Connecting Line */}
                 <div className="absolute top-12 left-6 w-0.5 h-12 bg-pink-100/50" />
               </div>
               <div className="pt-1">
@@ -280,7 +182,6 @@ function LoginForm() {
               </div>
             </div>
 
-            {/* Grow */}
             <div className="flex gap-4 p-4 rounded-2xl transition-all duration-300 hover:bg-white hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 border border-transparent hover:border-emerald-100 group cursor-default">
               <div className="relative shrink-0">
                 <div className="w-12 h-12 rounded-2xl bg-white border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm group-hover:scale-110 transition-transform duration-300 z-10 relative">
