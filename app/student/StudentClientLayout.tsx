@@ -18,27 +18,15 @@ export default function StudentClientLayout({ children }: { children: React.Reac
         // or if the user is not a student.
         if (!isLoading) {
             if (!profile) {
+                // Profile is null - either not logged in or session conflict
+                // Clear any stale cache and redirect to login
+                console.log("No profile found, redirecting to login");
                 router.replace("/auth/login");
             } else if (profile.role !== "student") {
                 router.replace("/admin/dashboard");
             }
         }
     }, [profile, isLoading, router]);
-
-    // Add timeout to prevent infinite loading
-    useEffect(() => {
-        if (isLoading) {
-            const timeout = setTimeout(() => {
-                // If still loading after 10 seconds, redirect to login
-                if (isLoading && !profile) {
-                    console.error("Profile fetch timeout - redirecting to login");
-                    router.replace("/auth/login?error=Session expired. Please login again.");
-                }
-            }, 10000); // 10 seconds timeout
-
-            return () => clearTimeout(timeout);
-        }
-    }, [isLoading, profile, router]);
 
     const links = [
         { icon: "home", label: "Dashboard", href: "/student/dashboard" },
@@ -85,15 +73,34 @@ export default function StudentClientLayout({ children }: { children: React.Reac
         { icon: "settings", label: "Settings", href: "/student/settings" },
     ];
 
-    // If loading and NO data (initial fetch), show loading.
-    // If we have cached data, we skip this and render immediately.
-    // Also show error state if fetch failed
-    if ((isLoading && !profile) || error) {
+    // Show loading state only while actively fetching
+    // If error occurred, show error message instead of infinite loading
+    if (isLoading && !profile) {
         return (
             <div className="flex flex-col items-center justify-center h-screen bg-white">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-4"></div>
                 <p className="text-sm font-medium text-slate-600 animate-pulse">
-                    {error ? "Authentication failed. Redirecting..." : "Verifying secure access..."}
+                    Verifying secure access...
+                </p>
+            </div>
+        );
+    }
+
+    // If error occurred, show error and redirect
+    if (error) {
+        console.error("Authentication error:", error);
+        return (
+            <div className="flex flex-col items-center justify-center h-screen bg-white">
+                <div className="text-red-500 mb-4">
+                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <p className="text-sm font-medium text-slate-600 mb-2">
+                    Authentication failed
+                </p>
+                <p className="text-xs text-slate-500">
+                    Redirecting to login...
                 </p>
             </div>
         );
