@@ -9,6 +9,7 @@ import { Menu, X, ChevronRight, User, LogOut, LayoutDashboard } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCurrentUser } from "@/hooks/student/useCurrentUser";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -21,12 +22,13 @@ import { RewardDisplay } from "@/components/RewardDisplay";
 export const Header = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [user, setUser] = useState<any>(null);
-    const [userProfile, setUserProfile] = useState<any>(null);
-    const [userRole, setUserRole] = useState<string | null>(null);
     const pathname = usePathname();
     const router = useRouter();
     const supabase = createClient();
+    const queryClient = useQueryClient();
+
+    // Use the same hook as everywhere else for consistency
+    const { data: userProfile, isLoading: isUserLoading } = useCurrentUser();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -36,56 +38,6 @@ export const Header = () => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    useEffect(() => {
-        // Check authentication status
-        const checkAuth = async () => {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                setUser(user);
-
-                if (user) {
-                    // Fetch user profile including avatar
-                    const { data: profile } = await supabase
-                        .from("profiles")
-                        .select("role, avatar_url, full_name")
-                        .eq("id", user.id)
-                        .single();
-                    setUserProfile(profile);
-                    setUserRole(profile?.role || null);
-                }
-            } catch (error) {
-                // Silently handle auth errors (e.g. no session)
-                console.warn("Auth check:", error);
-                setUser(null);
-            }
-        };
-
-        checkAuth();
-
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user || null);
-            if (session?.user) {
-                supabase
-                    .from("profiles")
-                    .select("role, avatar_url, full_name")
-                    .eq("id", session.user.id)
-                    .single()
-                    .then(({ data }) => {
-                        setUserProfile(data);
-                        setUserRole(data?.role || null);
-                    });
-            } else {
-                setUserProfile(null);
-                setUserRole(null);
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }, []);
-
-    const queryClient = useQueryClient();
-
     const handleSignOut = async () => {
         await supabase.auth.signOut();
         // Clear React Query cache to prevent stale user data
@@ -94,7 +46,7 @@ export const Header = () => {
     };
 
     const getDashboardLink = () => {
-        if (userRole === "admin") return "/admin/dashboard";
+        if (userProfile?.role === "admin" || userProfile?.role === "creator") return "/admin/dashboard";
         return "/student/dashboard";
     };
 
@@ -187,7 +139,7 @@ export const Header = () => {
 
                     {/* Auth Buttons / Profile */}
                     <div className="hidden md:flex items-center gap-3">
-                        {user ? (
+                        {userProfile ? (
                             <>
                                 {/* Dashboard Button */}
                                 <Link href={getDashboardLink()}>
@@ -201,10 +153,10 @@ export const Header = () => {
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" className="p-0 w-10 h-10 rounded-full hover:ring-2 hover:ring-indigo-200 transition-all">
-                                            {userProfile?.avatar_url ? (
+                                            {userProfile?.avatarUrl ? (
                                                 <Image
-                                                    src={userProfile.avatar_url}
-                                                    alt={userProfile?.full_name || "Profile"}
+                                                    src={userProfile.avatarUrl}
+                                                    alt={userProfile?.fullName || "Profile"}
                                                     width={40}
                                                     height={40}
                                                     className="w-10 h-10 rounded-full object-cover shadow-md hover:shadow-lg transition-shadow"
@@ -212,7 +164,7 @@ export const Header = () => {
                                                 />
                                             ) : (
                                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-md hover:shadow-lg transition-shadow">
-                                                    {user.email?.[0].toUpperCase()}
+                                                    {userProfile?.email?.[0].toUpperCase()}
                                                 </div>
                                             )}
                                         </Button>
@@ -221,25 +173,25 @@ export const Header = () => {
                                         {/* User Info Header */}
                                         <div className="px-3 py-3 mb-2 border-b border-gray-100">
                                             <div className="flex items-center gap-3">
-                                                {userProfile?.avatar_url ? (
+                                                {userProfile?.avatarUrl ? (
                                                     <Image
-                                                        src={userProfile.avatar_url}
-                                                        alt={userProfile?.full_name || "Profile"}
+                                                        src={userProfile.avatarUrl}
+                                                        alt={userProfile?.fullName || "Profile"}
                                                         width={40}
                                                         height={40}
                                                         className="w-10 h-10 rounded-full object-cover shadow-md"
                                                     />
                                                 ) : (
                                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
-                                                        {user.email?.[0].toUpperCase()}
+                                                        {userProfile?.email?.[0].toUpperCase()}
                                                     </div>
                                                 )}
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-semibold text-gray-900 truncate">
-                                                        {user.email?.split('@')[0]}
+                                                        {userProfile?.fullName || userProfile?.email?.split('@')[0]}
                                                     </p>
                                                     <p className="text-xs text-gray-500 truncate">
-                                                        {user.email}
+                                                        {userProfile?.email}
                                                     </p>
                                                 </div>
                                             </div>
@@ -329,7 +281,7 @@ export const Header = () => {
                                     </Link>
                                 ))}
                                 <div className="pt-4 border-t border-slate-100">
-                                    {user ? (
+                                    {userProfile ? (
                                         <div className="space-y-2">
                                             <Link href={getDashboardLink()} onClick={() => setIsMobileMenuOpen(false)}>
                                                 <Button variant="outline" className="w-full justify-start gap-2 border-slate-200 text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600">

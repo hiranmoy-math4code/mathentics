@@ -11,7 +11,7 @@ import { StudentAppContainer } from "@/components/StudentAppContainer";
 export default function StudentClientLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
-    const { data: profile, isLoading } = useCurrentUser();
+    const { data: profile, isLoading, error } = useCurrentUser();
 
     useEffect(() => {
         // Only redirect if we have definitively finished loading and there is no user,
@@ -24,6 +24,21 @@ export default function StudentClientLayout({ children }: { children: React.Reac
             }
         }
     }, [profile, isLoading, router]);
+
+    // Add timeout to prevent infinite loading
+    useEffect(() => {
+        if (isLoading) {
+            const timeout = setTimeout(() => {
+                // If still loading after 10 seconds, redirect to login
+                if (isLoading && !profile) {
+                    console.error("Profile fetch timeout - redirecting to login");
+                    router.replace("/auth/login?error=Session expired. Please login again.");
+                }
+            }, 10000); // 10 seconds timeout
+
+            return () => clearTimeout(timeout);
+        }
+    }, [isLoading, profile, router]);
 
     const links = [
         { icon: "home", label: "Dashboard", href: "/student/dashboard" },
@@ -72,26 +87,20 @@ export default function StudentClientLayout({ children }: { children: React.Reac
 
     // If loading and NO data (initial fetch), show loading.
     // If we have cached data, we skip this and render immediately.
-    if (isLoading && !profile) {
+    // Also show error state if fetch failed
+    if ((isLoading && !profile) || error) {
         return (
             <div className="flex flex-col items-center justify-center h-screen bg-white">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-4"></div>
-                <p className="text-sm font-medium text-slate-600 animate-pulse">Verifying secure access...</p>
+                <p className="text-sm font-medium text-slate-600 animate-pulse">
+                    {error ? "Authentication failed. Redirecting..." : "Verifying secure access..."}
+                </p>
             </div>
         );
     }
 
     // If not loading but no profile (will redirect in effect), allow render or return null to prevent flash
     if (!profile) return null;
-
-    // Adapt the profile object for AdminClientLayout if necessary
-    const layoutProfile = {
-        id: profile.id,
-        full_name: profile.fullName,
-        email: profile.email,
-        role: profile.role,
-        avatar_url: profile.avatarUrl || null,
-    };
 
     // Check if we're on a payment route - if so, render children directly
     const isPaymentRoute = pathname?.startsWith('/student/payment');
@@ -103,7 +112,8 @@ export default function StudentClientLayout({ children }: { children: React.Reac
                 <>{children}</>
             ) : (
                 // For other routes, use the SPA container
-                <AdminClientLayout profile={layoutProfile} links={links}>
+                // Pass profile directly - AdminClientLayout will use it
+                <AdminClientLayout profile={profile} links={links}>
                     <StudentAppContainer initialRoute={pathname} />
                 </AdminClientLayout>
             )}

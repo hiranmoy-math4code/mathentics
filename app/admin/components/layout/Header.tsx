@@ -240,10 +240,10 @@ export default function Header({
             onClick={() => setOpenProfile(!openProfile)}
             className="flex items-center gap-3 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
           >
-            {profile?.avatar_url ? (
+            {profile?.avatarUrl ? (
               <Image
-                src={profile.avatar_url}
-                alt={profile?.full_name || "Profile"}
+                src={profile.avatarUrl}
+                alt={profile?.fullName || "Profile"}
                 width={32}
                 height={32}
                 className="w-8 h-8 rounded-full object-cover shadow-md"
@@ -251,12 +251,12 @@ export default function Header({
               />
             ) : (
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
-                {profile?.full_name?.[0] || "A"}
+                {profile?.fullName?.[0] || "A"}
               </div>
             )}
             <div className="hidden md:block text-left mr-2">
               <p className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-none">
-                {profile?.full_name || "Admin"}
+                {profile?.fullName || "Admin"}
               </p>
               <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                 {profile?.role || "Administrator"}
@@ -275,7 +275,7 @@ export default function Header({
                 className="absolute right-0 top-14 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden origin-top-right"
               >
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800">
-                  <p className="font-medium text-slate-900 dark:text-white">{profile?.full_name}</p>
+                  <p className="font-medium text-slate-900 dark:text-white">{profile?.fullName}</p>
                   <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{profile?.email}</p>
                 </div>
                 <div className="p-2">
