@@ -731,10 +731,14 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
             return
         }
 
-        // Try to auto-entered fullscreen (might be blocked by browser, which is fine)
+        // Try to auto-enter fullscreen (might be blocked by browser, which is fine)
         if (examContainerRef.current && !document.fullscreenElement) {
-            toggleFullscreen().catch(() => {
-                // Ignore errors if browser blocks auto-fullscreen
+            toggleFullscreen().catch((err) => {
+                // Notify user if browser blocks auto-fullscreen
+                console.warn("Fullscreen blocked:", err);
+                toast.info("💡 Tip: Enable fullscreen for better exam experience", {
+                    duration: 3000,
+                });
             })
         }
     }, [sessionData])

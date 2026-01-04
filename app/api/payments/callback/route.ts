@@ -19,6 +19,18 @@ export async function POST(req: NextRequest) {
         const payload = await req.json();
         console.log("🔔 Webhook received:", JSON.stringify(payload, null, 2));
 
+        // ============================================================================
+        // HANDLE CASHFREE TEST WEBHOOK
+        // ============================================================================
+        // Cashfree sends test webhooks without transaction data
+        if (payload.type === "TEST_WEBHOOK" || !payload.data) {
+            console.log("✅ Cashfree test webhook received - responding with 200 OK");
+            return NextResponse.json({
+                received: true,
+                message: "Test webhook received successfully"
+            }, { status: 200 });
+        }
+
         // Detect gateway type from payload structure
         const isCashfree = payload.type?.includes("WEBHOOK") || payload.data?.order;
         const isPhonePe = payload.merchantOrderId || payload.transactionId;

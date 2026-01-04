@@ -33,10 +33,6 @@ function PaymentVerifyContent() {
             try {
                 const supabase = createClient();
 
-                // Poll for status change (max 5 attempts)
-                let attempts = 0;
-                const maxAttempts = 5;
-
                 const checkStatus = async () => {
                     // Call our new generic status check API
                     const response = await fetch("/api/payments/verify", {
@@ -62,20 +58,28 @@ function PaymentVerifyContent() {
                     return false;
                 };
 
-                const interval = setInterval(async () => {
-                    attempts++;
-                    const isDone = await checkStatus();
-                    if (isDone || attempts >= maxAttempts) {
-                        clearInterval(interval);
-                        if (!isDone) {
-                            setStatus("failed");
-                            setMessage("Payment verification timed out. Please check 'My Courses' or contact support.");
-                        }
-                    }
-                }, 2000);
+                // ✅ OPTIMIZED: Exponential backoff polling
+                // Fast payments: verified in 500ms
+                // Slow payments: covered up to 15.5 seconds
+                const delays = [500, 1000, 2000, 4000, 8000]; // milliseconds
+                let isDone = false;
 
                 // Initial check
-                await checkStatus();
+                isDone = await checkStatus();
+
+                // Exponential backoff polling
+                for (let i = 0; i < delays.length && !isDone; i++) {
+                    await new Promise(resolve => setTimeout(resolve, delays[i]));
+                    isDone = await checkStatus();
+                }
+
+                // If still not done after all attempts
+                if (!isDone) {
+                    setStatus("failed");
+                    setMessage("Payment verification timed out. Please check 'My Courses' or contact support.");
+                }
+
+                // ✅ CLEANUP: No interval to clear (using delays instead)
 
             } catch (error) {
                 console.error("Verification error:", error);

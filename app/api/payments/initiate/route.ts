@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { initiatePayment } from "@/lib/payments/gateway-factory";
 import { headers } from "next/headers";
+import { paymentRateLimiter, getRateLimitIdentifier } from "@/lib/rate-limiter";
 
 // export const runtime = 'edge';
 
@@ -33,6 +34,32 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(
                 { success: false, error: "Unauthorized" },
                 { status: 401 }
+            );
+        }
+
+        // ========================================================================
+        // STEP 1.5: Rate Limiting (NEW - Prevents abuse)
+        // ========================================================================
+        const identifier = getRateLimitIdentifier(user.id, request);
+        const { allowed, remaining, resetTime } = paymentRateLimiter.check(identifier);
+
+        if (!allowed) {
+            const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Too many payment attempts. Please try again later.",
+                    retryAfter
+                },
+                {
+                    status: 429,
+                    headers: {
+                        'Retry-After': retryAfter.toString(),
+                        'X-RateLimit-Limit': '5',
+                        'X-RateLimit-Remaining': '0',
+                        'X-RateLimit-Reset': new Date(resetTime).toISOString(),
+                    }
+                }
             );
         }
 
@@ -211,13 +238,20 @@ export async function POST(request: NextRequest) {
             .eq("id", payment.id);
 
         // ========================================================================
-        // STEP 12: Return Success Response
+        // STEP 12: Return Success Response (with rate limit headers)
         // ========================================================================
-        return NextResponse.json({
+        const response = NextResponse.json({
             success: true,
             paymentUrl: paymentResult.paymentUrl,
             transactionId: merchantTransactionId,
         });
+
+        // Add rate limit headers for client awareness
+        response.headers.set('X-RateLimit-Limit', '5');
+        response.headers.set('X-RateLimit-Remaining', remaining.toString());
+        response.headers.set('X-RateLimit-Reset', new Date(resetTime).toISOString());
+
+        return response;
 
     } catch (error: any) {
         console.error("❌ Payment initiation error:", error);
