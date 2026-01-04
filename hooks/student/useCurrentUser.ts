@@ -11,7 +11,7 @@ interface UserProfile {
     avatarUrl?: string | null;
 }
 
-export function useCurrentUser() {
+export function useCurrentUser(options?: { enabled?: boolean }) {
     const supabase = createClient();
 
     return useQuery({
@@ -46,5 +46,6 @@ export function useCurrentUser() {
         retry: 3,
         retryDelay: (attemptIndex) => Math.min(200 * 2 ** attemptIndex, 2000), // 200ms, 400ms, 800ms...
         staleTime: 1000 * 60 * 5, // 5 minutes
+        enabled: options?.enabled !== false, // Default to true, can be disabled
     });
 }

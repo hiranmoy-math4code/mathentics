@@ -8,19 +8,29 @@ import Header from "./components/layout/Header";
 import MobileNav from "./components/layout/MobileNav";
 import { CommunityModalProvider } from "@/context/CommunityModalContext";
 import { CommunityModal } from "@/components/community/CommunityModal";
+import { useCurrentUser } from "@/hooks/student/useCurrentUser";
 
 export default function AdminClientLayout({
-  profile,
+  profile: providedProfile,
   links,
   children,
 }: {
-  profile: any; // Profile is now required, passed from parent
+  profile?: any; // Optional - if not provided, will fetch via hook
   links: any;
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [theme, setTheme] = useState("light");
+
+  // Fetch profile only if not provided (for admin layout)
+  // Student layout provides profile directly to avoid duplicate fetch
+  const { data: fetchedProfile, isLoading } = useCurrentUser({
+    enabled: !providedProfile, // Only fetch if profile not provided
+  });
+
+  // Use provided profile or fetched profile
+  const profile = providedProfile || fetchedProfile;
 
   const chartData = [
     { name: "Mon", users: 400, exams: 240 },
@@ -70,7 +80,16 @@ export default function AdminClientLayout({
     redirect("/auth/login");
   };
 
-  // Profile is guaranteed to exist (passed from parent)
+  // Show loading if fetching profile (admin layout case)
+  if (isLoading && !profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-gray-600">Loading Dashboard...</div>
+      </div>
+    );
+  }
+
+  // Profile is guaranteed to exist (either provided or fetched)
   return (
     <CommunityModalProvider>
       <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-black transition-colors duration-700">
