@@ -9,6 +9,7 @@ import { Loader2, Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff, BookOpen, Ca
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/student/useCurrentUser";
+import { useQueryClient } from "@tanstack/react-query";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -24,6 +25,23 @@ function LoginForm() {
 
   // State to show manual navigation button if redirect takes too long (common on mobile)
   const [showManualNav, setShowManualNav] = useState(false);
+  // Force fresh auth check on mount (handle stale cache from mobile/back-button)
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    // Invalidate and RESET the user query to ensure we don't use stale data
+    // This solves the issue where a user might be logged out but the cache still thinks they are logged in
+    queryClient.removeQueries({ queryKey: ["current-user"] });
+    queryClient.invalidateQueries({ queryKey: ["current-user"] });
+  }, [queryClient]);
+
+  // State to force show login form if auth check hangs
+  const [forceShowForm, setForceShowForm] = useState(false);
+
+  // Force show form after 1.5 seconds if auth check is stuck
+  useEffect(() => {
+    const timer = setTimeout(() => setForceShowForm(true), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -65,19 +83,17 @@ function LoginForm() {
     return () => clearTimeout(timeoutId);
   }, [userProfile, isUserLoading, router, next]);
 
-  // Show loading while checking authentication
-  // We only show loader if the hook is loading OR if we found a user and are deciding where to redirect
-  // (Note: userProfile being present means we are technically "loading" the redirect)
-  if (isUserLoading || userProfile) {
+  // Case 1: User is confirmed logged in -> Show Redirecting Screen
+  if (userProfile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
         <p className="text-sm text-muted-foreground animate-pulse">
-          {userProfile ? "Redirecting you..." : "Checking authentication..."}
+          Redirecting you...
         </p>
 
         {/* Fallback for mobile networks that might hang on router.push */}
-        {showManualNav && userProfile && (
+        {showManualNav && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -95,6 +111,17 @@ function LoginForm() {
       </div>
     );
   }
+
+  // Case 2: Still loading AND haven't timed out yet -> Show Checking Screen
+  if (isUserLoading && !forceShowForm) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  // Case 3: Not logged in OR Loading timed out -> Show Login Form (Fallthrough)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
