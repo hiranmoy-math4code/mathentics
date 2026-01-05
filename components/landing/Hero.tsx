@@ -115,7 +115,7 @@ export const Hero: React.FC = () => {
                     >
                       <X size={24} />
                     </button>
-                    <VideoPlayer url="https://www.youtube.com/watch?v=WfgaS4GynwE" />
+                    <VideoPlayer url="https://youtu.be/fdPXD2yvT90?si=Kav31xbSJcKOn1m8" />
                   </motion.div>
                 </motion.div>
               )}

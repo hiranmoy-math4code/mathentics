@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { redirect } from "next/navigation";
 import Sidebar from "./components/layout/Sidebar";
 import Header from "./components/layout/Header";
 import MobileNav from "./components/layout/MobileNav";
 import { CommunityModalProvider } from "@/context/CommunityModalContext";
 import { CommunityModal } from "@/components/community/CommunityModal";
 import { useCurrentUser } from "@/hooks/student/useCurrentUser";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function AdminClientLayout({
   profile: providedProfile,
@@ -19,9 +20,11 @@ export default function AdminClientLayout({
   links: any;
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [theme, setTheme] = useState("light");
+  const queryClient = useQueryClient();
 
   // Fetch profile only if not provided (for admin layout)
   // Student layout provides profile directly to avoid duplicate fetch
@@ -74,10 +77,20 @@ export default function AdminClientLayout({
   };
 
 
+
+
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    redirect("/auth/login");
+
+    // CRITICAL: Clear ALL cache to prevent data leaks between users
+    queryClient.clear();
+
+    // Replace history to prevent back button issues
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', '/auth/login');
+    }
+    router.push('/auth/login');
   };
 
   // Show loading if fetching profile (admin layout case)

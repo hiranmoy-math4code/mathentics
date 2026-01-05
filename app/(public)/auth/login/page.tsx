@@ -31,6 +31,9 @@ function LoginForm() {
   }, [router, next]);
 
   // Instant redirect for logged-in users
+  // NOTE: This is now handled server-side in middleware for better performance
+  // Server-side redirect prevents flickering and is faster
+  /*
   useEffect(() => {
     if (hasRedirected.current || !userProfile || isUserLoading) return;
     hasRedirected.current = true;
@@ -47,7 +50,10 @@ function LoginForm() {
           .maybeSingle();
 
         const isAdmin = data?.role === 'admin' || data?.role === 'creator';
-        routerRef.current.replace(nextRef.current || (isAdmin ? '/admin/dashboard' : '/student/dashboard'));
+        const targetPath = nextRef.current || (isAdmin ? '/admin/dashboard' : '/student/dashboard');
+        
+        // Use router.replace only - it handles history correctly
+        routerRef.current.replace(targetPath);
       } catch {
         routerRef.current.replace('/student/dashboard');
       }
@@ -55,9 +61,10 @@ function LoginForm() {
 
     redirect();
   }, [userProfile, isUserLoading]);
+  */
 
-  // Show spinner while checking or redirecting
-  if (isUserLoading || userProfile) {
+  // Show spinner while checking auth (server will redirect if logged in)
+  if (isUserLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
@@ -77,21 +84,13 @@ function LoginForm() {
       if (authError) throw authError;
       if (!data.user) throw new Error("No user data");
 
+      // CRITICAL: Don't redirect here - let middleware handle it
+      // Just reload the page and middleware will redirect to correct dashboard
       if (next) {
-        router.replace(next);
-        return;
+        window.location.href = next;
+      } else {
+        window.location.href = '/student/dashboard';
       }
-
-      const { data: memberships } = await supabase
-        .from('user_tenant_memberships')
-        .select('role')
-        .eq('user_id', data.user.id)
-        .eq('is_active', true)
-        .limit(1)
-        .single();
-
-      const isAdmin = memberships?.role === 'admin' || memberships?.role === 'creator';
-      router.replace(isAdmin ? '/admin/dashboard' : '/student/dashboard');
     } catch (err: any) {
       setError(err?.message || "Invalid credentials");
       setIsLoading(false);

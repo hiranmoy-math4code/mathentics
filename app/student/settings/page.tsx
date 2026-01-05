@@ -6,6 +6,7 @@ import ChangePassword from '@/components/settings/ChangePassword';
 import ForgotPassword from '@/components/settings/ForgotPassword';
 import toast, { Toaster } from 'react-hot-toast';
 import { createClient } from "@/lib/supabase/client"
+import { useQueryClient } from '@tanstack/react-query';
 import { motion, Variants } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -18,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default function StudentSettingsPage() {
   const supabase = createClient()
+  const queryClient = useQueryClient();
   const { data: profile, isLoading, error } = useProfileQuery();
   const updateMutation = useUpdateProfileMutation();
 
@@ -45,7 +47,15 @@ export default function StudentSettingsPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/';
+
+    // CRITICAL: Clear ALL cache to prevent data leaks between users
+    queryClient.clear();
+
+    // Replace history to prevent back button issues
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', '/');
+      window.location.href = '/'; // Hard reload to clear all state
+    }
   };
 
   if (isLoading) {

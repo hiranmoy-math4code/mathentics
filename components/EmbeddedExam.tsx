@@ -482,14 +482,14 @@ export function PreviousResultView({
                             Back to Attempts
                         </Button>
                     )}
-                    <Button
+                    {/* <Button
                         onClick={() => window.location.reload()}
                         variant="secondary"
                         className="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 shadow-md"
                         size="lg"
                     >
                         Continue Learning
-                    </Button>
+                    </Button> */}
                 </motion.div>
 
                 {/* 2-Column Layout: Section Analysis + Leaderboard */}

@@ -30,10 +30,10 @@ export default function StudentClientLayout({ children }: { children: React.Reac
 
     const links = [
         { icon: "home", label: "Dashboard", href: "/student/dashboard" },
-        { icon: "bookopen", label: "My Courses", href: "/student/my-courses" },
-        { icon: "layers", label: "All Courses", href: "/student/all-courses" },
         { icon: "trendingup", label: "My Series", href: "/student/my-series" },
         { icon: "layers", label: "All Series", href: "/student/all-test-series" },
+        { icon: "bookopen", label: "My Courses", href: "/student/my-courses" },
+        { icon: "layers", label: "All Courses", href: "/student/all-courses" },
         { icon: "messagesquare", label: "Community", href: "#", onClick: "openCommunity" },
         {
             icon: "award",

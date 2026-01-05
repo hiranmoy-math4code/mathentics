@@ -40,9 +40,15 @@ export const Header = () => {
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
-        // Clear React Query cache to prevent stale user data
-        queryClient.invalidateQueries({ queryKey: ["current-user"] });
-        router.push("/");
+
+        // CRITICAL: Clear ALL cache to prevent data leaks between users
+        queryClient.clear();
+
+        // Replace history to prevent back button issues
+        if (typeof window !== 'undefined') {
+            window.history.replaceState(null, '', '/');
+        }
+        router.replace("/");
     };
 
     const getDashboardLink = () => {

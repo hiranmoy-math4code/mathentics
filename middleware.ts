@@ -4,213 +4,169 @@ import { NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 
 // ============================================================================
-// MULTI-TENANT: In-memory cache for tenant lookups (Cloudflare Pages optimization)
+// SINGLE-TENANT: Direct environment variable lookup (Zero DB queries)
 // ============================================================================
-const tenantCache = new Map<string, { id: string; expiry: number }>();
+// For single-tenant deployments, tenant ID is always in environment variables
+// This eliminates database lookups entirely for maximum performance
 
-// Cache TTL: 15 minutes in production, 5 minutes in development
-// Longer cache in production reduces DB load significantly at scale
-const CACHE_TTL = process.env.NODE_ENV === 'production'
-  ? 15 * 60 * 1000  // 15 minutes (production)
-  : 5 * 60 * 1000;  // 5 minutes (development)
+/**
+ * getTenantId - Retrieves tenant ID from environment variables
+ * 
+ * PERFORMANCE: Zero database queries, instant resolution
+ * 
+ * @returns Tenant ID from NEXT_PUBLIC_TENANT_ID or null if not set
+ */
+function getTenantId(): string | null {
+  const tenantId = process.env.NEXT_PUBLIC_TENANT_ID
 
-async function getTenantFromHostname(hostname: string, supabase: any): Promise<string | null> {
-  // 0. PERFORMANCE OVERRIDE: process.env.NEXT_PUBLIC_TENANT_ID
-  // If a static tenant ID is set in environment, use it immediately.
-  // This bypasses database lookups entirely for single-tenant deployments.
-  if (process.env.NEXT_PUBLIC_TENANT_ID) {
-    return process.env.NEXT_PUBLIC_TENANT_ID;
+  if (!tenantId) {
+    console.error('❌ NEXT_PUBLIC_TENANT_ID not found in environment variables!')
+    console.error('Please set NEXT_PUBLIC_TENANT_ID in your .env.local file')
+    return null
   }
 
-  // Check cache first (reduces DB queries by ~90%)
-  const cached = tenantCache.get(hostname);
-  if (cached && cached.expiry > Date.now()) {
-    return cached.id;
+  // Optional: Log in development to verify it's working
+  if (process.env.NODE_ENV === 'development') {
+    console.log('✅ Using tenant ID from environment:', tenantId)
   }
 
-  // Extract subdomain or use full domain
-  // Examples: 
-  // - mathentics.com -> mathentics
-  // - tenant-a.localhost:3000 -> tenant-a
-  // - www.mathentics.com -> mathentics (after normalization)
-
-  // Normalize: remove www.
-  const normalizedHost = hostname.replace(/^www\./, '');
-  const parts = normalizedHost.split('.');
-
-  // Logic: 
-  // 1. If localhost (parts=1), use strictly localhost (or handle dev mode)
-  // 2. If domain.com (parts=2), use domain.com (will check custom_domain)
-  // 3. If sub.domain.com (parts>2), use sub (check slug)
-
-  let subdomain = normalizedHost; // Default to full host for custom_domain check
-
-  if (parts.length > 2) {
-    subdomain = parts[0]; // Is a subdomain
-  } else if (parts.length === 2) {
-    // domain.com - might be a custom domain, or we might want to try parts[0] as slug?
-    // Usually better to leave as full host to match custom_domain, 
-    // BUT if you want mathentics.com -> mathentics slug, you can add that fallback logic in DB query logic.
-    // For now, let's keep it as is, but rely on 'normalizedHost' for cleaner lookups.
-    subdomain = normalizedHost.split(':')[0];
-  } else {
-    // localhost
-    subdomain = normalizedHost.split(':')[0];
-  }
-
-  try {
-    // Query tenants table
-    const { data: tenant } = await supabase
-      .from('tenants')
-      .select('id')
-      .or(`slug.eq.${subdomain},custom_domain.eq.${hostname}`)
-      .eq('is_active', true)
-      .single();
-
-    if (tenant) {
-      // Cache the result
-      tenantCache.set(hostname, { id: tenant.id, expiry: Date.now() + CACHE_TTL });
-      return tenant.id;
-    }
-  } catch (error) {
-    console.error('Tenant lookup error:', error);
-  }
-
-  return null;
+  return tenantId
 }
+
+// ============================================================================
+// MAIN MIDDLEWARE
+// ============================================================================
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl
 
+  // ============================================================================
+  // 1. EARLY RETURN: Skip static assets and special files
+  // ============================================================================
   if (
-    pathname.startsWith('/_next/static') || // static assets
-    pathname.startsWith('/_next/image') ||  // optimized images
+    pathname.startsWith('/_next/static') || // Next.js static files
+    pathname.startsWith('/_next/image') ||  // Next.js image optimization
     pathname === '/favicon.ico' ||
     pathname === '/robots.txt' ||
+    pathname === '/manifest.json' ||
+    // Skip files with extensions (except API routes and RSC)
     (pathname.includes('.') && !pathname.startsWith('/api') && !search.includes('_rsc'))
   ) {
     return NextResponse.next()
   }
-  // 2. MULTI-TENANT: Get hostname and lookup tenant
-  // We do this BEFORE skipping API/_rsc because they might need the tenant header
-  const hostname = request.headers.get('host') || 'localhost:3000';
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return request.cookies.getAll() },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-        },
-      },
+  // ============================================================================
+  // 2. TENANT RESOLUTION: Get tenant ID from environment
+  // ============================================================================
+  // PERFORMANCE: Zero database queries - instant tenant resolution
+  const tenantId = getTenantId()
+
+  // ============================================================================
+  // 3. API ROUTES: Early return with tenant header
+  // ============================================================================
+  // API routes handle their own auth, we just pass the tenant header
+  if (pathname.startsWith('/api') || search.includes('_rsc=')) {
+    const response = NextResponse.next()
+    if (tenantId) {
+      response.headers.set("x-tenant-id", tenantId)
     }
-  )
-
-  const tenantId = await getTenantFromHostname(hostname, supabase);
-
-  // 3. Prepare Response Headers
-  const requestHeaders = new Headers(request.headers)
-  requestHeaders.set("x-url", pathname)
-
-  if (tenantId) {
-    requestHeaders.set("x-tenant-id", tenantId)
+    response.headers.set("x-url", pathname)
+    return response
   }
 
-  // 4. PARTIAL SKIP: API routes and RSC requests
-  // They normally handle their own errors, but we MUST pass the tenant header
-  if (
-    pathname.startsWith('/api') ||
-    search.includes('_rsc=')
-  ) {
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    })
-  }
-
-  // 5. Handle Tenant Not Found (for main pages)
+  // ============================================================================
+  // 4. TENANT NOT FOUND: Show error page
+  // ============================================================================
   if (!tenantId && !pathname.startsWith('/404-tenant-not-found')) {
-    return NextResponse.rewrite(new URL('/404-tenant-not-found', request.url));
+    return NextResponse.rewrite(new URL('/404-tenant-not-found', request.url))
   }
 
-  // 6. Session Update (for Auth)
-  await updateSession(request)
+  // ============================================================================
+  // 5. SESSION UPDATE & AUTH: Get response and user data
+  // ============================================================================
+  // CRITICAL: updateSession returns BOTH response (with cookies) AND user data
+  // This prevents creating multiple Supabase clients (cookie desync risk)
+  // 
+  // updateSession handles:
+  // - Session refresh and cookie updates
+  // - Auth page redirects (logged-in users away from /auth)
+  // - Protected route redirects (non-logged-in users to /auth/login)
+  const { response, user } = await updateSession(request, tenantId)
 
-  // 7. Redirect logged-in users away from auth pages
-  if (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/sign-up')) {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (user) {
-        // User is logged in, check their role and redirect
-        const { data: membership } = await supabase
-          .from('user_tenant_memberships')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('tenant_id', tenantId)
-          .eq('is_active', true)
-          .limit(1)
-          .maybeSingle()
-
-        const isAdmin = membership?.role === 'admin' || membership?.role === 'creator'
-        const redirectUrl = request.nextUrl.clone()
-        redirectUrl.pathname = isAdmin ? '/admin/dashboard' : '/student/dashboard'
-        return NextResponse.redirect(redirectUrl)
-      }
-    } catch (error) {
-      console.error('Auth redirect error:', error)
-    }
+  // ============================================================================
+  // 6. ADD TENANT HEADERS: Merge into response
+  // ============================================================================
+  // The response might be a redirect or a next() response
+  // We add tenant headers to whatever updateSession returned
+  if (tenantId) {
+    response.headers.set("x-tenant-id", tenantId)
   }
+  response.headers.set("x-url", pathname)
 
-  // 8. Admin Route Protection
-  if (pathname.startsWith('/admin')) {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        const redirectUrl = request.nextUrl.clone()
-        redirectUrl.pathname = '/auth/login'
-        return NextResponse.redirect(redirectUrl)
+  // ============================================================================
+  // 7. ADMIN ROUTE PROTECTION: Check admin role
+  // ============================================================================
+  // We use the user data from updateSession (no second getUser() call)
+  // This prevents cookie desync and reduces latency
+  if (pathname.startsWith('/admin') && user) {
+    // Create client only for role check (we already have user data)
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return request.cookies.getAll() },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          },
+        },
       }
+    )
 
-      // Check user role
+    try {
+      // Check if user has admin/creator role in this tenant
       const { data: membership } = await supabase
         .from('user_tenant_memberships')
         .select('role')
         .eq('user_id', user.id)
-        .eq('tenant_id', tenantId) // This works because we resolved tenantId above
+        .eq('tenant_id', tenantId)
         .eq('is_active', true)
         .single()
 
+      // If not admin/creator, redirect to student dashboard
       if (membership?.role !== 'admin' && membership?.role !== 'creator') {
         const redirectUrl = request.nextUrl.clone()
         redirectUrl.pathname = '/student/dashboard'
         return NextResponse.redirect(redirectUrl)
       }
     } catch (error) {
-      console.error('Middleware auth error:', error)
+      console.error('Admin auth check error:', error)
+      // On error, redirect to student dashboard for safety
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = '/student/dashboard'
+      return NextResponse.redirect(redirectUrl)
     }
   }
 
-  // 9. Final Response
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  })
+  // ============================================================================
+  // 8. RETURN RESPONSE: With cookies and headers intact
+  // ============================================================================
+  return response
 }
 
-// ৬. গুরুত্বপূর্ণ: Matcher কনফিগারেশন
+// ============================================================================
+// MATCHER CONFIGURATION
+// ============================================================================
 export const config = {
   matcher: [
     /*
-     * এই প্যাটার্নটি নিশ্চিত করে যে:
-     * - api রুটগুলো মিডলওয়্যার দ্বারা ব্লক হবে না (POST 404 ফিক্স করবে)
-     * - সব স্ট্যাটিক ফাইল (images, css) স্কিপ হবে
+     * Match all request paths except:
+     * - api (API routes - handled separately)
+     * - _next/static (static files)
+     * - _next/image (image optimization)
+     * - favicon.ico, manifest.json (special files)
+     * - Files with extensions (images, css, etc.)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|manifest.json|.*\\..*).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|manifest.json|.*\\..*)*)',
   ],
 }

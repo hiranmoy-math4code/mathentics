@@ -364,12 +364,12 @@ export default function StudentDashboard() {
                     )}
                     <div className="flex justify-between text-xs mb-2 text-slate-500 dark:text-slate-400 mt-2">
                       <span>Progress</span>
-                      <span>{test.progress.toFixed(0)}%</span>
+                      <span>{test.progress ? test.progress.toFixed(0) : (test.completedExams / test.totalExams * 100).toFixed(0)}%</span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700">
                       <div
                         className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
-                        style={{ width: `${test.progress}%` }}
+                        style={{ width: `${test.progress ? test.progress : test.completedExams / test.totalExams * 100}%` }}
                       />
                     </div>
                   </motion.div>
