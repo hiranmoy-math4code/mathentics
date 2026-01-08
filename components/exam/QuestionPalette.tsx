@@ -55,19 +55,32 @@ function QuestionPaletteComponent({
 
     const PaletteGrid = () => (
         <div className="grid grid-cols-5 gap-2">
-            {questions.map((q, idx) => (
-                <button
-                    key={q.id}
-                    onClick={() => {
-                        onNavigate(idx)
-                        if (isMobileOpen) onMobileClose()
-                    }}
-                    className={`h-10 w-full rounded-lg text-sm font-semibold transition-all duration-200 ${getStatusClass(q.id, idx === activeQuestionIdx)}`}
-                    aria-label={`Question ${idx + 1}`}
-                >
-                    {idx + 1}
-                </button>
-            ))}
+            {questions.map((q, idx) => {
+                const isMarkedQuestion = marked[q.id]
+                const isAnsweredQuestion = isAnswered(q.id)
+
+                return (
+                    <button
+                        key={q.id}
+                        onClick={() => {
+                            onNavigate(idx)
+                            if (isMobileOpen) onMobileClose()
+                        }}
+                        className={`relative h-10 w-full rounded-lg text-sm font-semibold transition-all duration-200 ${getStatusClass(q.id, idx === activeQuestionIdx)}`}
+                        aria-label={`Question ${idx + 1}${isMarkedQuestion ? ' (Marked for Review)' : ''}`}
+                    >
+                        {idx + 1}
+                        {/* ✅ Flag icon for marked questions (shows even when answered) */}
+                        {isMarkedQuestion && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center shadow-sm">
+                                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 6l3-3v12l-3 3V6zm4-3l10 4-10 4V3z" />
+                                </svg>
+                            </span>
+                        )}
+                    </button>
+                )
+            })}
         </div>
     )
 
@@ -82,6 +95,12 @@ function QuestionPaletteComponent({
                 <div className="flex gap-y-2 gap-x-4 mt-4 text-xs text-muted-foreground flex-wrap">
                     <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-emerald-500"></div> Answered</div>
                     <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-amber-500"></div> Marked</div>
+                    <div className="flex items-center gap-1">
+                        <div className="relative w-3 h-3 rounded bg-emerald-500">
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-500 rounded-full"></span>
+                        </div>
+                        Ans+Mark
+                    </div>
                     <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-primary/20 border border-primary"></div> Visited</div>
                     <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-muted"></div> Unvisited</div>
                 </div>

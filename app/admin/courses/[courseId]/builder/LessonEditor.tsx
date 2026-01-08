@@ -78,11 +78,21 @@ export function LessonEditor({ lesson, course, onUpdate, onDelete }: LessonEdito
     const loadAvailableExams = async () => {
         setIsLoadingExams(true);
         try {
-            const { data, error } = await supabase
+            // ✅ Get tenant ID
+            const tenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+
+            let query = supabase
                 .from("exams")
                 .select("id, title, status")
                 .eq("status", "published")
                 .order("created_at", { ascending: false });
+
+            // ✅ Filter by tenant if available
+            if (tenantId) {
+                query = query.eq("tenant_id", tenantId);
+            }
+
+            const { data, error } = await query;
 
             if (error) throw error;
             setAvailableExams(data || []);
