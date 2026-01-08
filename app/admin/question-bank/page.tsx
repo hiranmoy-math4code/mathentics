@@ -9,6 +9,16 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
 
 import { pageBg, cardGlass } from "@/components/question-bank/ui";
@@ -20,6 +30,7 @@ import { ImportQuestionsDialog } from "./ImportQuestions";
 import { useCurrentAdmin } from "@/hooks/admin/question-bank/useCurrentAdmin";
 import { useQuestions } from "@/hooks/admin/question-bank/useQuestions";
 import { useDeleteQuestion } from "@/hooks/admin/question-bank/useDeleteQuestion";
+import { useBulkDeleteQuestions } from "@/hooks/admin/question-bank/useBulkDeleteQuestions";
 
 // New components
 import { QuestionBankHeader } from "./components/QuestionBankHeader";
@@ -35,6 +46,8 @@ const QuestionForm = dynamic(
 export default function QuestionBankPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   // Local filter state
   const [filters, setFilters] = useState({
@@ -48,6 +61,7 @@ export default function QuestionBankPage() {
 
   const { data: adminId } = useCurrentAdmin();
   const { mutateAsync: deleteQuestion } = useDeleteQuestion();
+  const { mutateAsync: bulkDeleteQuestions, isPending: isBulkDeleting } = useBulkDeleteQuestions();
 
   // Fetch questions with current filters
   const { data, isLoading, refetch } = useQuestions(filters);
@@ -83,9 +97,30 @@ export default function QuestionBankPage() {
     setFilters((prev) => ({ ...prev, search: value }));
   };
 
-  const columns = makeColumns(async (id: string) => {
-    await deleteQuestion(id);
-  });
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    try {
+      await bulkDeleteQuestions(selectedIds);
+      setSelectedIds([]);
+      setDeleteConfirmOpen(false);
+      refetch(); // ✅ Refresh the list
+    } catch (error) {
+      console.error('Bulk delete failed:', error);
+      setDeleteConfirmOpen(false);
+    }
+  };
+
+  const columns = makeColumns(
+    async (id: string) => {
+      await deleteQuestion(id);
+    },
+    selectedIds,
+    setSelectedIds
+  );
 
   return (
     <div className={`min-h-screen space-y-6 p-4 md:p-6 ${pageBg}`}>
@@ -105,6 +140,29 @@ export default function QuestionBankPage() {
         <Card className={`${cardGlass} border-slate-200 dark:border-slate-800`}>
           <CardContent className="p-6">
             <div className="space-y-4">
+              {/* Bulk Actions Bar */}
+              {selectedIds.length > 0 && (
+                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                    {selectedIds.length} question{selectedIds.length > 1 ? 's' : ''} selected
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSelectedIds([])}
+                      className="px-3 py-1.5 text-sm text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-md transition-colors"
+                    >
+                      Clear Selection
+                    </button>
+                    <button
+                      onClick={handleBulkDelete}
+                      disabled={isBulkDeleting}
+                      className="px-3 py-1.5 text-sm bg-red-600 text-white hover:bg-red-700 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isBulkDeleting ? 'Deleting...' : 'Delete Selected'}
+                    </button>
+                  </div>
+                </div>
+              )}
               {/* Search and Filters Row */}
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <SearchBar
@@ -178,6 +236,28 @@ export default function QuestionBankPage() {
           onSuccess={refetch}
         />
       )}
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.length} Question{selectedIds.length > 1 ? 's' : ''}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the selected questions and their options from the database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmBulkDelete}
+              disabled={isBulkDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isBulkDeleting ? 'Deleting...' : 'Yes, Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

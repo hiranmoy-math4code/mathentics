@@ -82,13 +82,15 @@ export const useCoursePayments = ({
                 return { data: [], count: 0 };
             }
 
-            // 2. Fetch profiles for these users manually (tenant-filtered)
+            // 2. Fetch profiles for these users manually
+            // ⚠️ Don't filter by tenant_id here - students can be from any tenant
+            // Payments are already filtered by tenant, so this is safe
             const userIds = Array.from(new Set(payments.map((p) => p.user_id)));
             const { data: profiles, error: profilesError } = await supabase
                 .from("profiles")
                 .select("id, full_name, email")
-                .in("id", userIds)
-                .eq("tenant_id", tenantId); // ✅ SECURITY FIX
+                .in("id", userIds);
+            // ✅ REMOVED: .eq("tenant_id", tenantId) - Students can be from any tenant
 
             if (profilesError) {
                 console.error("Error fetching profiles:", profilesError);

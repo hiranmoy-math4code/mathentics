@@ -742,6 +742,11 @@ export function EmbeddedExam({ examId, onExit, isRetake = false, onSuccessfulSub
                 });
             })
         }
+
+        // ✅ CLEANUP: Prevent memory leak
+        return () => {
+            setIsTimerActive(false);
+        };
     }, [sessionData])
 
 

@@ -17,11 +17,25 @@ export default function RecentAttemptsCard({ userId }: Props) {
   useEffect(() => {
     async function fetchAttempts() {
       setIsLoading(true);
+
+      // ✅ Get tenant_id from environment variable
+      const tenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+
+      if (!tenantId) {
+        console.error('NEXT_PUBLIC_TENANT_ID not set');
+        setAttempts([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Fetch attempts filtered by tenant_id
       const { data } = await supabase
         .from("exam_attempts")
-        .select("*, exams(title), profiles(full_name, email)")
+        .select("*, exams!inner(title, tenant_id), profiles(full_name, email)")
+        .eq("exams.tenant_id", tenantId)  // ✅ Filter by env tenant_id
         .order("started_at", { ascending: false })
         .limit(5);
+
       setAttempts(data || []);
       setIsLoading(false);
     }

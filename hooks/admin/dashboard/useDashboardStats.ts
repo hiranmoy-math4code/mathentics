@@ -17,9 +17,15 @@ export const useDashboardStats = (userId: string) => {
     queryFn: async () => {
       if (!userId) throw new Error("No userId provided");
 
-      // Call the optimized RPC function
+      // Get tenant_id from environment
+      const tenantId = process.env.NEXT_PUBLIC_TENANT_ID;
+
+      // Call the optimized RPC function with tenant_id
       const { data, error } = await supabase
-        .rpc('get_admin_dashboard_stats', { admin_uuid: userId });
+        .rpc('get_admin_dashboard_stats', {
+          admin_uuid: userId,
+          p_tenant_id: tenantId  // ✅ Pass tenant_id from env
+        });
 
       if (error) {
         console.error("Dashboard fetch error:", error);

@@ -128,48 +128,27 @@ export async function POST(req: NextRequest) {
         // CREATE ENROLLMENT (if success)
         // ============================================================================
         if (paymentStatus === "success") {
-            // Check if enrollment already exists
-            const { data: existingEnrollment } = await supabase
+            // ✅ SAFE: Use upsert to handle race conditions with UNIQUE constraint
+            // If enrollment exists, update it. If not, create new one.
+            const { error: enrollError } = await supabase
                 .from("enrollments")
-                .select("id")
-                .eq("user_id", payment.user_id)
-                .eq("course_id", payment.course_id)
-                .single();
+                .upsert({
+                    user_id: payment.user_id,
+                    course_id: payment.course_id,
+                    status: "active",
+                    payment_id: payment.id,
+                    enrolled_at: new Date().toISOString(),
+                    progress: 0,
+                    tenant_id: payment.tenant_id
+                }, {
+                    onConflict: 'user_id,course_id',
+                    ignoreDuplicates: false  // Update if exists
+                });
 
-            if (!existingEnrollment) {
-                // Create new enrollment
-                const { error: enrollError } = await supabase
-                    .from("enrollments")
-                    .insert({
-                        user_id: payment.user_id,
-                        course_id: payment.course_id,
-                        status: "active",
-                        payment_id: payment.id,
-                        enrolled_at: new Date().toISOString(),
-                        progress: 0,
-                        tenant_id: payment.tenant_id
-                    });
-
-                if (enrollError) {
-                    console.error("❌ Enrollment creation failed:", enrollError);
-                } else {
-                    console.log(`✅ Enrollment created for user ${payment.user_id}`);
-                }
+            if (enrollError) {
+                console.error("❌ Enrollment upsert failed:", enrollError);
             } else {
-                // Reactivate existing enrollment
-                const { error: updateEnrollError } = await supabase
-                    .from("enrollments")
-                    .update({
-                        status: "active",
-                        payment_id: payment.id
-                    })
-                    .eq("id", existingEnrollment.id);
-
-                if (updateEnrollError) {
-                    console.error("❌ Enrollment update failed:", updateEnrollError);
-                } else {
-                    console.log(`✅ Enrollment reactivated for user ${payment.user_id}`);
-                }
+                console.log(`✅ Enrollment created/updated for user ${payment.user_id}`);
             }
 
             // TODO: Send confirmation email
