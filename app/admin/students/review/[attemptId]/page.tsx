@@ -68,7 +68,7 @@ export default function AdminExamReviewPage() {
                         const a = (ans as string[]).sort();
                         isCorrect = c.length === a.length && c.every((x: any, i: any) => x === a[i]);
                     } else if (q.question_type === "NAT") {
-                        isCorrect = String(ans).trim() === String(q.correct_answer).trim();
+                        isCorrect = Number(Math.abs(Number(ans) - Number(q.correct_answer)).toFixed(2)) <= 0.01;
                     }
                     if (isCorrect) {
                         got = q.marks;
@@ -332,7 +332,12 @@ export default function AdminExamReviewPage() {
                                                             </div>
                                                             <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800">
                                                                 <p className="text-[10px] font-black text-emerald-500 uppercase mb-1">Correct Answer</p>
-                                                                <p className="text-xl font-black text-emerald-700 dark:text-emerald-300">{q.correct_answer}</p>
+                                                                <p className="text-xl font-black text-emerald-700 dark:text-emerald-300">
+                                                                    {q.correct_answer}
+                                                                    <span className="text-xs font-normal text-emerald-600/70 block mt-1">
+                                                                        (Range: {(Number(q.correct_answer) - 0.01).toFixed(2)} - {(Number(q.correct_answer) + 0.01).toFixed(2)})
+                                                                    </span>
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     )}

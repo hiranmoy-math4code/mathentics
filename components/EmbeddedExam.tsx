@@ -161,7 +161,12 @@ function QuestionAnalysisView({
                                 })}
                                 {q.question_type === "NAT" && (
                                     <div className="p-3 rounded-lg border border-border bg-muted/30">
-                                        <div className="text-sm text-muted-foreground mb-1">Correct Answer: <span className="text-emerald-500 font-mono">{q.correct_answer}</span></div>
+                                        <div className="text-sm text-muted-foreground mb-1">
+                                            Correct Answer: <span className="text-emerald-500 font-mono">{q.correct_answer}</span>
+                                            <span className="text-xs text-muted-foreground ml-2">
+                                                (Range: {(Number(q.correct_answer) - 0.01).toFixed(2)} - {(Number(q.correct_answer) + 0.01).toFixed(2)})
+                                            </span>
+                                        </div>
                                         {!isExpired && <div className="text-sm text-muted-foreground">Your Answer: <span className={`${isCorrect ? "text-emerald-500" : "text-rose-500"} font-mono`}>{userAns ?? "N/A"}</span></div>}
                                     </div>
                                 )}
@@ -188,7 +193,7 @@ function QuestionAnalysisView({
 // Helper functions for analysis
 function checkAnswer(q: any, ans: any) {
     if (ans === undefined || ans === null || (Array.isArray(ans) && ans.length === 0)) return false
-    if (q.question_type === "NAT") return Number(ans) === Number(q.correct_answer)
+    if (q.question_type === "NAT") return Number(Math.abs(Number(ans) - Number(q.correct_answer)).toFixed(2)) <= 0.01;
     if (q.question_type === "MCQ") {
         const correctOpt = q.options.find((o: any) => o.is_correct)?.id
         return ans === correctOpt

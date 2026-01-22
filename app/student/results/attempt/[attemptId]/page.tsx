@@ -71,8 +71,9 @@ export default function ExamResultPage() {
             const c = q.options.filter((o: any) => o.is_correct).map((o: any) => o.id).sort()
             const a = (ans as string[]).sort()
             isCorrect = c.length === a.length && c.every((x: any, i: any) => x === a[i])
+            isCorrect = c.length === a.length && c.every((x: any, i: any) => x === a[i])
           } else if (q.question_type === "NAT") {
-            isCorrect = String(ans).trim() === String(q.correct_answer).trim()
+            isCorrect = Number(Math.abs(Number(ans) - Number(q.correct_answer)).toFixed(2)) <= 0.01;
           }
           if (isCorrect) {
             got = q.marks
@@ -471,6 +472,9 @@ export default function ExamResultPage() {
                             <div className="text-sm text-green-600 dark:text-green-400 mb-1">Correct Answer</div>
                             <div className="text-lg font-bold text-green-700 dark:text-green-300">
                               {renderWithLatex(q.correct_answer)}
+                              <span className="text-xs font-normal text-green-600/70 dark:text-green-400/70 block mt-1">
+                                (Range: {(Number(q.correct_answer) - 0.01).toFixed(2)} - {(Number(q.correct_answer) + 0.01).toFixed(2)})
+                              </span>
                             </div>
                           </div>
                         </div>
