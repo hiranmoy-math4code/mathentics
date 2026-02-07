@@ -76,7 +76,9 @@ export default function StudentManagementClient({ courses, testSeries }: any) {
 
     // Stats
     const totalStudents = students.length;
-    const activeStudents = students.filter(s => s.totalEnrollments > 0).length;
+    const activeStudents = students.filter(s =>
+        s.enrollments.some((e: any) => e.status === 'active' || (e.expires_at && new Date(e.expires_at) > new Date()))
+    ).length;
     const expiringSoon = students.reduce((acc, s) => acc + s.expiringSoonCount, 0);
 
     return (

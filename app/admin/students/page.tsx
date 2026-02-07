@@ -6,6 +6,7 @@ import StudentManagementClient from "@/components/admin/StudentManagementClient"
 import { useQuery } from "@tanstack/react-query";
 import { useCurrentUser } from "@/hooks/student/useCurrentUser";
 import Loading from "../dashboard/components/Loading";
+import { getTenantId } from "@/lib/tenant";
 
 const supabase = createClient();
 
@@ -21,10 +22,13 @@ export default function StudentsPage() {
   const { data: initialData, isLoading } = useQuery({
     queryKey: ["admin-students-init", userId],
     queryFn: async () => {
+      const tenantId = getTenantId();
+
       // Fetch courses (course_type = 'course')
       const { data: courses } = await supabase
         .from('courses')
         .select('id, title, thumbnail_url, course_type')
+        .eq('tenant_id', tenantId)
         .eq('course_type', 'course')
         .eq('is_published', true)
         .order('title', { ascending: true });
@@ -33,6 +37,7 @@ export default function StudentsPage() {
       const { data: testSeries } = await supabase
         .from('courses')
         .select('id, title, thumbnail_url, course_type')
+        .eq('tenant_id', tenantId)
         .eq('course_type', 'test_series')
         .eq('is_published', true)
         .order('title', { ascending: true });

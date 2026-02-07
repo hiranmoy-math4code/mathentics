@@ -12,6 +12,7 @@ export async function addStudent(data: {
     email: string;
     fullName: string;
     sendInvite?: boolean;
+    redirectTo?: string;
 }) {
     // Use createClient instead of createTenantClient for Cloudflare compatibility
     const { createClient } = await import('@/lib/supabase/server');
@@ -51,6 +52,15 @@ export async function addStudent(data: {
         if (data.sendInvite) {
             const adminClient = createAdminClient();
 
+            // Construct redirect URL: Use provided one, or env var, or fallback
+            // Ensure we append the callback path if not present
+            let redirectUrl = data.redirectTo || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mathentics.com';
+            if (!redirectUrl.includes('/auth/callback')) {
+                redirectUrl = `${redirectUrl.replace(/\/$/, '')}/auth/callback`;
+            }
+
+            console.log(`[addStudent] Sending invite with redirect: ${redirectUrl}`);
+
             // Invite user via Supabase Auth
             const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
                 data.email,
@@ -59,7 +69,7 @@ export async function addStudent(data: {
                         full_name: data.fullName,
                         role: 'student'
                     },
-                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mathentics.com'}/auth/callback`
+                    redirectTo: redirectUrl
                 }
             );
 
@@ -126,24 +136,31 @@ export async function searchStudents(query: string) {
     if (!tenantId) return { error: 'Tenant context missing' };
 
     try {
-        // Perform search on profiles via user_tenant_memberships to ensure isolation
-        const { data, error } = await supabase
+        // 1. Search profiles first
+        const { data: profiles, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, email, full_name, avatar_url, created_at')
+            .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
+            .limit(50); // Get top 50 matches
+
+        if (profileError) throw profileError;
+        if (!profiles || profiles.length === 0) return { success: true, data: [] };
+
+        const profileIds = profiles.map(p => p.id);
+
+        // 2. Filter by Tenant Membership
+        const { data: memberships, error: membershipError } = await supabase
             .from('user_tenant_memberships')
-            .select(`
-                user_id,
-                profiles!inner (
-                    id, email, full_name, avatar_url, created_at
-                )
-            `)
+            .select('user_id')
             .eq('tenant_id', tenantId)
             .eq('role', 'student')
-            .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`, { foreignTable: 'profiles' })
-            .limit(20);
+            .in('user_id', profileIds);
 
-        if (error) throw error;
+        if (membershipError) throw membershipError;
 
-        // Flatten the structure to match expected output
-        const validStudents = data?.map((item: any) => item.profiles).filter(Boolean) || [];
+        // 3. Return only profiles that have a valid membership
+        const validUserIds = new Set(memberships?.map((m: any) => m.user_id));
+        const validStudents = profiles.filter(p => validUserIds.has(p.id));
 
         return { success: true, data: validStudents };
     } catch (error: any) {
@@ -191,7 +208,7 @@ export async function getOptimizedStudentsWithEnrollments(filters?: {
 
         // For cross-tenant: we need to fetch enrollments where the COURSE belongs to this tenant
         // This is simpler than complex .or() filters
-        const { data: enrollments, error: enrollmentsError, count } = await supabase
+        let query = supabase
             .from('enrollments')
             .select(`
                 id,
@@ -217,8 +234,23 @@ export async function getOptimizedStudentsWithEnrollments(filters?: {
                     tenant_id
                 )
             `, { count: 'exact' })
-            .eq('courses.tenant_id', tenantId) // Filter by course's tenant (supports cross-tenant)
-            .eq('status', 'active')
+            .eq('courses.tenant_id', tenantId);
+
+        // Apply status filter if provided
+        if (filters?.status === 'active') {
+            query = query.eq('status', 'active');
+        } else if (filters?.status === 'expired') {
+            // Include both DB-level expired AND potentially active-but-expired-by-date
+            // We fetch both and filter by date later if needed, or rely on DB status
+            query = query.in('status', ['active', 'expired']);
+        } else {
+            // For 'all', we exclude technical statuses like 'pending' or 'refunded' unless needed
+            // But let's keep it safe and just exclude clearly invalid ones if ANY
+            // Or just show everything that isn't deleted
+            query = query.in('status', ['active', 'expired', 'completed']);
+        }
+
+        const { data: enrollments, error: enrollmentsError, count } = await query
             .order('enrolled_at', { ascending: false })
             .range(offset, offset + pageSize - 1);
 

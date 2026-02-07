@@ -290,8 +290,12 @@ export async function extendAccess(data: {
     try {
         const { createClient } = await import('@/lib/supabase/server');
         const authClient = await createClient();
-        const { data: { user } } = await authClient.auth.getUser();
-        if (!user) return { error: 'Unauthorized' };
+        const { data: { user }, error: authError } = await authClient.auth.getUser();
+
+        if (authError || !user) {
+            console.error('[extendAccess] Auth failed:', authError?.message || 'No user session');
+            return { error: 'Unauthorized: No active session, please login again' };
+        }
 
         const supabase = createAdminClient();
         const tenantId = await getTenantIdFromHeaders() || process.env.NEXT_PUBLIC_TENANT_ID;
@@ -299,6 +303,11 @@ export async function extendAccess(data: {
         if (!tenantId) {
             return { error: 'Tenant ID not configured' };
         }
+
+        // Set expiry to end of day (23:59:59.999) to ensure the user gets access for the entire day
+        const expiryDate = new Date(data.newExpiryDate);
+        expiryDate.setHours(23, 59, 59, 999);
+        const isoExpiry = expiryDate.toISOString();
 
         // Get current enrollment
         const { data: existing, error: fetchError } = await supabase
@@ -316,11 +325,15 @@ export async function extendAccess(data: {
         console.log('[extendAccess] Current enrollment:', existing);
         const previousExpiry = existing?.expires_at;
 
+        // Determine status based on new expiry date
+        const newStatus = expiryDate > new Date() ? 'active' : 'expired';
+
         // Update the expiry date
         const { data: updated, error } = await supabase
             .from('enrollments')
             .update({
-                expires_at: data.newExpiryDate.toISOString(),
+                expires_at: isoExpiry,
+                status: newStatus,
                 updated_at: new Date().toISOString()
             })
             .eq('id', data.enrollmentId)
@@ -349,7 +362,7 @@ export async function extendAccess(data: {
             p_performed_by: user.id,
             p_enrollment_id: data.enrollmentId,
             p_previous_expiry: previousExpiry,
-            p_new_expiry: data.newExpiryDate.toISOString(),
+            p_new_expiry: isoExpiry,
             p_notes: data.notes || 'Access period extended'
         });
 

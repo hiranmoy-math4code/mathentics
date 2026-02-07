@@ -29,7 +29,10 @@ export function AddStudentDialog({ open, onOpenChange, onSuccess }: AddStudentDi
         setLoading(true);
 
         try {
-            const result = await addStudent(formData);
+            const result = await addStudent({
+                ...formData,
+                redirectTo: window.location.origin
+            });
 
             if (result.error) {
                 toast.error(result.error);
