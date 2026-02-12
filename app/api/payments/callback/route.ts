@@ -128,6 +128,20 @@ export async function POST(req: NextRequest) {
         // CREATE ENROLLMENT (if success)
         // ============================================================================
         if (paymentStatus === "success") {
+            // Fetch Course Duration to calculate new expiry
+            const { data: courseData } = await supabase
+                .from('courses')
+                .select('duration_months')
+                .eq('id', payment.course_id)
+                .single();
+
+            let newExpiresAt = null;
+            if (courseData?.duration_months) {
+                const expiryDate = new Date();
+                expiryDate.setMonth(expiryDate.getMonth() + courseData.duration_months);
+                newExpiresAt = expiryDate.toISOString();
+            }
+
             // ✅ SAFE: Use upsert to handle race conditions with UNIQUE constraint
             // If enrollment exists, update it. If not, create new one.
             const { error: enrollError } = await supabase
@@ -138,7 +152,8 @@ export async function POST(req: NextRequest) {
                     status: "active",
                     payment_id: payment.id,
                     enrolled_at: new Date().toISOString(),
-                    progress: 0,
+                    expires_at: newExpiresAt,
+                    // progress: 0, // Don't reset progress on re-purchase, let them continue
                     tenant_id: payment.tenant_id
                 }, {
                     onConflict: 'user_id,course_id',

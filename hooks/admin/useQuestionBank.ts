@@ -121,6 +121,7 @@ export function useAddQuestionFromBank() {
             const { error } = await supabase.rpc('add_question_with_options', {
                 p_section_id: sectionId,
                 p_question_bank_id: questionBankId,
+                p_tenant_id: resolvedTenantId,
             });
 
             if (error) throw error;

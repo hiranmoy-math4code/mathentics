@@ -16,6 +16,7 @@ import { LessonAppContainer } from "@/components/LessonAppContainer";
  */
 export const runtime = 'edge';
 
+
 export default async function CourseLessonPage({
     params,
     searchParams,
@@ -36,40 +37,40 @@ export default async function CourseLessonPage({
         redirect(`/auth/login?next=${encodeURIComponent(nextPath)}`);
     }
 
-    // Verify user has tenant membership (ensures complete setup)
-    const { data: membership } = await supabase
-        .from('user_tenant_memberships')
-        .select('id, is_active')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .single();
+    // ⚡ OPTIMIZATION: Run independent checks in parallel
+    // 1. Course Price
+    // 2. Enrollment Status
+    const [courseResult, enrollmentResult] = await Promise.all([
+        supabase
+            .from('courses')
+            .select('price')
+            .eq('id', courseId)
+            .single(),
+        supabase
+            .from("enrollments")
+            .select("status, expires_at")
+            .eq("user_id", user.id)
+            .eq("course_id", courseId)
+            .eq("status", "active")
+            .single()
+    ]);
 
-    if (!membership) {
-        // User is authenticated but missing tenant membership
-        // This shouldn't happen with the fixed OAuth flow, but handle it gracefully
-        console.error(`[LEARN] User ${user.email} missing tenant membership`);
-        redirect('/auth/login?error=Account setup incomplete. Please login again.');
-    }
+    const { data: course } = courseResult;
+    const { data: enrollment } = enrollmentResult;
 
-    // Fast Enrollment Check (indexed query)
-    const { data: enrollment } = await supabase
-        .from("enrollments")
-        .select("status, expires_at")
-        .eq("user_id", user.id)
-        .eq("course_id", courseId)
-        .eq("status", "active")
-        .single();
     const isEnrolled = !!enrollment;
 
     // Check if enrollment has expired
+    let isExpired = false;
     if (enrollment?.expires_at) {
         const expiryDate = new Date(enrollment.expires_at);
         const now = new Date();
         if (expiryDate < now) {
-            // Course access has expired, redirect to course page
-            redirect(`/courses/${courseId}?expired=true`);
+            isExpired = true;
         }
     }
+    // TEMP: Force expiration for testing
+    // isExpired = true;
 
     return (
         <LessonAppContainer
@@ -77,6 +78,8 @@ export default async function CourseLessonPage({
             user={user}
             isEnrolled={isEnrolled}
             initialLessonId={lessonId}
+            isExpired={isExpired}
+            coursePrice={course?.price || 0}
         />
     );
 }

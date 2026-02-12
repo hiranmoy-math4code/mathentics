@@ -82,12 +82,24 @@ export async function POST(req: Request) {
             );
         }
 
-        // Fetch course price
-        const { data: course, error: courseError } = await supabase
-            .from("courses")
-            .select("price, title")
-            .eq("id", courseId)
-            .single();
+        // Fetch course and enrollment in parallel for optimization
+        const [courseResult, enrollmentResult] = await Promise.all([
+            supabase
+                .from("courses")
+                .select("price, title")
+                .eq("id", courseId)
+                .single(),
+            supabase
+                .from("enrollments")
+                .select("id, status, expires_at")
+                .eq("user_id", user.id)
+                .eq("course_id", courseId)
+                .eq("tenant_id", tenantId)
+                .single()
+        ]);
+
+        const { data: course, error: courseError } = courseResult;
+        const { data: existingEnrollment } = enrollmentResult;
 
         if (courseError || !course) {
             return NextResponse.json(
@@ -96,22 +108,17 @@ export async function POST(req: Request) {
             );
         }
 
-
-
-        // Check if already enrolled
-        const { data: existingEnrollment } = await supabase
-            .from("enrollments")
-            .select("id, status")
-            .eq("user_id", user.id)
-            .eq("course_id", courseId)
-            .eq("tenant_id", tenantId)
-            .single();
-
         if (existingEnrollment && existingEnrollment.status === "active") {
-            return NextResponse.json(
-                { error: "Already enrolled" },
-                { status: 400, headers: corsHeaders }
-            );
+            // Check if expired
+            const isExpired = existingEnrollment.expires_at && new Date(existingEnrollment.expires_at) < new Date();
+
+            if (!isExpired) {
+                return NextResponse.json(
+                    { error: "Already enrolled" },
+                    { status: 400, headers: corsHeaders }
+                );
+            }
+            // If expired, allow proceeding to payment to renew/repurchase
         }
 
         // Handle Free Course - create enrollment directly

@@ -24,18 +24,25 @@ import { useLessonProgress } from '@/hooks/student/useLessonProgress';
 import { toast } from 'sonner';
 import { Lock } from 'lucide-react';
 
+
+import EnrollButton from "@/components/course/EnrollButton";
+
 interface LessonAppContainerProps {
     courseId: string;
     user: any;
     isEnrolled: boolean;
     initialLessonId?: string;
+    isExpired?: boolean;
+    coursePrice?: number;
 }
 
 export function LessonAppContainer({
     courseId,
     user,
     isEnrolled,
-    initialLessonId
+    initialLessonId,
+    isExpired = false,
+    coursePrice = 0
 }: LessonAppContainerProps) {
     const searchParams = useSearchParams();
     const queryClient = useQueryClient();
@@ -144,6 +151,45 @@ export function LessonAppContainer({
                 <div className="text-center">
                     <h3 className="text-xl font-bold mb-2">No Lessons Available</h3>
                     <p className="text-muted-foreground">This course has no lessons yet.</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Access control - Expired check
+    if (isExpired) {
+        return (
+            <div className="flex items-center justify-center h-full p-8 bg-background relative">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-700/25 dark:[mask-image:linear-gradient(0deg,rgba(255,255,255,0.1),rgba(255,255,255,0.5))]" />
+
+                <div className="text-center max-w-md space-y-6 relative z-10 bg-card p-8 rounded-2xl border shadow-sm">
+                    <div className="mx-auto w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center animate-in zoom-in duration-500">
+                        <Lock className="h-10 w-10 text-red-500" />
+                    </div>
+
+                    <div className="space-y-2">
+                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
+                            Course Expired
+                        </h3>
+                        <p className="text-slate-600 dark:text-slate-400">
+                            Your access to this course has expired. To continue learning effectively, please renew your subscription.
+                        </p>
+                    </div>
+
+                    <div className="pt-2">
+                        <EnrollButton
+                            courseId={courseId}
+                            price={coursePrice}
+                            isEnrolled={false} // Force false to show buy button
+                            isLoggedIn={!!user?.id}
+                            customText="Buy Again & Continue"
+                        />
+                    </div>
+
+                    <p className="text-xs text-muted-foreground mt-4">
+                        All your progress is saved and will be restored upon renewal.
+                    </p>
                 </div>
             </div>
         );

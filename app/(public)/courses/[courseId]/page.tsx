@@ -10,7 +10,7 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion";
 import { CheckCircle, PlayCircle, FileText, Lock, Unlock } from "lucide-react";
-import EnrollButton from "./EnrollButton";
+import EnrollButton from "@/components/course/EnrollButton";
 import { CourseThumbnail } from "@/components/ui/CourseThumbnail";
 import { CourseSchema } from "@/components/seo/StructuredData";
 
