@@ -202,6 +202,15 @@ export function LessonAppContainer({
                 <div className="text-center">
                     <h3 className="text-xl font-bold mb-2">Content Locked</h3>
                     <p className="text-muted-foreground">Enroll in this course to access this lesson.</p>
+                    <div className="pt-2">
+                        <EnrollButton
+                            courseId={courseId}
+                            price={coursePrice}
+                            isEnrolled={false} // Force false to show buy button
+                            isLoggedIn={!!user?.id}
+                            customText="Buy Now"
+                        />
+                    </div>
                 </div>
             </div>
         );

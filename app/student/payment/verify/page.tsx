@@ -47,7 +47,7 @@ function PaymentVerifyContent() {
                         setStatus("success");
                         setMessage("Payment successful! Redirecting to course...");
                         setTimeout(() => {
-                            window.location.href = "/student/dashboard?tab=my-courses";
+                            window.location.href = "/student/dashboard?tab=overview";
                         }, 2000);
                         return true;
                     } else if (data.status === "failed") {
