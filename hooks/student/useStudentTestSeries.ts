@@ -45,7 +45,7 @@ export function useStudentTestSeries(userId: string | undefined) {
                 `)
                 .eq('user_id', userId)
                 .eq('tenant_id', getTenantId()) // ✅ Strict Tenant Isolation
-                .in('status', ['active', 'completed'])
+                .in('status', ['active', 'completed', 'expired'])
                 .order('last_accessed_at', { ascending: false, nullsFirst: false })
                 .abortSignal(signal);
 

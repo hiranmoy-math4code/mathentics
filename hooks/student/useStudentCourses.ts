@@ -93,7 +93,7 @@ export function useStudentCourses(userId: string | undefined) {
                 `)
                 .eq('user_id', userId)
                 .eq('tenant_id', tenantId) // ✅ Show only courses from current tenant domain
-                .in('status', ['active', 'completed'])
+                .in('status', ['active', 'completed', 'expired'])
                 .order('last_accessed_at', { ascending: false, nullsFirst: false });
 
             if (error) console.error("❌ useStudentCourses Error:", error);
