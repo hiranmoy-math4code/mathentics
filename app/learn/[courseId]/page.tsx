@@ -51,14 +51,16 @@ export default async function CourseLessonPage({
             .select("status, expires_at")
             .eq("user_id", user.id)
             .eq("course_id", courseId)
-            .eq("status", "active")
-            .single()
+            .in("status", ["active", "expired"])
+            .maybeSingle()
     ]);
 
     const { data: course } = courseResult;
     const { data: enrollment } = enrollmentResult;
 
     const isEnrolled = !!enrollment;
+
+    console.log("enrollment", enrollment);
 
     // Check if enrollment has expired
     let isExpired = false;
